@@ -1,23 +1,126 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Clinic Appointment System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A full-stack clinic appointment management system built with NestJS backend and HTML/CSS/JavaScript frontend.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
+## Features
+
+### Backend (NestJS + TypeORM + SQLite)
+- **Authentication System**: JWT-based login with bcrypt password hashing
+- **User Management**: Full CRUD operations for users and doctors
+- **Appointment System**: Book, view, and cancel appointments
+- **Role-based Access**: Separate registration for patients and doctors
+- **Database**: SQLite with TypeORM entities and relationships
+
+### Frontend (HTML/CSS/JavaScript)
+- **Landing Page**: Welcome page with navigation
+- **User Registration**: Patient registration form
+- **Doctor Registration**: Doctor registration form
+- **Login Page**: Authentication with role selection
+- **Dashboard**: Role-based dashboard with:
+  - **Patient Dashboard**: View appointments, book new ones, browse doctors
+  - **Doctor Dashboard**: View scheduled appointments, appointment statistics
+- **Responsive Design**: Modern CSS with gradient headers and card layouts
+
+## Tech Stack
+
+- **Backend**: NestJS, TypeORM, SQLite, JWT, bcrypt, Passport
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+), Fetch API
+- **Database**: SQLite with automatic schema generation
+- **Authentication**: JWT with role-based access control
+
+## Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/alfredocastalla/Clinic-Appointment-System.git
+   cd clinic-appointment-system
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the application**:
+   ```bash
+   npm start
+   ```
+
+   The server will run on `http://localhost:3001`
+
+## Usage
+
+1. **Access the application**:
+   Open `http://localhost:3001` in your browser
+
+2. **Register**:
+   - Register as a patient or doctor
+   - Login with your credentials
+
+3. **Manage Appointments**:
+   - Patients can book appointments with doctors
+   - Doctors can view their scheduled appointments
+   - Appointments can be cancelled
+
+## API Endpoints
+
+- `POST /auth/register/user` - Register new patient
+- `POST /auth/register/doctor` - Register new doctor
+- `POST /auth/login` - Login with email/password
+- `GET /users` - Get all users
+- `GET /doctors` - Get all doctors
+- `POST /appointments` - Book appointment
+- `GET /appointments` - Get all appointments
+- `PATCH /appointments/:id/cancel` - Cancel appointment
+
+## Project Structure
+
+```
+clinic-appointment-system/
+├── src/
+│   ├── app.module.ts
+│   ├── main.ts
+│   ├── auth/
+│   │   ├── auth.controller.ts
+│   │   ├── auth.service.ts
+│   │   ├── auth.module.ts
+│   │   └── jwt.strategy.ts
+│   ├── users/
+│   │   ├── users.controller.ts
+│   │   ├── users.service.ts
+│   │   ├── users.module.ts
+│   │   └── entities/user.entity.ts
+│   ├── doctors/
+│   │   ├── doctors.controller.ts
+│   │   ├── doctors.service.ts
+│   │   ├── doctors.module.ts
+│   │   └── entities/doctor.entity.ts
+│   └── appointments/
+│       ├── appointments.controller.ts
+│       ├── appointments.service.ts
+│       ├── appointments.module.ts
+│       └── entities/appointment.entity.ts
+├── public/
+│   ├── index.html
+│   ├── register-user.html
+│   ├── register-doctor.html
+│   ├── login.html
+│   └── dashboard.html
+├── test/
+└── package.json
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
