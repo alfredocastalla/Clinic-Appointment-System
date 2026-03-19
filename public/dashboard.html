@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Clinic Appointment System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 2em; }
+        .user-info { background: white; padding: 15px; margin: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h3 { margin-top: 0; color: #333; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin: 5px; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #45a049; }
+        .btn-secondary { background: #2196F3; color: white; }
+        .btn-secondary:hover { background: #0b7dda; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn-accent { background: #FF9800; color: white; }
+        .btn-accent:hover { background: #e68900; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .list { margin-top: 15px; }
+        .item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; background: #fafafa; }
+        .item strong { color: #333; }
+        .logout-btn { position: absolute; top: 20px; right: 20px; background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .logout-btn:hover { background: #d32f2f; }
+        .hidden { display: none; }
+        .success { color: green; margin-top: 10px; }
+        .error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 Clinic Appointment System</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="user-info">
+        <div class="container">
+            <h2 id="welcomeMessage">Welcome!</h2>
+            <p id="userDetails"></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- User Dashboard -->
+            <div id="userDashboard" class="hidden">
+                <div class="card">
+                    <h3>📅 My Appointments</h3>
+                    <button class="btn btn-primary" onclick="loadUserAppointments()">Load My Appointments</button>
+                    <div id="userAppointmentsList" class="list"></div>
+                </div>
+
+                <div class="card">
+                    <h3>🧑‍⚕️ Book New Appointment</h3>
+                    <div class="form-group">
+                        <label>Doctor ID:</label>
+                        <input type="number" id="bookDoctorId">
+                    </div>
+                    <div class="form-group">
+                        <label>Date:</label>
+                        <input type="date" id="bookDate">
+                    </div>
+                    <button class="btn btn-accent" onclick="bookAppointment()">Book Appointment</button>
+                    <div id="bookMessage"></div>
+                </div>
+
+                <div class="card">
+                    <h3>👨‍⚕️ Available Doctors</h3>
+                    <button class="btn btn-secondary" onclick="loadDoctors()">Load Doctors</button>
+                    <div id="doctorsList" class="list"></div>
+                </div>
+            </div>
+
+            <!-- Doctor Dashboard -->
+            <div id="doctorDashboard" class="hidden">
+                <div class="card">
+                    <h3>📋 My Appointments</h3>
+                    <button class="btn btn-primary" onclick="loadDoctorAppointments()">Load My Appointments</button>
+                    <div id="doctorAppointmentsList" class="list"></div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Appointment Statistics</h3>
+                    <button class="btn btn-secondary" onclick="loadAppointmentStats()">Load Statistics</button>
+                    <div id="statsDisplay"></div>
+                </div>
+
+                <div class="card">
+                    <h3>⚙️ Profile Settings</h3>
+                    <p>Manage your doctor profile and availability.</p>
+                    <button class="btn btn-accent" onclick="editProfile()">Edit Profile</button>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard (if needed in future) -->
+            <div id="adminDashboard" class="hidden">
+                <div class="card">
+                    <h3>👥 All Users</h3>
+                    <button class="btn btn-primary" onclick="loadAllUsers()">Load All Users</button>
+                    <div id="allUsersList" class="list"></div>
+                </div>
+
+                <div class="card">
+                    <h3>🧑‍⚕️ All Doctors</h3>
+                    <button class="btn btn-secondary" onclick="loadAllDoctors()">Load All Doctors</button>
+                    <div id="allDoctorsList" class="list"></div>
+                </div>
+
+                <div class="card">
+                    <h3>📅 All Appointments</h3>
+                    <button class="btn btn-accent" onclick="loadAllAppointments()">Load All Appointments</button>
+                    <div id="allAppointmentsList" class="list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let token = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            token = localStorage.getItem('token');
+            const userData = localStorage.getItem('user');
+
+            if (!token || !userData) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentUser = JSON.parse(userData);
+
+            // Set welcome message
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser.name}!`;
+            document.getElementById('userDetails').textContent = `Role: ${currentUser.role} | Email: ${currentUser.email}`;
+
+            // Show appropriate dashboard
+            if (currentUser.role === 'user') {
+                document.getElementById('userDashboard').classList.remove('hidden');
+            } else if (currentUser.role === 'doctor') {
+                document.getElementById('doctorDashboard').classList.remove('hidden');
+            } else {
+                // Admin or other roles
+                document.getElementById('adminDashboard').classList.remove('hidden');
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        async function apiCall(url, method = 'GET', body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const response = await fetch(url, {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : null
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        // User functions
+        async function loadUserAppointments() {
+            try {
+                const appointments = await apiCall('/appointments');
+                // Filter appointments for current user (assuming patientName matches user name)
+                const userAppointments = appointments.filter(apt => apt.patientName === currentUser.name);
+                const list = document.getElementById('userAppointmentsList');
+                list.innerHTML = userAppointments.map(apt => `
+                    <div class="item">
+                        <strong>Doctor ${apt.doctorId}</strong> on ${apt.date} - ${apt.status}
+                        ${apt.status === 'booked' ? `<button class="btn btn-danger" onclick="cancelAppointment(${apt.id})">Cancel</button>` : ''}
+                    </div>
+                `).join('') || '<p>No appointments found.</p>';
+            } catch (error) {
+                document.getElementById('userAppointmentsList').innerHTML = '<p class="error">Error loading appointments.</p>';
+            }
+        }
+
+        async function bookAppointment() {
+            const doctorId = parseInt(document.getElementById('bookDoctorId').value);
+            const date = document.getElementById('bookDate').value;
+
+            if (!doctorId || !date) {
+                document.getElementById('bookMessage').innerHTML = '<div class="error">Please fill all fields.</div>';
+                return;
+            }
+
+            try {
+                const result = await apiCall('/appointments', 'POST', {
+                    patientName: currentUser.name,
+                    doctorId,
+                    date
+                });
+                document.getElementById('bookMessage').innerHTML = '<div class="success">Appointment booked successfully!</div>';
+                loadUserAppointments();
+            } catch (error) {
+                document.getElementById('bookMessage').innerHTML = '<div class="error">Error booking appointment.</div>';
+            }
+        }
+
+        async function loadDoctors() {
+            try {
+                const doctors = await apiCall('/doctors');
+                const list = document.getElementById('doctorsList');
+                list.innerHTML = doctors.map(doctor => `<div class="item"><strong>${doctor.name}</strong> - ${doctor.specialization} (ID: ${doctor.id})</div>`).join('');
+            } catch (error) {
+                document.getElementById('doctorsList').innerHTML = '<p class="error">Error loading doctors.</p>';
+            }
+        }
+
+        async function cancelAppointment(id) {
+            try {
+                await apiCall(`/appointments/${id}/cancel`, 'PATCH');
+                loadUserAppointments();
+                alert('Appointment cancelled successfully!');
+            } catch (error) {
+                alert('Error cancelling appointment.');
+            }
+        }
+
+        // Doctor functions
+        async function loadDoctorAppointments() {
+            try {
+                const appointments = await apiCall('/appointments');
+                // Filter appointments for current doctor
+                const doctorAppointments = appointments.filter(apt => apt.doctorId === currentUser.id);
+                const list = document.getElementById('doctorAppointmentsList');
+                list.innerHTML = doctorAppointments.map(apt => `
+                    <div class="item">
+                        <strong>${apt.patientName}</strong> on ${apt.date} - ${apt.status}
+                    </div>
+                `).join('') || '<p>No appointments scheduled.</p>';
+            } catch (error) {
+                document.getElementById('doctorAppointmentsList').innerHTML = '<p class="error">Error loading appointments.</p>';
+            }
+        }
+
+        async function loadAppointmentStats() {
+            try {
+                const appointments = await apiCall('/appointments');
+                const doctorAppointments = appointments.filter(apt => apt.doctorId === currentUser.id);
+                const total = doctorAppointments.length;
+                const booked = doctorAppointments.filter(apt => apt.status === 'booked').length;
+                const cancelled = doctorAppointments.filter(apt => apt.status === 'cancelled').length;
+
+                document.getElementById('statsDisplay').innerHTML = `
+                    <p><strong>Total Appointments:</strong> ${total}</p>
+                    <p><strong>Active/Booked:</strong> ${booked}</p>
+                    <p><strong>Cancelled:</strong> ${cancelled}</p>
+                `;
+            } catch (error) {
+                document.getElementById('statsDisplay').innerHTML = '<p class="error">Error loading statistics.</p>';
+            }
+        }
+
+        function editProfile() {
+            alert('Profile editing feature coming soon!');
+        }
+
+        // Admin functions (for future use)
+        async function loadAllUsers() {
+            try {
+                const users = await apiCall('/users');
+                const list = document.getElementById('allUsersList');
+                list.innerHTML = users.map(user => `<div class="item"><strong>${user.name}</strong> (${user.email}) - ${user.role}</div>`).join('');
+            } catch (error) {
+                document.getElementById('allUsersList').innerHTML = '<p class="error">Error loading users.</p>';
+            }
+        }
+
+        async function loadAllDoctors() {
+            try {
+                const doctors = await apiCall('/doctors');
+                const list = document.getElementById('allDoctorsList');
+                list.innerHTML = doctors.map(doctor => `<div class="item"><strong>${doctor.name}</strong> (${doctor.email}) - ${doctor.specialization}</div>`).join('');
+            } catch (error) {
+                document.getElementById('allDoctorsList').innerHTML = '<p class="error">Error loading doctors.</p>';
+            }
+        }
+
+        async function loadAllAppointments() {
+            try {
+                const appointments = await apiCall('/appointments');
+                const list = document.getElementById('allAppointmentsList');
+                list.innerHTML = appointments.map(apt => `<div class="item"><strong>${apt.patientName}</strong> with Doctor ${apt.doctorId} on ${apt.date} - ${apt.status}</div>`).join('');
+            } catch (error) {
+                document.getElementById('allAppointmentsList').innerHTML = '<p class="error">Error loading appointments.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

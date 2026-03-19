@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Clinic Appointment System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); max-width: 400px; width: 90%; }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+        input:focus, select:focus { border-color: #FF9800; outline: none; }
+        .btn { width: 100%; padding: 15px; background: #FF9800; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn:hover { background: #e68900; }
+        .link { text-align: center; margin-top: 20px; }
+        .link a { color: #2196F3; text-decoration: none; margin: 0 10px; }
+        .link a:hover { text-decoration: underline; }
+        .success { color: green; text-align: center; margin-top: 15px; }
+        .error { color: red; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Login</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Login as</label>
+                <select id="role" required>
+                    <option value="user">User</option>
+                    <option value="doctor">Doctor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div id="message"></div>
+        <div class="link">
+            <a href="index.html">← Back to Home</a> | <a href="register-user.html">Register as User</a> | <a href="register-doctor.html">Register as Doctor</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Store token and user info in localStorage
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    document.getElementById('message').innerHTML = '<div class="success">Login successful! Redirecting to dashboard...</div>';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    const error = await response.json();
+                    document.getElementById('message').innerHTML = '<div class="error">' + (error.message || 'Login failed') + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = '<div class="error">Network error. Please try again.</div>';
+            }
+        });
+    </script>
+</body>
+</html>
