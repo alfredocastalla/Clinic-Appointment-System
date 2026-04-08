@@ -11,18 +11,24 @@ export class AppointmentsService {
   ) {}
 
   create(data: any) {
-    return this.repo.save({ ...data, status: 'booked' });
+    return this.repo.save({ ...data, status: 'pending' });
   }
 
   findAll() {
     return this.repo.find();
   }
 
-  confirm(id: number) {
-    return this.repo.update(id, { status: 'confirmed' });
+  async findOne(id: number) {
+    return this.repo.findOne({ where: { id } });
   }
 
-  cancel(id: number) {
-    return this.repo.update(id, { status: 'cancelled' });
+  async confirm(id: number) {
+    await this.repo.update(id, { status: 'confirmed' });
+    return this.findOne(id);
+  }
+
+  async cancel(id: number) {
+    await this.repo.update(id, { status: 'cancelled' });
+    return this.findOne(id);
   }
 }

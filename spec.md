@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Clinic Appointment System is a web-based application built with NestJS (Node.js framework) that allows patients to book appointments with doctors and doctors to manage their appointments. The system includes user authentication, role-based access control, and a simple web interface.
+The Clinic Appointment System is a web-based application built with NestJS (Node.js framework) that allows patients to book appointments with doctors and doctors to manage their appointments. The system includes user authentication, role-based access control, and a modern web interface with responsive design.
 
 ## Architecture
 
@@ -12,11 +12,14 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 - **Authentication**: JWT (JSON Web Tokens) with Passport.js
 - **Password Hashing**: bcrypt
 - **Static File Serving**: NestJS ServeStaticModule
+- **CORS**: Enabled for frontend-backend communication
 
 ### Frontend
 - **Technology**: Vanilla HTML, CSS, JavaScript
 - **Architecture**: Single Page Application (SPA) with client-side routing
 - **Storage**: LocalStorage for authentication tokens and user data
+- **UI Framework**: Custom CSS with Font Awesome icons
+- **Responsive Design**: Mobile-friendly with CSS Grid and Flexbox
 
 ## Database Schema
 
@@ -59,7 +62,7 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 ### Authentication (`/auth`)
 - `POST /auth/register/user` - Register a new user
 - `POST /auth/register/doctor` - Register a new doctor
-- `POST /auth/login` - Login for users and doctors
+- `POST /auth/login` - Login for users and doctors (returns user object with role)
 
 ### Users (`/users`)
 - `POST /users` - Create user
@@ -70,34 +73,84 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 
 ### Doctors (`/doctors`)
 - `POST /doctors` - Create doctor
-- `GET /doctors` - Get all doctors
+- `GET /doctors` - Get all doctors (public endpoint for booking)
 - `GET /doctors/:id` - Get doctor by ID
-- `PATCH /doctors/:id` - Update doctor
-- `DELETE /doctors/:id` - Delete doctor
+- `PATCH /doctors/:id` - Update doctor profile
 
 ### Appointments (`/appointments`)
 - `POST /appointments` - Create appointment
-- `GET /appointments` - Get all appointments
+- `GET /appointments` - Get all appointments (filtered by user role)
 - `PATCH /appointments/:id/cancel` - Cancel appointment
+- `PATCH /appointments/:id/confirm` - Confirm appointment (doctor only)
 
 ## User Roles and Permissions
 
 ### User (Patient)
-- Register and login
-- View available doctors
-- Book appointments
-- View their own appointments
-- Cancel their appointments
+- Register and login with role-based redirect to user dashboard
+- View available doctors in a card-based layout
+- Book appointments through a modal interface
+- View and manage their own appointments (pending, confirmed, cancelled)
+- Cancel appointments
+- Responsive dashboard with sidebar navigation
 
 ### Doctor
-- Register and login
-- View their appointments
+- Register and login with role-based redirect to doctor dashboard
+- View and manage their appointments (confirm/cancel)
 - Update profile and availability
 - View appointment statistics
+- Responsive dashboard with sidebar navigation
 
 ### Admin (Future Enhancement)
 - View all users
 - View all doctors
+- System administration features
+
+## Recent Updates (April 2026)
+
+### Authentication Enhancements
+- Fixed authentication service to return consistent user objects
+- Added role-based redirects after login
+- Enhanced form validation with loading states
+- Improved error handling and user feedback
+
+### Doctor Dashboard Redesign
+- Modern sidebar navigation layout
+- Appointment management with confirm/cancel functionality
+- Profile editing capabilities
+- Real-time appointment status updates
+
+### User Dashboard Redesign
+- Responsive card-based doctor selection
+- Modal-based appointment booking system
+- Comprehensive appointment management
+- Modern UI with Font Awesome icons
+
+### Backend Improvements
+- Added appointment confirmation endpoint
+- Enhanced CORS support
+- Improved error handling in services
+- Database populated with test data
+
+### Frontend Enhancements
+- Responsive design for mobile devices
+- Improved user experience with loading states
+- Client-side routing and navigation
+- Consistent styling across all pages
+
+### Version Control
+- GitHub repository: https://github.com/alfredocastalla/Clinic-Appointment-System
+- Regular commits with detailed change logs
+- Latest commit: Redesigned user dashboard with modern sidebar navigation
+
+## Testing
+- Jest configuration for unit, integration, and e2e tests
+- Test files structured in test/ directory
+- E2E tests for critical user flows
+
+## Deployment
+- Ready for deployment with npm scripts
+- Static file serving for frontend
+- Database initialization with sample data
 - View all appointments
 - Manage system settings
 

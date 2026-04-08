@@ -90,7 +90,7 @@ describe('AuthService', () => {
       expect(jwtService.sign).toHaveBeenCalledWith({ sub: createdDoctor.id, email: createdDoctor.email, role: 'doctor' });
       expect(result).toEqual({
         access_token: token,
-        doctor: { id: createdDoctor.id, name: createdDoctor.name, email: createdDoctor.email, specialization: createdDoctor.specialization, role: 'doctor' },
+        user: { id: createdDoctor.id, name: createdDoctor.name, email: createdDoctor.email, specialization: createdDoctor.specialization, role: 'doctor' },
       });
     });
 
