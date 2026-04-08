@@ -96,7 +96,20 @@
                 <div class="card">
                     <h3>⚙️ Profile Settings</h3>
                     <p>Manage your doctor profile and availability.</p>
-                    <button class="btn btn-accent" onclick="editProfile()">Edit Profile</button>
+                    <div class="form-group">
+                        <label for="profileName">Full Name</label>
+                        <input type="text" id="profileName" placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileSpecialization">Specialization</label>
+                        <input type="text" id="profileSpecialization" placeholder="e.g., Cardiology">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileAvailableTime">Available Day & Time</label>
+                        <input type="text" id="profileAvailableTime" placeholder="e.g., Mon 10:00 - 14:00">
+                    </div>
+                    <button class="btn btn-accent" onclick="updateDoctorProfile()">Save Profile</button>
+                    <div id="profileMessage"></div>
                 </div>
             </div>
 
@@ -148,6 +161,7 @@
                 document.getElementById('userDashboard').classList.remove('hidden');
             } else if (currentUser.role === 'doctor') {
                 document.getElementById('doctorDashboard').classList.remove('hidden');
+                loadDoctorProfile();
             } else {
                 // Admin or other roles
                 document.getElementById('adminDashboard').classList.remove('hidden');
@@ -221,9 +235,52 @@
             try {
                 const doctors = await apiCall('/doctors');
                 const list = document.getElementById('doctorsList');
-                list.innerHTML = doctors.map(doctor => `<div class="item"><strong>${doctor.name}</strong> - ${doctor.specialization} (ID: ${doctor.id})</div>`).join('');
+                list.innerHTML = doctors.map(doctor => `
+                    <div class="item">
+                        <strong>${doctor.name}</strong> - ${doctor.specialization} (ID: ${doctor.id})<br>
+                        Email: ${doctor.email}<br>
+                        Available: ${doctor.availableTime || 'Not set'}
+                    </div>
+                `).join('') || '<p>No doctors available.</p>';
             } catch (error) {
                 document.getElementById('doctorsList').innerHTML = '<p class="error">Error loading doctors.</p>';
+            }
+        }
+
+        async function loadDoctorProfile() {
+            try {
+                const doctor = await apiCall(`/doctors/${currentUser.id}`);
+                document.getElementById('profileName').value = doctor.name || '';
+                document.getElementById('profileSpecialization').value = doctor.specialization || '';
+                document.getElementById('profileAvailableTime').value = doctor.availableTime || '';
+            } catch (error) {
+                document.getElementById('profileMessage').innerHTML = '<div class="error">Error loading profile.</div>';
+            }
+        }
+
+        async function updateDoctorProfile() {
+            const name = document.getElementById('profileName').value.trim();
+            const specialization = document.getElementById('profileSpecialization').value.trim();
+            const availableTime = document.getElementById('profileAvailableTime').value.trim();
+
+            if (!name || !specialization) {
+                document.getElementById('profileMessage').innerHTML = '<div class="error">Name and specialization are required.</div>';
+                return;
+            }
+
+            try {
+                const updatedDoctor = await apiCall(`/doctors/${currentUser.id}`, 'PATCH', {
+                    name,
+                    specialization,
+                    availableTime,
+                });
+
+                currentUser.name = updatedDoctor.name || currentUser.name;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser.name}!`;
+                document.getElementById('profileMessage').innerHTML = '<div class="success">Profile updated successfully.</div>';
+            } catch (error) {
+                document.getElementById('profileMessage').innerHTML = '<div class="error">Error updating profile.</div>';
             }
         }
 
@@ -270,10 +327,6 @@
             } catch (error) {
                 document.getElementById('statsDisplay').innerHTML = '<p class="error">Error loading statistics.</p>';
             }
-        }
-
-        function editProfile() {
-            alert('Profile editing feature coming soon!');
         }
 
         // Admin functions (for future use)

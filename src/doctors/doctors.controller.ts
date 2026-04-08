@@ -6,7 +6,7 @@ export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
 
   @Post()
-  create(@Body() createDoctorDto: { name: string; email: string; password: string; specialization: string }) {
+  create(@Body() createDoctorDto: { name: string; email: string; password: string; specialization: string; availableTime?: string }) {
     return this.doctorsService.create(createDoctorDto);
   }
 

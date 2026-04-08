@@ -41,6 +41,10 @@
                 <label for="specialization">Specialization</label>
                 <input type="text" id="specialization" placeholder="e.g., Cardiology, Pediatrics" required>
             </div>
+            <div class="form-group">
+                <label for="availableTime">Available Day & Time</label>
+                <input type="text" id="availableTime" placeholder="e.g., Mon 10:00 - 14:00">
+            </div>
             <button type="submit" class="btn">Register</button>
         </form>
         <div id="message"></div>
@@ -57,16 +61,13 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const specialization = document.getElementById('specialization').value;
+                const availableTime = document.getElementById('availableTime').value;
 
-            try {
-                const response = await fetch('/auth/register/doctor', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, specialization })
-                });
-
-                if (response.ok) {
-                    document.getElementById('message').innerHTML = '<div class="success">Registration successful! Redirecting to login...</div>';
+                try {
+                    const response = await fetch('/auth/register/doctor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, password, specialization, availableTime })
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 2000);

@@ -16,4 +16,7 @@ export class Doctor {
 
   @Column()
   specialization: string;
+
+  @Column({ nullable: true })
+  availableTime: string;
 }

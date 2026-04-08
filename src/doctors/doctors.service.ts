@@ -13,8 +13,8 @@ export class DoctorsService {
 
   async create(data: { name: string; email: string; password: string; specialization: string }) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const doctor = this.repo.create({ ...data, password: hashedPassword });
-    return this.repo.save(doctor);
+      const doctor = this.repo.create({ ...data, password: hashedPassword });
+      return this.repo.save(doctor);
   }
 
   async findAll() {
@@ -29,9 +29,9 @@ export class DoctorsService {
     return this.repo.findOne({ where: { email } });
   }
 
-  async update(id: number, updateDoctorDto: any) {
-    await this.repo.update(id, updateDoctorDto);
-    return this.findOne(id);
+    async update(id: number, updateDoctorDto: any) {
+      await this.repo.update(id, updateDoctorDto);
+      return this.findOne(id);
   }
 
   async remove(id: number) {
