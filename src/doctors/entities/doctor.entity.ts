@@ -19,4 +19,13 @@ export class Doctor {
 
   @Column({ nullable: true })
   availableTime: string;
+
+  @Column({ nullable: true })
+  address: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true, type: 'text' })
+  photo: string;
 }

@@ -15,6 +15,11 @@ export class AppointmentsController {
     return this.service.findAll();
   }
 
+  @Patch(':id/confirm')
+  confirm(@Param('id') id: number) {
+    return this.service.confirm(id);
+  }
+
   @Patch(':id/cancel')
   cancel(@Param('id') id: number) {
     return this.service.cancel(id);

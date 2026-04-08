@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - Clinic Appointment System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 0 25px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin: 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .sidebar-menu a.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: white;
+            border-left-color: #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar-menu i {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        .logout-link {
+            color: #e74c3c !important;
+        }
+
+        .logout-link:hover {
+            background-color: rgba(231, 76, 60, 0.1) !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-description {
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        /* Appointment Cards */
+        .appointment-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .appointment-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .appointment-info {
+            flex: 1;
+        }
+
+        .patient-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .appointment-date {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-pending {
+            background-color: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status-confirmed {
+            background-color: #55efc4;
+            color: #00b894;
+        }
+
+        .status-cancelled {
+            background-color: #fab1a0;
+            color: #d63031;
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #229954;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Profile Section */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field-value {
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 500;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .field-input {
+            font-size: 14px;
+            color: #2c3e50;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 6px;
+            border: 2px solid #e9ecef;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .update-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .btn-update {
+            background-color: #27ae60;
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-update:hover {
+            background-color: #229954;
+            transform: translateY(-2px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        /* Message */
+        .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            max-width: 400px;
+        }
+
+        .message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                height: 100vh;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-title">
+                <i class="fas fa-hospital"></i>
+                Doctor Panel
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
+                <li><a href="#profile"><i class="fas fa-user-circle"></i> Profile</a></li>
+                <li><a href="#" class="logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <span>Welcome, Doctor</span>
+                    <span>👨‍⚕️</span>
+                </h1>
+                <p class="page-description">Manage your appointments and availability.</p>
+            </div>
+
+            <!-- Message Container -->
+            <div id="messageContainer" class="message-container"></div>
+
+            <!-- Patient Appointments Section -->
+            <section class="section">
+                <h2 class="section-title">Patient Appointments</h2>
+                <div id="appointmentsList"></div>
+            </section>
+
+            <!-- My Profile Section -->
+            <section class="section">
+                <h2 class="section-title">My Profile</h2>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <label class="field-label">Name</label>
+                        <div class="field-value" id="displayName">Dr. --</div>
+                        <input type="text" id="inputName" class="field-input" style="display: none;" placeholder="Enter your name">
+                    </div>
+                    <div class="profile-field">
+                        <label class="field-label">Specialization</label>
+                        <div class="field-value" id="displaySpecialization">--</div>
+                        <input type="text" id="inputSpecialization" class="field-input" style="display: none;" placeholder="Enter your specialization">
+                    </div>
+                    <div class="profile-field">
+                        <label class="field-label">Email</label>
+                        <div class="field-value" id="displayEmail">--</div>
+                    </div>
+                    <div class="profile-field">
+                        <label class="field-label">Available Time</label>
+                        <div class="field-value" id="displayAvailableTime">Not set</div>
+                        <input type="text" id="inputAvailableTime" class="field-input" style="display: none;" placeholder="e.g., Mon-Fri 10:00 - 14:00">
+                    </div>
+                    <div class="profile-field">
+                        <label class="field-label">Address</label>
+                        <div class="field-value" id="displayAddress">Not set</div>
+                        <input type="text" id="inputAddress" class="field-input" style="display: none;" placeholder="Enter your address">
+                    </div>
+                    <div class="profile-field">
+                        <label class="field-label">Phone</label>
+                        <div class="field-value" id="displayPhone">Not set</div>
+                        <input type="text" id="inputPhone" class="field-input" style="display: none;" placeholder="Enter your phone number">
+                    </div>
+                </div>
+                <div class="update-buttons">
+                    <button class="btn-update" id="editBtn" onclick="toggleEdit()">Edit Profile</button>
+                    <button class="btn-update" id="saveBtn" onclick="saveProfile()" style="display: none; background-color: #27ae60;">Save Changes</button>
+                    <button class="btn-update" id="cancelBtn" onclick="toggleEdit()" style="display: none; background-color: #95a5a6;">Cancel</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        let currentDoctor = null;
+        let token = null;
+        let isEditing = false;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            token = localStorage.getItem('token');
+            const userData = localStorage.getItem('user');
+
+            if (!token || !userData) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentDoctor = JSON.parse(userData);
+
+            // Check if user is a doctor
+            if (currentDoctor.role !== 'doctor') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            await loadDoctorProfile();
+            await loadDoctorAppointments();
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        async function apiCall(url, method = 'GET', body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const response = await fetch(url, {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : null
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 4000);
+        }
+
+        async function loadDoctorProfile() {
+            try {
+                const doctor = await apiCall(`/doctors/${currentDoctor.id}`);
+                
+                // Update display fields
+                document.getElementById('displayName').textContent = `Dr. ${doctor.name}`;
+                document.getElementById('displaySpecialization').textContent = doctor.specialization || '--';
+                document.getElementById('displayEmail').textContent = doctor.email;
+                document.getElementById('displayAvailableTime').textContent = doctor.availableTime || 'Not set';
+                document.getElementById('displayAddress').textContent = doctor.address || 'Not set';
+                document.getElementById('displayPhone').textContent = doctor.phone || 'Not set';
+
+                // Set input values
+                document.getElementById('inputName').value = doctor.name || '';
+                document.getElementById('inputSpecialization').value = doctor.specialization || '';
+                document.getElementById('inputAvailableTime').value = doctor.availableTime || '';
+                document.getElementById('inputAddress').value = doctor.address || '';
+                document.getElementById('inputPhone').value = doctor.phone || '';
+            } catch (error) {
+                showMessage('Error loading profile', 'error');
+            }
+        }
+
+        async function loadDoctorAppointments() {
+            try {
+                const appointments = await apiCall('/appointments');
+                const doctorAppointments = appointments.filter(apt => apt.doctorId === currentDoctor.id);
+                const list = document.getElementById('appointmentsList');
+
+                if (doctorAppointments.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-calendar-times"></i></div>
+                            <p>No appointments scheduled</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = doctorAppointments.map(apt => {
+                    const statusClass = `status-${apt.status}`;
+                    const isPending = apt.status === 'pending';
+                    
+                    return `
+                        <div class="appointment-item">
+                            <div class="appointment-info">
+                                <div class="patient-name">Patient: ${apt.patientName}</div>
+                                <div class="appointment-date">Date: ${apt.date}</div>
+                                <span class="status-badge ${statusClass}">${apt.status}</span>
+                            </div>
+                            <div class="appointment-actions">
+                                ${isPending ? `<button class="btn btn-primary" onclick="confirmAppointment(${apt.id})">Confirm</button>` : ''}
+                                <button class="btn btn-danger" onclick="cancelAppointment(${apt.id})">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                showMessage('Error loading appointments', 'error');
+            }
+        }
+
+        async function confirmAppointment(id) {
+            try {
+                await apiCall(`/appointments/${id}/confirm`, 'PATCH');
+                showMessage('Appointment confirmed successfully', 'success');
+                await loadDoctorAppointments();
+            } catch (error) {
+                showMessage('Error confirming appointment', 'error');
+            }
+        }
+
+        async function cancelAppointment(id) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) return;
+
+            try {
+                await apiCall(`/appointments/${id}/cancel`, 'PATCH');
+                showMessage('Appointment cancelled successfully', 'success');
+                await loadDoctorAppointments();
+            } catch (error) {
+                showMessage('Error cancelling appointment', 'error');
+            }
+        }
+
+        function toggleEdit() {
+            isEditing = !isEditing;
+            const displayFields = ['displayName', 'displaySpecialization', 'displayAvailableTime', 'displayAddress', 'displayPhone'];
+            const inputFields = ['inputName', 'inputSpecialization', 'inputAvailableTime', 'inputAddress', 'inputPhone'];
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            displayFields.forEach(id => {
+                document.getElementById(id).style.display = isEditing ? 'none' : 'block';
+            });
+
+            inputFields.forEach(id => {
+                document.getElementById(id).style.display = isEditing ? 'block' : 'none';
+            });
+
+            editBtn.style.display = isEditing ? 'none' : 'block';
+            saveBtn.style.display = isEditing ? 'block' : 'none';
+            cancelBtn.style.display = isEditing ? 'block' : 'none';
+        }
+
+        async function saveProfile() {
+            const name = document.getElementById('inputName').value.trim();
+            const specialization = document.getElementById('inputSpecialization').value.trim();
+            const availableTime = document.getElementById('inputAvailableTime').value.trim();
+            const address = document.getElementById('inputAddress').value.trim();
+            const phone = document.getElementById('inputPhone').value.trim();
+
+            if (!name || !specialization) {
+                showMessage('Name and specialization are required', 'error');
+                return;
+            }
+
+            try {
+                await apiCall(`/doctors/${currentDoctor.id}`, 'PATCH', {
+                    name,
+                    specialization,
+                    availableTime,
+                    address,
+                    phone
+                });
+
+                currentDoctor.name = name;
+                localStorage.setItem('user', JSON.stringify(currentDoctor));
+                
+                showMessage('Profile updated successfully', 'success');
+                toggleEdit();
+                await loadDoctorProfile();
+            } catch (error) {
+                showMessage('Error updating profile', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

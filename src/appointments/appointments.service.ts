@@ -18,6 +18,10 @@ export class AppointmentsService {
     return this.repo.find();
   }
 
+  confirm(id: number) {
+    return this.repo.update(id, { status: 'confirmed' });
+  }
+
   cancel(id: number) {
     return this.repo.update(id, { status: 'cancelled' });
   }

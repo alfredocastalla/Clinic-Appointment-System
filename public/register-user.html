@@ -5,53 +5,273 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register as User - Clinic Appointment System</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); max-width: 400px; width: 90%; }
-        h1 { text-align: center; color: #333; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
-        input:focus { border-color: #4CAF50; outline: none; }
-        .btn { width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn:hover { background: #45a049; }
-        .link { text-align: center; margin-top: 20px; }
-        .link a { color: #2196F3; text-decoration: none; }
-        .link a:hover { text-decoration: underline; }
-        .success { color: green; text-align: center; margin-top: 15px; }
-        .error { color: red; text-align: center; margin-top: 15px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            max-width: 420px;
+            width: 100%;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+        }
+
+        input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 20px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success {
+            color: #2e7d32;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .error {
+            color: #c62828;
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 8px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .divider {
+            color: #ccc;
+            margin: 0 4px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 40px 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .link {
+                font-size: 13px;
+            }
+
+            .link a {
+                display: block;
+                margin: 8px 0;
+            }
+
+            .divider {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>👤 Register as User</h1>
+        <h1>👤 Register as Patient</h1>
+        <p class="subtitle">Create your clinic account</p>
         <form id="registerForm">
             <div class="form-group">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" required>
+                <input type="text" id="name" placeholder="Enter your full name" autocomplete="name" required>
             </div>
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" required>
+                <input type="email" id="email" placeholder="Enter your email" autocomplete="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" required>
+                <input type="password" id="password" placeholder="Minimum 6 characters" autocomplete="new-password" required>
             </div>
             <button type="submit" class="btn">Register</button>
         </form>
         <div id="message"></div>
         <div class="link">
-            <a href="index.html">← Back to Home</a> | <a href="login.html">Already have an account? Login</a>
+            <a href="index.html">← Back to Home</a>
+            <span class="divider">|</span>
+            <a href="login.html">Already have account? Login</a>
         </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        const form = document.getElementById('registerForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const messageDiv = document.getElementById('message');
+        const registerBtn = form.querySelector('.btn');
+        let isLoading = false;
+
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            if (isLoading) return;
+
+            // Validate inputs
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!name || !email || !password) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (name.length < 3) {
+                showMessage('Name must be at least 3 characters', 'error');
+                return;
+            }
+
+            if (!email.includes('@') || !email.includes('.')) {
+                showMessage('Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            isLoading = true;
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Registering...';
+            clearMessage();
 
             try {
                 const response = await fetch('/auth/register/user', {
@@ -60,18 +280,43 @@
                     body: JSON.stringify({ name, email, password })
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
-                    document.getElementById('message').innerHTML = '<div class="success">Registration successful! Redirecting to login...</div>';
+                    showMessage('✓ Registration successful! Redirecting to login...', 'success');
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 2000);
                 } else {
-                    const error = await response.json();
-                    document.getElementById('message').innerHTML = '<div class="error">' + (error.message || 'Registration failed') + '</div>';
+                    if (data.message && data.message.includes('already exists')) {
+                        showMessage('This email is already registered. Go to login.', 'error');
+                    } else {
+                        showMessage(data.message || 'Registration failed. Please try again.', 'error');
+                    }
+                    isLoading = false;
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = 'Register';
                 }
             } catch (error) {
-                document.getElementById('message').innerHTML = '<div class="error">Network error. Please try again.</div>';
+                console.error('Registration error:', error);
+                showMessage('Network error. Please check your connection.', 'error');
+                isLoading = false;
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Register';
             }
+        });
+
+        function showMessage(text, type) {
+            messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function clearMessage() {
+            messageDiv.innerHTML = '';
+        }
+
+        // Clear message when user starts typing
+        [nameInput, emailInput, passwordInput].forEach(input => {
+            input.addEventListener('focus', clearMessage);
         });
     </script>
 </body>
