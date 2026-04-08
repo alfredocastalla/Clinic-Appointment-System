@@ -36,8 +36,9 @@
         const user = JSON.parse(localStorage.getItem('user') || 'null');
 
         if (token && user) {
-            // Redirect to dashboard if already logged in
-            window.location.href = 'dashboard.html';
+            // Redirect to appropriate dashboard based on role
+            const redirectUrl = user.role === 'doctor' ? 'doctor-dashboard.html' : 'user-dashboard.html';
+            window.location.href = redirectUrl;
         }
     </script>
 </body>

@@ -295,7 +295,7 @@
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('user', JSON.stringify(data.user));
 
-                    const redirectUrl = data.user.role === 'doctor' ? 'doctor-dashboard.html' : 'dashboard.html';
+                    const redirectUrl = data.user.role === 'doctor' ? 'doctor-dashboard.html' : 'user-dashboard.html';
                     showMessage(`Welcome, ${data.user.name}! Redirecting to dashboard...`, 'success');
                     setTimeout(() => {
                         window.location.href = redirectUrl;
