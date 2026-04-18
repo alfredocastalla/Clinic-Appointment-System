@@ -22,12 +22,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (role === 'user') {
       const user = await this.usersService.findOne(id);
       if (user) {
-        return { id: user.id, email: user.email, role: 'user' };
+        return { id: user.id, email: user.email, role: 'user', name: user.name };
       }
     } else if (role === 'doctor') {
       const doctor = await this.doctorsService.findOne(id);
       if (doctor) {
-        return { id: doctor.id, email: doctor.email, role: 'doctor' };
+        return {
+          id: doctor.id,
+          email: doctor.email,
+          role: 'doctor',
+          name: doctor.name,
+          specialization: doctor.specialization,
+        };
       }
     }
     return null;

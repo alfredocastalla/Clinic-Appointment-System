@@ -32,7 +32,18 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 16px rgba(0,0,0,0.12);
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 25px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            border-left: 4px solid transparent;
         }
 
         .sidebar-title {
@@ -71,10 +82,42 @@
         }
 
         .sidebar-menu a.active {
-            background-color: rgba(52, 152, 219, 0.2);
+            background-color: rgba(52, 152, 219, 0.25);
             color: white;
             border-left-color: #3498db;
             font-weight: 600;
+        }
+
+        .dashboard-summary {
+            margin-bottom: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+        }
+
+        .summary-label {
+            display: block;
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-card strong {
+            font-size: 32px;
+            color: #2c3e50;
         }
 
         .sidebar-menu i {
@@ -290,6 +333,29 @@
             transition: border-color 0.3s ease;
         }
 
+        .map-card {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .map-hint {
+            color: #7f8c8d;
+            font-size: 15px;
+        }
+
+        .map-frame {
+            width: 100%;
+            min-height: 340px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
         .field-input:focus {
             outline: none;
             border-color: #3498db;
@@ -419,9 +485,10 @@
                 Doctor Panel
             </div>
             <ul class="sidebar-menu">
-                <li><a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#top" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="#appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
                 <li><a href="#profile"><i class="fas fa-user-circle"></i> Profile</a></li>
+                <li><a href="#clinic-location"><i class="fas fa-map-marker-alt"></i> Clinic Location</a></li>
                 <li><a href="#" class="logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
@@ -429,7 +496,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <!-- Page Header -->
-            <div class="page-header">
+            <div class="page-header" id="top">
                 <h1 class="page-title">
                     <span>Welcome, Doctor</span>
                     <span>👨‍⚕️</span>
@@ -440,14 +507,35 @@
             <!-- Message Container -->
             <div id="messageContainer" class="message-container"></div>
 
+            <section class="section dashboard-summary">
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <span class="summary-label">Total Appointments</span>
+                        <strong id="summaryTotal">0</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Confirmed</span>
+                        <strong id="summaryConfirmed">0</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Pending</span>
+                        <strong id="summaryPending">0</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Cancelled</span>
+                        <strong id="summaryCancelled">0</strong>
+                    </div>
+                </div>
+            </section>
+
             <!-- Patient Appointments Section -->
-            <section class="section">
+            <section class="section" id="appointments">
                 <h2 class="section-title">Patient Appointments</h2>
                 <div id="appointmentsList"></div>
             </section>
 
             <!-- My Profile Section -->
-            <section class="section">
+            <section class="section" id="profile">
                 <h2 class="section-title">My Profile</h2>
                 <div class="profile-grid">
                     <div class="profile-field">
@@ -470,9 +558,9 @@
                         <input type="text" id="inputAvailableTime" class="field-input" style="display: none;" placeholder="e.g., Mon-Fri 10:00 - 14:00">
                     </div>
                     <div class="profile-field">
-                        <label class="field-label">Address</label>
+                        <label class="field-label">Clinic Location</label>
                         <div class="field-value" id="displayAddress">Not set</div>
-                        <input type="text" id="inputAddress" class="field-input" style="display: none;" placeholder="Enter your address">
+                        <input type="text" id="inputAddress" class="field-input" style="display: none;" placeholder="Enter your clinic address">
                     </div>
                     <div class="profile-field">
                         <label class="field-label">Phone</label>
@@ -484,6 +572,13 @@
                     <button class="btn-update" id="editBtn" onclick="toggleEdit()">Edit Profile</button>
                     <button class="btn-update" id="saveBtn" onclick="saveProfile()" style="display: none; background-color: #27ae60;">Save Changes</button>
                     <button class="btn-update" id="cancelBtn" onclick="toggleEdit()" style="display: none; background-color: #95a5a6;">Cancel</button>
+                </div>
+            </section>
+            <section class="section" id="clinic-location">
+                <h2 class="section-title">Clinic Location</h2>
+                <div class="map-card">
+                    <div class="map-hint" id="doctorMapHint">Set your clinic address to view the map.</div>
+                    <iframe id="doctorMapFrame" class="map-frame" title="Clinic Location Map" src="about:blank" style="display: none;"></iframe>
                 </div>
             </section>
         </div>
@@ -511,6 +606,7 @@
                 return;
             }
 
+            initSidebarNavigation();
             await loadDoctorProfile();
             await loadDoctorAppointments();
         });
@@ -538,6 +634,51 @@
             return response.json();
         }
 
+        const sidebarLinks = [];
+
+        function initSidebarNavigation() {
+            const links = document.querySelectorAll('.sidebar-menu a[href^="#"]:not(.logout-link)');
+            links.forEach(link => {
+                sidebarLinks.push(link);
+                link.addEventListener('click', handleSidebarClick);
+            });
+            window.addEventListener('scroll', onSidebarScroll);
+            updateActiveSidebar();
+        }
+
+        function handleSidebarClick(event) {
+            event.preventDefault();
+            const targetId = event.currentTarget.getAttribute('href').slice(1);
+            if (!targetId) return;
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActiveSidebarLink(event.currentTarget);
+        }
+
+        function onSidebarScroll() {
+            updateActiveSidebar();
+        }
+
+        function setActiveSidebarLink(activeLink) {
+            sidebarLinks.forEach(link => {
+                link.classList.toggle('active', link === activeLink);
+            });
+        }
+
+        function updateActiveSidebar() {
+            const offset = window.scrollY + 140;
+            let active = sidebarLinks[0];
+            sidebarLinks.forEach(link => {
+                const targetId = link.getAttribute('href').slice(1);
+                const section = document.getElementById(targetId);
+                if (section && section.offsetTop <= offset) {
+                    active = link;
+                }
+            });
+            setActiveSidebarLink(active);
+        }
+
         function showMessage(message, type) {
             const container = document.getElementById('messageContainer');
             const messageDiv = document.createElement('div');
@@ -551,6 +692,13 @@
             setTimeout(() => {
                 messageDiv.remove();
             }, 4000);
+        }
+
+        function renderAppointmentSummary(summary) {
+            document.getElementById('summaryTotal').textContent = summary.total;
+            document.getElementById('summaryConfirmed').textContent = summary.confirmed;
+            document.getElementById('summaryPending').textContent = summary.pending;
+            document.getElementById('summaryCancelled').textContent = summary.cancelled;
         }
 
         async function loadDoctorProfile() {
@@ -571,6 +719,7 @@
                 document.getElementById('inputAvailableTime').value = doctor.availableTime || '';
                 document.getElementById('inputAddress').value = doctor.address || '';
                 document.getElementById('inputPhone').value = doctor.phone || '';
+                setDoctorMap(doctor.address);
             } catch (error) {
                 showMessage('Error loading profile', 'error');
             }
@@ -581,6 +730,14 @@
                 const appointments = await apiCall('/appointments');
                 const doctorAppointments = appointments.filter(apt => apt.doctorId === currentDoctor.id);
                 const list = document.getElementById('appointmentsList');
+
+                const summary = {
+                    total: doctorAppointments.length,
+                    confirmed: doctorAppointments.filter(a => a.status === 'confirmed').length,
+                    pending: doctorAppointments.filter(a => a.status === 'pending').length,
+                    cancelled: doctorAppointments.filter(a => a.status === 'cancelled').length,
+                };
+                renderAppointmentSummary(summary);
 
                 if (doctorAppointments.length === 0) {
                     list.innerHTML = `
@@ -635,6 +792,22 @@
             } catch (error) {
                 showMessage('Error cancelling appointment', 'error');
             }
+        }
+
+        function setDoctorMap(address) {
+            const frame = document.getElementById('doctorMapFrame');
+            const hint = document.getElementById('doctorMapHint');
+
+            if (!address) {
+                hint.textContent = 'Set your clinic address to view the map.';
+                frame.style.display = 'none';
+                frame.src = 'about:blank';
+                return;
+            }
+
+            hint.textContent = `Showing your clinic location: ${address}`;
+            frame.style.display = 'block';
+            frame.src = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
         }
 
         function toggleEdit() {

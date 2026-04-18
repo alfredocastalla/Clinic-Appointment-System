@@ -5,6 +5,9 @@ export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: true })
+  patientId: number;
+
   @Column()
   patientName: string;
 

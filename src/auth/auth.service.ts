@@ -12,29 +12,31 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async registerUser(data: { name: string; email: string; password: string }) {
+  async registerUser(data: { name: string; email: string; password: string; location?: string }) {
     const existingUser = await this.usersService.findByEmail(data.email);
-    if (existingUser) {
-      throw new UnauthorizedException('User already exists');
+    const existingDoctor = await this.doctorsService.findByEmail(data.email);
+    if (existingUser || existingDoctor) {
+      throw new UnauthorizedException('Email already registered');
     }
     const user = await this.usersService.create({ ...data, role: 'user' });
     const payload = { sub: user.id, email: user.email, role: 'user' };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: user.id, name: user.name, email: user.email, role: 'user' },
+      user: { id: user.id, name: user.name, email: user.email, role: 'user', location: user.location },
     };
   }
 
-  async registerDoctor(data: { name: string; email: string; password: string; specialization: string }) {
+  async registerDoctor(data: { name: string; email: string; password: string; specialization: string; address?: string }) {
     const existingDoctor = await this.doctorsService.findByEmail(data.email);
-    if (existingDoctor) {
-      throw new UnauthorizedException('Doctor already exists');
+    const existingUser = await this.usersService.findByEmail(data.email);
+    if (existingDoctor || existingUser) {
+      throw new UnauthorizedException('Email already registered');
     }
     const doctor = await this.doctorsService.create(data);
     const payload = { sub: doctor.id, email: doctor.email, role: 'doctor' };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: doctor.id, name: doctor.name, email: doctor.email, specialization: doctor.specialization, role: 'doctor' },
+      user: { id: doctor.id, name: doctor.name, email: doctor.email, specialization: doctor.specialization, address: doctor.address, role: 'doctor' },
     };
   }
 
@@ -58,7 +60,9 @@ export class AuthService {
     const payload = { sub: entity.id, email: entity.email, role };
     return {
       access_token: this.jwtService.sign(payload),
-      user: role === 'user' ? { id: entity.id, name: entity.name, email: entity.email, role } : { id: entity.id, name: entity.name, email: entity.email, specialization: entity.specialization, role },
+      user: role === 'user'
+        ? { id: entity.id, name: entity.name, email: entity.email, role, location: entity.location }
+        : { id: entity.id, name: entity.name, email: entity.email, specialization: entity.specialization, address: entity.address, role },
     };
   }
 }

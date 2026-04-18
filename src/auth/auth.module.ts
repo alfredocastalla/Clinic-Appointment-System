@@ -11,7 +11,7 @@ import { JwtStrategy } from './jwt.strategy';
   imports: [
     UsersModule,
     DoctorsModule,
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'your-secret-key', // Use environment variable in production
       signOptions: { expiresIn: '1h' },

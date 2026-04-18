@@ -331,6 +331,55 @@
             animation: slideIn 0.3s ease;
         }
 
+        .btn-map {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-map:hover {
+            background-color: #7f8c8d;
+        }
+
+        .map-card {
+            display: grid;
+            gap: 18px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 30px;
+        }
+
+        .map-hint {
+            color: #7f8c8d;
+            font-size: 15px;
+        }
+
+        .map-frame {
+            width: 100%;
+            min-height: 340px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
+        .doctor-card-actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .doctor-card p {
+            margin: 10px 0 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .doctor-card small {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
         .message.success {
             background: #d4edda;
             color: #155724;
@@ -513,6 +562,15 @@
             <p class="page-description">Book and manage your clinic appointments easily.</p>
         </div>
 
+        <section class="section">
+            <h2 class="section-title">Doctors Near You</h2>
+            <div class="map-card">
+                <div class="map-hint" id="userMapHint">We will show clinic locations for doctors near your current location or saved address.</div>
+                <iframe id="userMapFrame" class="map-frame" title="Nearby Doctor Clinics" src="about:blank" style="display: none;"></iframe>
+                <button class="btn btn-map" onclick="useBrowserLocation()">Use browser location to find nearby clinics</button>
+            </div>
+        </section>
+
         <!-- Available Doctors Section -->
         <section class="section">
             <h2 class="section-title">Available Doctors</h2>
@@ -575,7 +633,7 @@
             const firstName = currentUser.name.split(' ')[0];
             document.getElementById('userFirstName').textContent = firstName;
 
-            // Load data
+            await loadMapForUser();
             await loadDoctors();
             await loadUserAppointments();
         });
@@ -584,6 +642,58 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'index.html';
+        }
+
+        function setUserMap(query, label) {
+            const frame = document.getElementById('userMapFrame');
+            const hint = document.getElementById('userMapHint');
+
+            if (!query) {
+                hint.textContent = 'We will show clinic locations for doctors near your current location or saved address.';
+                frame.style.display = 'none';
+                frame.src = 'about:blank';
+                return;
+            }
+
+            hint.textContent = label;
+            frame.style.display = 'block';
+            frame.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+        }
+
+        async function loadMapForUser() {
+            if (currentUser.location) {
+                setUserMap(`doctor clinics near ${currentUser.location}`, `Showing clinics near ${currentUser.location}`);
+                return;
+            }
+
+            setUserMap('', 'Your location is not saved yet. Use browser location to find nearby clinics.');
+        }
+
+        function showDoctorOnMap(address, doctorName) {
+            if (!address) {
+                showMessage('Doctor clinic address is not available', 'error');
+                return;
+            }
+            setUserMap(address, `Showing location for ${doctorName}`);
+        }
+
+        async function useBrowserLocation() {
+            const hint = document.getElementById('userMapHint');
+            if (!navigator.geolocation) {
+                hint.textContent = 'Geolocation is not supported by your browser.';
+                return;
+            }
+
+            hint.textContent = 'Finding your location…';
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const { latitude, longitude } = position.coords;
+                    setUserMap(`${latitude},${longitude}`, 'Showing nearby clinics based on your browser location');
+                },
+                () => {
+                    hint.textContent = 'Could not determine your location. Please enter your city or address when registering.';
+                }
+            );
         }
 
         async function apiCall(url, method = 'GET', body = null) {
@@ -674,10 +784,14 @@
                                 <div class="doctor-name">Dr. ${doctor.name}</div>
                                 <div class="doctor-specialization">${doctor.specialization}</div>
                                 ${doctor.availableTime ? `<div class="doctor-availability"><i class="fas fa-clock"></i> ${doctor.availableTime}</div>` : ''}
+                                ${doctor.address ? `<p><strong>Address:</strong> ${doctor.address}</p>` : ''}
                             </div>
-                            <button class="btn btn-primary" onclick="openBookingModal(${doctor.id}, 'Dr. ${doctor.name.replace(/'/g, "\\'")}')">
-                                <i class="fas fa-calendar-plus"></i> Book
-                            </button>
+                            <div class="doctor-card-actions">
+                                ${doctor.address ? `<button class="btn btn-map" onclick="showDoctorOnMap('${doctor.address.replace(/'/g, "\\'")}', 'Dr. ${doctor.name.replace(/'/g, "\\'")}')"><i class="fas fa-map-marker-alt"></i> View on Map</button>` : ''}
+                                <button class="btn btn-primary" onclick="openBookingModal(${doctor.id}, 'Dr. ${doctor.name.replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-calendar-plus"></i> Book
+                                </button>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -689,7 +803,7 @@
         async function loadUserAppointments() {
             try {
                 const appointments = await apiCall('/appointments');
-                const userAppointments = appointments.filter(apt => apt.patientName === currentUser.name);
+                const userAppointments = appointments;
                 const list = document.getElementById('appointmentsList');
 
                 if (userAppointments.length === 0) {
@@ -699,7 +813,8 @@
 
                 list.innerHTML = userAppointments.map(apt => {
                     const doctor = doctorMap[apt.doctorId] || { name: `Doctor ${apt.doctorId}`, specialization: '' };
-                    const statusClass = `status-${apt.status}`;
+                    const statusClass = apt.status === 'confirmed' ? 'status-confirmed' : apt.status === 'pending' ? 'status-pending' : 'status-cancelled';
+                    const canCancel = apt.status === 'pending' || apt.status === 'confirmed';
                     return `
                         <div class="appointment-card">
                             <div>
@@ -708,7 +823,7 @@
                                 <div class="appointment-date"><i class="fas fa-calendar"></i> ${apt.date}</div>
                                 <span class="status-badge ${statusClass}">${apt.status}</span>
                             </div>
-                            ${apt.status === 'booked' || apt.status === 'pending' ? `
+                            ${canCancel ? `
                                 <div class="appointment-actions">
                                     <button class="btn btn-danger" onclick="cancelAppointment(${apt.id})" style="flex: 1;">
                                         <i class="fas fa-times"></i> Cancel

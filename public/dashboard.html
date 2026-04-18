@@ -835,7 +835,7 @@
                 const appointments = await apiCall('/appointments');
                 const userAppointments = appointments.filter(apt => apt.patientName === currentUser.name);
                 const list = document.getElementById('userAppointmentsList');
-                const bookedCount = userAppointments.filter(apt => apt.status === 'booked').length;
+                const bookedCount = userAppointments.filter(apt => apt.status === 'confirmed').length;
 
                 if (userAppointments.length === 0) {
                     list.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>No appointments found</div>';
@@ -845,7 +845,7 @@
 
                 list.innerHTML = userAppointments.map(apt => {
                     const doctor = doctorMap[apt.doctorId] || { name: `Doctor ${apt.doctorId}`, specialization: '' };
-                    const statusClass = apt.status === 'booked' ? 'status-booked' : apt.status === 'pending' ? 'status-pending' : 'status-cancelled';
+                    const statusClass = apt.status === 'confirmed' ? 'status-confirmed' : apt.status === 'pending' ? 'status-pending' : 'status-cancelled';
                     return `
                         <div class="appointment-card">
                             <div class="appointment-card-info">
@@ -855,7 +855,7 @@
                             </div>
                             <div class="doctor-card-actions">
                                 <span class="status-badge ${statusClass}">${apt.status}</span>
-                                ${apt.status === 'booked' ? `<button class="btn btn-danger" onclick="cancelAppointment(${apt.id})">Cancel</button>` : ''}
+                                ${(apt.status === 'pending' || apt.status === 'confirmed') ? `<button class="btn btn-danger" onclick="cancelAppointment(${apt.id})">Cancel</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -939,7 +939,7 @@
                         <strong><i class="fas fa-user"></i> ${apt.patientName}</strong>
                         <div class="item-details">
                             <p><strong>Date:</strong> ${apt.date}</p>
-                            <p><strong>Status:</strong> <span style="color: ${apt.status === 'booked' ? '#4CAF50' : '#f44336'}">${apt.status.toUpperCase()}</span></p>
+                            <p><strong>Status:</strong> <span style="color: ${apt.status === 'confirmed' ? '#4CAF50' : apt.status === 'pending' ? '#f39c12' : '#f44336'}">${apt.status.toUpperCase()}</span></p>
                         </div>
                     </div>
                 `).join('');
@@ -953,7 +953,7 @@
                 const appointments = await apiCall('/appointments');
                 const doctorAppointments = appointments.filter(apt => apt.doctorId === currentUser.id);
                 const total = doctorAppointments.length;
-                const booked = doctorAppointments.filter(apt => apt.status === 'booked').length;
+                const booked = doctorAppointments.filter(apt => apt.status === 'confirmed').length;
                 const cancelled = doctorAppointments.filter(apt => apt.status === 'cancelled').length;
 
                 document.getElementById('statsDisplay').innerHTML = `
@@ -1042,7 +1042,7 @@
                         <div class="item-details">
                             <p><strong>Doctor ID:</strong> ${apt.doctorId}</p>
                             <p><strong>Date:</strong> ${apt.date}</p>
-                            <p><strong>Status:</strong> <span style="color: ${apt.status === 'booked' ? '#4CAF50' : '#f44336'}">${apt.status.toUpperCase()}</span></p>
+                            <p><strong>Status:</strong> <span style="color: ${apt.status === 'confirmed' ? '#4CAF50' : apt.status === 'pending' ? '#f39c12' : '#f44336'}">${apt.status.toUpperCase()}</span></p>
                         </div>
                     </div>
                 `).join('');
