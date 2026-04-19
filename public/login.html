@@ -231,6 +231,7 @@
             </div>
             <button type="submit" class="btn">Login</button>
         </form>
+        <div id="dashboardLink" style="margin-top: 20px;"></div>
         <div id="message"></div>
         <div class="link">
             <a href="index.html">← Back to Home</a>
@@ -247,8 +248,15 @@
         const passwordInput = document.getElementById('password');
         const roleSelect = document.getElementById('role');
         const messageDiv = document.getElementById('message');
+        const dashboardLinkDiv = document.getElementById('dashboardLink');
         const loginBtn = form.querySelector('.btn');
         let isLoading = false;
+
+        const existingUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (existingUser) {
+            const dashboardUrl = existingUser.role === 'doctor' ? 'doctor-dashboard.html' : 'user-dashboard.html';
+            dashboardLinkDiv.innerHTML = `<a href="${dashboardUrl}" class="btn btn-secondary">Go to Dashboard</a>`;
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();

@@ -56,6 +56,21 @@
             gap: 10px;
         }
 
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-section-title {
+            display: block;
+            padding: 0 25px;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
         .sidebar-menu {
             list-style: none;
         }
@@ -292,45 +307,237 @@
         }
 
         /* Profile Section */
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+        .profile-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 24px;
+            padding: 0;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
         }
 
-        .profile-field {
+        .profile-card-top {
+            background: linear-gradient(180deg, #1f6ed7 0%, #2f78e9 100%);
+            color: white;
+            padding: 28px 24px 22px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .profile-card-top-inner {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .profile-card-avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.32);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card-avatar:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .profile-card-avatar.drag-over {
+            background: rgba(31, 110, 215, 0.2);
+            border-color: #1f6ed7;
+            transform: scale(1.1);
+        }
+
+        .profile-card-avatar .avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            border: none;
+            object-fit: cover;
+            background: #ffffff;
+        }
+
+        .avatar-edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: white;
+            font-size: 14px;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .profile-card-avatar:hover .avatar-edit-overlay {
+            opacity: 1;
+        }
+
+        .avatar-edit-overlay .edit-text {
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .avatar-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .avatar-input:disabled {
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .profile-card-info {
+            display: grid;
+            gap: 8px;
+        }
+
+        .profile-card-info h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .profile-card-info p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .doctor-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            color: #fdfdfd;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .profile-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 13px;
+        }
+
+        .profile-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 12px;
+            border-radius: 999px;
+        }
+
+        .profile-image-input {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.12);
+            color: white;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        .profile-details {
+            padding: 24px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .profile-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .profile-details .profile-field {
             display: flex;
             flex-direction: column;
         }
 
-        .field-label {
-            font-size: 14px;
+        .profile-details .field-label {
+            font-size: 12px;
             color: #7f8c8d;
-            font-weight: 600;
             margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.14em;
+            font-weight: 700;
         }
 
-        .field-value {
-            font-size: 16px;
+        .profile-details .field-input {
+            font-size: 15px;
             color: #2c3e50;
-            font-weight: 500;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            padding: 14px 16px;
+            background: #f7f9fb;
+            border-radius: 14px;
             border: 1px solid #e9ecef;
+            font-family: inherit;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
         }
 
-        .field-input {
-            font-size: 14px;
-            color: #2c3e50;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 6px;
-            border: 2px solid #e9ecef;
-            font-family: inherit;
-            transition: border-color 0.3s ease;
+        .profile-details .field-input.read-only {
+            background: #f7f9fb;
+            color: #4a4f57;
+        }
+
+        .profile-details .field-input:focus {
+            outline: none;
+            border-color: #1f6ed7;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(31, 110, 215, 0.08);
+        }
+
+        .update-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .profile-button {
+            min-width: 140px;
+        }
+
+        .profile-card-footer {
+            padding: 0 24px 24px;
         }
 
         .map-card {
@@ -448,6 +655,10 @@
         }
 
         /* Responsive */
+        .hidden-section {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
@@ -466,8 +677,20 @@
                 padding: 20px;
             }
 
-            .profile-grid {
+            .profile-card-top-inner,
+            .profile-details-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .profile-card-avatar {
+                width: 100px;
+                height: 100px;
+                margin: 0 auto;
+            }
+
+            .profile-card-avatar .avatar {
+                width: 90px;
+                height: 90px;
             }
 
             .page-title {
@@ -484,13 +707,15 @@
                 <i class="fas fa-hospital"></i>
                 Doctor Panel
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#top" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                <li><a href="#appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
-                <li><a href="#profile"><i class="fas fa-user-circle"></i> Profile</a></li>
-                <li><a href="#clinic-location"><i class="fas fa-map-marker-alt"></i> Clinic Location</a></li>
-                <li><a href="#" class="logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-            </ul>
+            <div class="sidebar-section">
+                <ul class="sidebar-menu">
+                    <li><a href="#dashboard-section" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    <li><a href="#appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
+                    <li><a href="#profile"><i class="fas fa-user-circle"></i> Profile</a></li>
+                    <li><a href="#clinic-location"><i class="fas fa-map-marker-alt"></i> Clinic Location</a></li>
+                    <li><a href="#" class="logout-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -507,7 +732,7 @@
             <!-- Message Container -->
             <div id="messageContainer" class="message-container"></div>
 
-            <section class="section dashboard-summary">
+            <section class="section dashboard-summary" id="dashboard-section">
                 <div class="summary-grid">
                     <div class="summary-card">
                         <span class="summary-label">Total Appointments</span>
@@ -529,52 +754,77 @@
             </section>
 
             <!-- Patient Appointments Section -->
-            <section class="section" id="appointments">
+            <section class="section hidden-section" id="appointments">
                 <h2 class="section-title">Patient Appointments</h2>
                 <div id="appointmentsList"></div>
             </section>
 
             <!-- My Profile Section -->
-            <section class="section" id="profile">
+            <section class="section hidden-section" id="profile">
                 <h2 class="section-title">My Profile</h2>
-                <div class="profile-grid">
-                    <div class="profile-field">
-                        <label class="field-label">Name</label>
-                        <div class="field-value" id="displayName">Dr. --</div>
-                        <input type="text" id="inputName" class="field-input" style="display: none;" placeholder="Enter your name">
+                <div class="profile-card">
+                    <div class="profile-card-top">
+                        <div class="profile-card-top-inner">
+                            <div class="profile-card-avatar">
+                                <img id="doctorAvatar" class="avatar" src="https://ui-avatars.com/api/?name=Doctor&background=2c3e50&color=fff&size=120" alt="Doctor photo">
+                                <div class="avatar-edit-overlay">
+                                    <i class="fas fa-camera"></i>
+                                    <span class="edit-text" id="avatarEditText">Edit Profile First</span>
+                                </div>
+                                <input type="file" id="avatarInput" class="avatar-input" accept="image/*">
+                            </div>
+                            <div class="profile-card-info">
+                                <div class="doctor-badge">Recommended 92% by patients</div>
+                                <div class="profile-field">
+                                    <label class="field-label">Doctor Name</label>
+                                    <input type="text" id="inputName" class="field-input read-only" readonly placeholder="Dr. --">
+                                </div>
+                                <div class="profile-field">
+                                    <label class="field-label">Specialization</label>
+                                    <input type="text" id="inputSpecialization" class="field-input read-only" readonly placeholder="Enter your specialization">
+                                </div>
+                                <div class="profile-meta">
+                                    <span><i class="fas fa-calendar-alt"></i><span id="metaTime">Not set</span></span>
+                                    <span><i class="fas fa-map-marker-alt"></i><span id="metaLocation">Not set</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="avatar-meta">
+                            <div class="profile-field">
+                                <label class="field-label">Photo URL</label>
+                                <input type="url" id="inputPhoto" class="profile-image-input read-only" readonly placeholder="Enter image URL">
+                            </div>
+                            <p>Use a direct image URL to update your profile picture instantly.</p>
+                        </div>
                     </div>
-                    <div class="profile-field">
-                        <label class="field-label">Specialization</label>
-                        <div class="field-value" id="displaySpecialization">--</div>
-                        <input type="text" id="inputSpecialization" class="field-input" style="display: none;" placeholder="Enter your specialization">
+                    <div class="profile-details">
+                        <div class="profile-details-grid">
+                            <div class="profile-field">
+                                <label class="field-label">Email</label>
+                                <input type="email" id="inputEmail" class="field-input read-only" readonly placeholder="your email">
+                            </div>
+                            <div class="profile-field">
+                                <label class="field-label">Phone</label>
+                                <input type="text" id="inputPhone" class="field-input read-only" readonly placeholder="Enter your phone number">
+                            </div>
+                            <div class="profile-field">
+                                <label class="field-label">Available Time</label>
+                                <input type="text" id="inputAvailableTime" class="field-input read-only" readonly placeholder="e.g., Mon-Fri 10:00 - 14:00">
+                            </div>
+                            <div class="profile-field">
+                                <label class="field-label">Clinic Location</label>
+                                <input type="text" id="inputAddress" class="field-input read-only" readonly placeholder="Enter your clinic address">
+                            </div>
+                        </div>
+                        <div class="profile-card-footer update-buttons">
+                            <button class="btn-update profile-button" id="editBtn" onclick="toggleEdit()">Edit Profile</button>
+                            <button class="btn-update profile-button" id="saveBtn" onclick="saveProfile()" style="display: none; background-color: #27ae60;">Save Changes</button>
+                            <button class="btn-update profile-button" id="cancelBtn" onclick="toggleEdit(true)" style="display: none; background-color: #95a5a6;">Cancel</button>
+                        </div>
                     </div>
-                    <div class="profile-field">
-                        <label class="field-label">Email</label>
-                        <div class="field-value" id="displayEmail">--</div>
-                    </div>
-                    <div class="profile-field">
-                        <label class="field-label">Available Time</label>
-                        <div class="field-value" id="displayAvailableTime">Not set</div>
-                        <input type="text" id="inputAvailableTime" class="field-input" style="display: none;" placeholder="e.g., Mon-Fri 10:00 - 14:00">
-                    </div>
-                    <div class="profile-field">
-                        <label class="field-label">Clinic Location</label>
-                        <div class="field-value" id="displayAddress">Not set</div>
-                        <input type="text" id="inputAddress" class="field-input" style="display: none;" placeholder="Enter your clinic address">
-                    </div>
-                    <div class="profile-field">
-                        <label class="field-label">Phone</label>
-                        <div class="field-value" id="displayPhone">Not set</div>
-                        <input type="text" id="inputPhone" class="field-input" style="display: none;" placeholder="Enter your phone number">
-                    </div>
-                </div>
-                <div class="update-buttons">
-                    <button class="btn-update" id="editBtn" onclick="toggleEdit()">Edit Profile</button>
-                    <button class="btn-update" id="saveBtn" onclick="saveProfile()" style="display: none; background-color: #27ae60;">Save Changes</button>
-                    <button class="btn-update" id="cancelBtn" onclick="toggleEdit()" style="display: none; background-color: #95a5a6;">Cancel</button>
                 </div>
             </section>
-            <section class="section" id="clinic-location">
+            <section class="section hidden-section" id="clinic-location">
                 <h2 class="section-title">Clinic Location</h2>
                 <div class="map-card">
                     <div class="map-hint" id="doctorMapHint">Set your clinic address to view the map.</div>
@@ -606,7 +856,62 @@
                 return;
             }
 
+            if (window.location.hash) {
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
             initSidebarNavigation();
+            showSection('dashboard-section');
+            const defaultDashboardLink = document.querySelector('.sidebar-menu a[href="#dashboard-section"]');
+            if (defaultDashboardLink) {
+                setActiveSidebarLink(defaultDashboardLink);
+            }
+            document.getElementById('inputPhoto').addEventListener('input', () => {
+                const photoUrl = document.getElementById('inputPhoto').value.trim();
+                const name = document.getElementById('inputName').value.trim() || currentDoctor.name || 'Doctor';
+                updateAvatarPreview(photoUrl, name);
+            });
+
+            // Avatar file input handler
+            const avatarContainer = document.getElementById('avatarInput').parentElement;
+            document.getElementById('avatarInput').addEventListener('change', handleAvatarUpload);
+            document.getElementById('avatarInput').addEventListener('click', (e) => {
+                if (!isEditing) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showMessage('Please click "Edit Profile" first to change your picture', 'error');
+                    return false;
+                }
+            });
+
+            // Add drag and drop functionality
+            avatarContainer.addEventListener('dragover', (e) => {
+                if (isEditing) {
+                    e.preventDefault();
+                    avatarContainer.classList.add('drag-over');
+                }
+            });
+
+            avatarContainer.addEventListener('dragleave', () => {
+                avatarContainer.classList.remove('drag-over');
+            });
+
+            avatarContainer.addEventListener('drop', (e) => {
+                if (isEditing) {
+                    e.preventDefault();
+                    avatarContainer.classList.remove('drag-over');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        // Create a synthetic event for the file input
+                        const syntheticEvent = { target: { files: files } };
+                        handleAvatarUpload(syntheticEvent);
+                    }
+                }
+            });
+
+            // Initialize avatar input as disabled
+            document.getElementById('avatarInput').disabled = true;
+
             await loadDoctorProfile();
             await loadDoctorAppointments();
         });
@@ -650,10 +955,32 @@
             event.preventDefault();
             const targetId = event.currentTarget.getAttribute('href').slice(1);
             if (!targetId) return;
+            showSection(targetId);
             const target = document.getElementById(targetId);
-            if (!target) return;
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             setActiveSidebarLink(event.currentTarget);
+        }
+
+        function showSection(sectionId) {
+            const sectionIds = ['dashboard-section', 'appointments', 'profile', 'clinic-location'];
+            sectionIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (!element) return;
+                if (id === sectionId) {
+                    element.classList.remove('hidden-section');
+                } else {
+                    element.classList.add('hidden-section');
+                }
+            });
+
+            const pageHeader = document.getElementById('top');
+            if (sectionId === 'dashboard-section') {
+                pageHeader.style.display = 'block';
+            } else {
+                pageHeader.style.display = 'block';
+            }
         }
 
         function onSidebarScroll() {
@@ -706,19 +1033,16 @@
                 const doctor = await apiCall(`/doctors/${currentDoctor.id}`);
                 
                 // Update display fields
-                document.getElementById('displayName').textContent = `Dr. ${doctor.name}`;
-                document.getElementById('displaySpecialization').textContent = doctor.specialization || '--';
-                document.getElementById('displayEmail').textContent = doctor.email;
-                document.getElementById('displayAvailableTime').textContent = doctor.availableTime || 'Not set';
-                document.getElementById('displayAddress').textContent = doctor.address || 'Not set';
-                document.getElementById('displayPhone').textContent = doctor.phone || 'Not set';
-
-                // Set input values
                 document.getElementById('inputName').value = doctor.name || '';
                 document.getElementById('inputSpecialization').value = doctor.specialization || '';
+                document.getElementById('inputEmail').value = doctor.email || '';
                 document.getElementById('inputAvailableTime').value = doctor.availableTime || '';
                 document.getElementById('inputAddress').value = doctor.address || '';
                 document.getElementById('inputPhone').value = doctor.phone || '';
+                document.getElementById('inputPhoto').value = doctor.photo || '';
+                document.getElementById('metaTime').textContent = doctor.availableTime || 'Not set';
+                document.getElementById('metaLocation').textContent = doctor.address || 'Not set';
+                document.getElementById('doctorAvatar').src = doctor.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent('Dr. ' + doctor.name)}&background=2c3e50&color=fff&size=120`;
                 setDoctorMap(doctor.address);
             } catch (error) {
                 showMessage('Error loading profile', 'error');
@@ -794,6 +1118,83 @@
             }
         }
 
+        function updateAvatarPreview(photoUrl, name) {
+            const avatar = document.getElementById('doctorAvatar');
+            const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent('Dr. ' + (name || 'Doctor'))}&background=2c3e50&color=fff&size=120`;
+            avatar.src = photoUrl ? photoUrl : fallback;
+        }
+
+        async function handleAvatarUpload(event) {
+            if (!isEditing) {
+                showMessage('Please click "Edit Profile" first to change your picture', 'error');
+                // Reset the input to allow re-selection
+                event.target.value = '';
+                return;
+            }
+
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showMessage('Please select a valid image file (JPG, PNG, GIF, etc.)', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showMessage('Image size should be less than 5MB', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            // Show loading message
+            showMessage('Uploading image...', 'success');
+
+            // Add loading state to avatar
+            const avatar = document.getElementById('doctorAvatar');
+            const originalSrc = avatar.src;
+            avatar.style.opacity = '0.5';
+
+            try {
+                const base64String = await fileToBase64(file);
+
+                // Set up error handling for the image
+                avatar.onerror = () => {
+                    avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent('Dr. ' + (document.getElementById('inputName').value || 'Doctor'))}&background=2c3e50&color=fff&size=120`;
+                    avatar.style.opacity = '1';
+                    showMessage('Failed to load image. Please try a different file.', 'error');
+                };
+
+                avatar.src = base64String;
+                avatar.style.opacity = '1';
+
+                // Update the photo input field with base64 data
+                document.getElementById('inputPhoto').value = base64String;
+
+                showMessage('Profile picture updated successfully! Click "Save Changes" to confirm.', 'success');
+
+                // Reset the input to allow re-selection of the same file
+                event.target.value = '';
+            } catch (error) {
+                avatar.src = originalSrc;
+                avatar.style.opacity = '1';
+                showMessage('Error uploading image. Please try again.', 'error');
+                console.error('Avatar upload error:', error);
+                event.target.value = '';
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
         function setDoctorMap(address) {
             const frame = document.getElementById('doctorMapFrame');
             const hint = document.getElementById('doctorMapHint');
@@ -810,25 +1211,34 @@
             frame.src = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
         }
 
-        function toggleEdit() {
+        function toggleEdit(isCancel = false) {
             isEditing = !isEditing;
-            const displayFields = ['displayName', 'displaySpecialization', 'displayAvailableTime', 'displayAddress', 'displayPhone'];
-            const inputFields = ['inputName', 'inputSpecialization', 'inputAvailableTime', 'inputAddress', 'inputPhone'];
+            const editableFields = ['inputName', 'inputSpecialization', 'inputAvailableTime', 'inputAddress', 'inputPhone', 'inputPhoto'];
             const editBtn = document.getElementById('editBtn');
             const saveBtn = document.getElementById('saveBtn');
             const cancelBtn = document.getElementById('cancelBtn');
+            const avatarInput = document.getElementById('avatarInput');
+            const avatarEditText = document.getElementById('avatarEditText');
 
-            displayFields.forEach(id => {
-                document.getElementById(id).style.display = isEditing ? 'none' : 'block';
+            editableFields.forEach(id => {
+                const input = document.getElementById(id);
+                input.readOnly = !isEditing;
+                input.classList.toggle('read-only', !isEditing);
             });
 
-            inputFields.forEach(id => {
-                document.getElementById(id).style.display = isEditing ? 'block' : 'none';
-            });
+            // Handle avatar input
+            avatarInput.disabled = !isEditing;
+            avatarEditText.innerHTML = isEditing ?
+                'Click to browse<br>or drag & drop' :
+                'Edit Profile First';
 
-            editBtn.style.display = isEditing ? 'none' : 'block';
-            saveBtn.style.display = isEditing ? 'block' : 'none';
-            cancelBtn.style.display = isEditing ? 'block' : 'none';
+            editBtn.style.display = isEditing ? 'none' : 'inline-flex';
+            saveBtn.style.display = isEditing ? 'inline-flex' : 'none';
+            cancelBtn.style.display = isEditing ? 'inline-flex' : 'none';
+
+            if (!isEditing && isCancel) {
+                loadDoctorProfile();
+            }
         }
 
         async function saveProfile() {
@@ -837,6 +1247,7 @@
             const availableTime = document.getElementById('inputAvailableTime').value.trim();
             const address = document.getElementById('inputAddress').value.trim();
             const phone = document.getElementById('inputPhone').value.trim();
+            const photo = document.getElementById('inputPhoto').value.trim();
 
             if (!name || !specialization) {
                 showMessage('Name and specialization are required', 'error');
@@ -849,11 +1260,17 @@
                     specialization,
                     availableTime,
                     address,
-                    phone
+                    phone,
+                    photo
                 });
 
                 currentDoctor.name = name;
-                localStorage.setItem('user', JSON.stringify(currentDoctor));
+            currentDoctor.specialization = specialization;
+            currentDoctor.availableTime = availableTime;
+            currentDoctor.address = address;
+            currentDoctor.phone = phone;
+            currentDoctor.photo = photo;
+            localStorage.setItem('user', JSON.stringify(currentDoctor));
                 
                 showMessage('Profile updated successfully', 'success');
                 toggleEdit();
