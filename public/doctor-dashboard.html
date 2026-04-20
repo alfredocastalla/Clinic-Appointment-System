@@ -888,11 +888,8 @@
         <div class="main-content">
             <!-- Page Header -->
             <div class="page-header" id="top">
-                <h1 class="page-title">
-                    <span>Welcome, Doctor</span>
-                    <span>👨‍⚕️</span>
-                </h1>
-                <p class="page-description">Manage your appointments and availability.</p>
+                <h1 class="page-title" id="pageTitle"><i class="fas fa-chart-line"></i> Dashboard</h1>
+                <p class="page-description" id="pageDescription">Welcome to your doctor dashboard. Manage your patients and appointments.</p>
             </div>
 
             <!-- Message Container -->
@@ -1133,6 +1130,33 @@
                     element.classList.add('hidden-section');
                 }
             });
+
+            const titleElement = document.getElementById('pageTitle');
+            const descriptionElement = document.getElementById('pageDescription');
+            let titleHTML = '<i class="fas fa-chart-line"></i> Dashboard';
+            let descriptionText = 'Welcome to your doctor dashboard. Manage your patients and appointments.';
+
+            switch (sectionId) {
+                case 'appointments-section':
+                    titleHTML = '<i class="fas fa-calendar-check"></i> Appointments';
+                    descriptionText = 'View and manage patient appointments in one place.';
+                    break;
+                case 'profile-section':
+                    titleHTML = '<i class="fas fa-user-circle"></i> Profile';
+                    descriptionText = 'Update your doctor profile and clinic details.';
+                    break;
+                case 'clinic-location-section':
+                    titleHTML = '<i class="fas fa-map-marker-alt"></i> Clinic Location';
+                    descriptionText = 'Manage your clinic address and map information.';
+                    break;
+            }
+
+            if (titleElement) {
+                titleElement.innerHTML = titleHTML;
+            }
+            if (descriptionElement) {
+                descriptionElement.textContent = descriptionText;
+            }
 
             const pageHeader = document.getElementById('top');
             if (pageHeader) {
