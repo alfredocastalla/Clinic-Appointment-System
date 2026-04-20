@@ -48,6 +48,35 @@ export class AppointmentsService {
     return this.findOne(id);
   }
 
+  async update(id: number, data: any, user: any) {
+    const appointment = await this.findOne(id);
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (user.role !== 'user' || appointment.patientId !== user.id) {
+      throw new UnauthorizedException('Only the appointment owner can update this appointment');
+    }
+
+    const updatedFields: any = {};
+    if (data.date) {
+      updatedFields.date = data.date;
+    }
+    if (data.time !== undefined) {
+      updatedFields.time = data.time;
+    }
+    if (data.symptoms !== undefined) {
+      updatedFields.symptoms = data.symptoms;
+    }
+
+    if (Object.keys(updatedFields).length === 0) {
+      return this.findOne(id);
+    }
+
+    await this.repo.update(id, updatedFields);
+    return this.findOne(id);
+  }
+
   async cancel(id: number, user: any) {
     const appointment = await this.findOne(id);
     if (!appointment) {

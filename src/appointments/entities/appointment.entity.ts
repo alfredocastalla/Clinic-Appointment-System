@@ -17,6 +17,12 @@ export class Appointment {
   @Column()
   date: string;
 
+  @Column({ nullable: true })
+  time: string;
+
+  @Column({ nullable: true })
+  symptoms: string;
+
   @Column()
   status: string;
 }

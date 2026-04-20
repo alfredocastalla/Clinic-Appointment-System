@@ -31,6 +31,11 @@ export class AppointmentsController {
     return this.service.confirm(id, req.user);
   }
 
+  @Patch(':id')
+  update(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+    return this.service.update(id, body, req.user);
+  }
+
   @Patch(':id/cancel')
   cancel(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
     return this.service.cancel(id, req.user);

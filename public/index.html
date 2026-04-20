@@ -32,6 +32,8 @@
 
     <script>
         // Check if user is already logged in
+        // Uncomment below to enable auto-redirect to dashboard
+        /*
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || 'null');
 
@@ -40,6 +42,7 @@
             const redirectUrl = user.role === 'doctor' ? 'doctor-dashboard.html' : 'user-dashboard.html';
             window.location.href = redirectUrl;
         }
+        */
     </script>
 </body>
 </html>
