@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard - Clinic Appointment System</title>
+    <title>Clinic Appointment - Doctor Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -33,6 +33,86 @@
             height: 100vh;
             overflow-y: auto;
             box-shadow: 2px 0 16px rgba(0,0,0,0.12);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 25px 22px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.18);
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+        .sidebar-logo-text {
+            display: grid;
+            gap: 4px;
+        }
+
+        .sidebar-logo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ecf0f1;
+            line-height: 1.1;
+        }
+
+        .sidebar-logo-tag {
+            font-size: 11px;
+            color: #bdc3c7;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 25px 22px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.18);
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+        .sidebar-logo-text {
+            display: grid;
+            gap: 4px;
+        }
+
+        .sidebar-logo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ecf0f1;
+            line-height: 1.1;
+        }
+
+        .sidebar-logo-tag {
+            font-size: 11px;
+            color: #bdc3c7;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
         }
 
         .sidebar-profile {
@@ -853,9 +933,12 @@
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
-            <div class="sidebar-title">
-                <i class="fas fa-hospital"></i>
-                Doctor Dashboard
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon"><i class="fas fa-hospital"></i></div>
+                <div class="sidebar-logo-text">
+                    <div class="sidebar-logo-title">Clinic Appointment</div>
+                    <div class="sidebar-logo-tag">Doctor Panel</div>
+                </div>
             </div>
             <div class="sidebar-profile">
                 <div class="sidebar-profile-image">
@@ -868,7 +951,7 @@
             </div>
             <div class="sidebar-section">
                 <span class="sidebar-section-title">Main</span>
-                <ul class="sidebar-menu" aria-label="Doctor dashboard navigation">
+                <ul class="sidebar-menu" aria-label="Doctor panel navigation">
                     <li><a href="#dashboard-section" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
                     <li><a href="#appointments-section"><i class="fas fa-calendar-check"></i> Appointments</a></li>
                     <li><a href="#profile-section"><i class="fas fa-user-circle"></i> Profile</a></li>
