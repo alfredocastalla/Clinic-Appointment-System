@@ -78,6 +78,14 @@
             font-size: 13px;
         }
 
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin: 0;
+        }
+
         .sidebar-section-title {
             color: #b8c6db;
             text-transform: uppercase;
@@ -86,50 +94,7 @@
             padding: 0 25px 10px;
             margin-bottom: 6px;
             display: block;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 14px 25px;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.25s ease;
-            border-left: 4px solid transparent;
-        }
-
-        .sidebar-title {
-            font-size: 24px;
-            font-weight: bold;
-            padding: 0 25px;
-            margin-bottom: 40px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-section {
-            margin-bottom: 30px;
-        }
-
-        .sidebar-section-title {
-            display: block;
-            padding: 0 25px;
-            margin-bottom: 15px;
-            color: #bdc3c7;
-            font-size: 12px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
             font-weight: 700;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin: 0;
         }
 
         .sidebar-menu a {
@@ -905,9 +870,9 @@
                 <span class="sidebar-section-title">Main</span>
                 <ul class="sidebar-menu" aria-label="Doctor dashboard navigation">
                     <li><a href="#dashboard-section" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                    <li><a href="#appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
-                    <li><a href="#profile"><i class="fas fa-user-circle"></i> Profile</a></li>
-                    <li><a href="#clinic-location"><i class="fas fa-map-marker-alt"></i> Clinic Location</a></li>
+                    <li><a href="#appointments-section"><i class="fas fa-calendar-check"></i> Appointments</a></li>
+                    <li><a href="#profile-section"><i class="fas fa-user-circle"></i> Profile</a></li>
+                    <li><a href="#clinic-location-section"><i class="fas fa-map-marker-alt"></i> Clinic Location</a></li>
                 </ul>
             </div>
             <div class="sidebar-section">
@@ -955,13 +920,13 @@
             </section>
 
             <!-- Patient Appointments Section -->
-            <section class="section hidden-section" id="appointments">
+            <section class="section hidden-section" id="appointments-section">
                 <h2 class="section-title">Patient Appointments</h2>
                 <div id="appointmentsList"></div>
             </section>
 
             <!-- My Profile Section -->
-            <section class="section hidden-section" id="profile">
+            <section class="section hidden-section" id="profile-section">
                 <h2 class="section-title">My Profile</h2>
                 <div class="profile-card">
                     <div class="profile-card-top">
@@ -1018,7 +983,7 @@
                     </div>
                 </div>
             </section>
-            <section class="section hidden-section" id="clinic-location">
+            <section class="section hidden-section" id="clinic-location-section">
                 <h2 class="section-title">Clinic Location</h2>
                 <div class="map-card">
                     <div class="map-hint" id="doctorMapHint">Set your clinic address to view the map.</div>
@@ -1158,7 +1123,7 @@
         }
 
         function showSection(sectionId) {
-            const sectionIds = ['dashboard-section', 'appointments', 'profile', 'clinic-location'];
+            const sectionIds = ['dashboard-section', 'appointments-section', 'profile-section', 'clinic-location-section'];
             sectionIds.forEach(id => {
                 const element = document.getElementById(id);
                 if (!element) return;
@@ -1170,9 +1135,7 @@
             });
 
             const pageHeader = document.getElementById('top');
-            if (sectionId === 'dashboard-section') {
-                pageHeader.style.display = 'block';
-            } else {
+            if (pageHeader) {
                 pageHeader.style.display = 'block';
             }
         }
