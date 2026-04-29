@@ -60,12 +60,8 @@ http://localhost:3001
 ## 📂 Project Structure
 
 ```
-public/              ← Frontend (HTML)
-├── index.html            (Home page)
-├── login.html            (Login)
-├── register-user.html    (Patient signup)
-├── register-doctor.html  (Doctor signup)
-└── dashboard.html        (Main app UI)
+backend/             ← NestJS API
+frontend/            ← React + TypeScript app
 
 src/                 ← Backend (NestJS)
 ├── auth/            (Login/Registration)

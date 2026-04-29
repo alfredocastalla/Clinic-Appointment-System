@@ -1,6 +1,6 @@
 # Clinic Appointment System
 
-A full-stack clinic appointment management system built with NestJS backend and HTML/CSS/JavaScript frontend.
+A full-stack clinic appointment management system with a NestJS backend and a React + TypeScript frontend.
 
 ## Features
 
@@ -11,20 +11,16 @@ A full-stack clinic appointment management system built with NestJS backend and 
 - **Role-based Access**: Separate registration for patients and doctors
 - **Database**: SQLite with TypeORM entities and relationships
 
-### Frontend (HTML/CSS/JavaScript)
-- **Landing Page**: Welcome page with navigation
-- **User Registration**: Patient registration form
-- **Doctor Registration**: Doctor registration form
-- **Login Page**: Authentication with role selection
-- **Dashboard**: Role-based dashboard with:
-  - **Patient Dashboard**: View appointments, book new ones, browse doctors
-  - **Doctor Dashboard**: View scheduled appointments, appointment statistics
-- **Responsive Design**: Modern CSS with gradient headers and card layouts
+### Frontend (React + TypeScript)
+- **Routing**: Dedicated routes for home, login, registration, and dashboards
+- **Patient Dashboard**: Browse doctors, book appointments, and cancel appointments
+- **Doctor Dashboard**: Confirm or cancel appointments and update doctor profile details
+- **Type-safe UI**: Shared TypeScript models for API data and cleaner component structure
 
 ## Tech Stack
 
 - **Backend**: NestJS, TypeORM, SQLite, JWT, bcrypt, Passport
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+), Fetch API
+- **Frontend**: React, TypeScript, Vite, Fetch API
 - **Database**: SQLite with automatic schema generation
 - **Authentication**: JWT with role-based access control
 
@@ -38,20 +34,27 @@ A full-stack clinic appointment management system built with NestJS backend and 
 
 2. **Install dependencies**:
    ```bash
-   npm install
+   npm run install:all
    ```
 
 3. **Start the application**:
    ```bash
-   npm start
+   npm run backend:dev
    ```
 
-   The server will run on `http://localhost:3001`
+   The API server will run on `http://localhost:3001`
+
+4. **Start the frontend**:
+   ```bash
+   npm run frontend:dev
+   ```
+
+   The frontend will run on `http://localhost:5173`
 
 ## Usage
 
 1. **Access the application**:
-   Open `http://localhost:3001` in your browser
+   Open `http://localhost:5173` in your browser during development, or `http://localhost:3001` for the backend-served production build.
 
 2. **Register**:
    - Register as a patient or doctor
@@ -77,38 +80,19 @@ A full-stack clinic appointment management system built with NestJS backend and 
 
 ```
 clinic-appointment-system/
-├── src/
-│   ├── app.module.ts
-│   ├── main.ts
-│   ├── auth/
-│   │   ├── auth.controller.ts
-│   │   ├── auth.service.ts
-│   │   ├── auth.module.ts
-│   │   └── jwt.strategy.ts
-│   ├── users/
-│   │   ├── users.controller.ts
-│   │   ├── users.service.ts
-│   │   ├── users.module.ts
-│   │   └── entities/user.entity.ts
-│   ├── doctors/
-│   │   ├── doctors.controller.ts
-│   │   ├── doctors.service.ts
-│   │   ├── doctors.module.ts
-│   │   └── entities/doctor.entity.ts
-│   └── appointments/
-│       ├── appointments.controller.ts
-│       ├── appointments.service.ts
-│       ├── appointments.module.ts
-│       └── entities/appointment.entity.ts
-├── public/
-│   ├── index.html
-│   ├── register-user.html
-│   ├── register-doctor.html
-│   ├── login.html
-│   └── dashboard.html
-├── test/
+├── backend/
+│   ├── src/
+│   ├── test/
+│   ├── package.json
+│   └── database.sqlite
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.ts
 └── package.json
 ```
+
+`backend/` contains the Nest API, and `frontend/` contains the React + TypeScript app.
 
 ## Contributing
 

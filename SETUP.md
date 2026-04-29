@@ -97,8 +97,8 @@ Once the server is running, open your browser and go to:
 - Home: `http://localhost:3001/`
 - Login: `http://localhost:3001/login.html`
 - Register as User: `http://localhost:3001/register-user.html`
-- Register as Doctor: `http://localhost:3001/register-doctor.html`
-- Dashboard: `http://localhost:3001/dashboard.html` (after login)
+- Register as Doctor: `http://localhost:5173/register/doctor`
+- Dashboard: `http://localhost:5173/dashboard/patient` or `http://localhost:5173/dashboard/doctor`
 
 ## Authentication Flow
 1. User/Doctor registers via `/auth/register/user` or `/auth/register/doctor`
@@ -206,20 +206,23 @@ src/
 ├── app.module.ts      # Main application module
 └── main.ts            # Application entry point
 
-public/
-├── index.html         # Home page
-├── login.html         # Login page
-├── register-user.html # User registration
-├── register-doctor.html # Doctor registration
-└── dashboard.html     # Dashboard (after login)
+backend/
+├── src/               # NestJS source
+├── test/              # Backend tests
+└── database.sqlite    # Persisted SQL.js database file
+
+frontend/
+├── src/               # React + TypeScript source
+├── package.json       # Frontend scripts and dependencies
+└── vite.config.ts     # Vite dev server and API proxy
 
 database.sqlite       # SQLite database (created on first run)
 ```
 
 ## Key Files Modified
-- `src/main.ts` - Added CORS support
-- `public/register-doctor.html` - Fixed JavaScript syntax errors
-- `package.json` - Added express dependency
+- `backend/src/main.ts` - Backend entry point with CORS enabled
+- `backend/src/app.module.ts` - Serves the built React frontend and configures SQL.js
+- `frontend/src/App.tsx` - React routes and dashboard UI
 
 ## Production Deployment Notes
 1. Set proper JWT_SECRET environment variable
