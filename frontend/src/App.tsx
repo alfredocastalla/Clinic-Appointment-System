@@ -1126,7 +1126,7 @@ function AdminDashboard({
   currentUser: AuthUser | null;
   onLogout: () => void;
 }) {
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState('dashboard');
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -1134,10 +1134,13 @@ function AdminDashboard({
   const [error, setError] = useState<string | null>(null);
 
   const navItems: NavItem[] = [
-    { key: 'overview', label: 'Overview', caption: 'System-wide metrics' },
-    { key: 'users', label: 'Users', caption: 'Patient and admin accounts' },
-    { key: 'doctors', label: 'Doctors', caption: 'Clinician directory' },
+    { key: 'dashboard', label: 'Dashboard', caption: 'Overview' },
     { key: 'appointments', label: 'Appointments', caption: 'Booking activity' },
+    { key: 'patients', label: 'Patients', caption: 'Patient records' },
+    { key: 'doctors', label: 'Doctors', caption: 'Clinician directory' },
+    { key: 'services', label: 'Services', caption: 'Clinic offerings' },
+    { key: 'reports', label: 'Reports', caption: 'Performance insights' },
+    { key: 'settings', label: 'Settings', caption: 'System configuration' },
   ];
 
   useEffect(() => {
@@ -1164,7 +1167,17 @@ function AdminDashboard({
 
   const admins = users.filter((user) => user.role === 'admin');
   const patients = users.filter((user) => user.role === 'user');
+  const pending = appointments.filter((appointment) => appointment.status === 'pending').length;
+  const confirmed = appointments.filter((appointment) => appointment.status === 'confirmed').length;
+  const cancelled = appointments.filter((appointment) => appointment.status === 'cancelled').length;
   const doctorById = Object.fromEntries(doctors.map((doctor) => [doctor.id, doctor]));
+
+  const clinicServices = [
+    { name: 'Appointment Scheduling', description: 'Book and manage patient visits', status: 'Active' },
+    { name: 'Doctor Management', description: 'Manage doctors and availability', status: 'Active' },
+    { name: 'Patient Records', description: 'Secure patient history and notes', status: 'Active' },
+    { name: 'Reporting & Analytics', description: 'Track clinic performance', status: 'Coming soon' },
+  ];
 
   return (
     <SidebarDashboard
@@ -1178,23 +1191,24 @@ function AdminDashboard({
       message={message}
       error={error}
     >
-      {activeView === 'overview' ? (
+      {activeView === 'dashboard' ? (
         <>
           <div className="metrics-grid">
-            <MetricCard label="Patients" value={String(patients.length)} />
-            <MetricCard label="Doctors" value={String(doctors.length)} />
+            <MetricCard label="Total Patients" value={String(patients.length)} />
+            <MetricCard label="Total Doctors" value={String(doctors.length)} />
             <MetricCard label="Appointments" value={String(appointments.length)} />
-            <MetricCard label="Admins" value={String(admins.length)} />
+            <MetricCard label="Pending" value={String(pending)} />
           </div>
+
           <div className="content-grid">
             <section className="panel">
               <SectionHeader
-                title="Recent appointments"
+                title="Today's appointments"
                 action={<button className="ghost-button" onClick={() => void loadAdminData()}>Refresh</button>}
               />
               <div className="list-stack">
                 {appointments.length === 0 ? (
-                  <EmptyState text="No appointments found." />
+                  <EmptyState text="No appointments booked yet." />
                 ) : (
                   appointments.slice(0, 5).map((appointment) => (
                     <article className="list-card" key={appointment.id}>
@@ -1213,44 +1227,24 @@ function AdminDashboard({
                 )}
               </div>
             </section>
-            <section className="panel">
-              <SectionHeader title="System notes" />
+
+            <section className="panel quick-actions-panel">
+              <SectionHeader title="Quick actions" />
+              <div className="quick-actions-grid">
+                <button className="secondary-button">New Patient</button>
+                <button className="secondary-button">New Appointment</button>
+                <button className="secondary-button">Manage Doctors</button>
+                <button className="secondary-button">View Reports</button>
+              </div>
               <div className="profile-summary">
                 <InfoPair label="Admin account" value="admin@clinic.local" />
                 <InfoPair label="Seed password" value="admin123" />
-                <InfoPair label="Backend health" value="/api/health" />
-                <InfoPair label="Frontend mode" value="React + TypeScript" />
+                <InfoPair label="Total doctors" value={String(doctors.length)} />
+                <InfoPair label="Confirmed" value={String(confirmed)} />
               </div>
             </section>
           </div>
         </>
-      ) : null}
-
-      {activeView === 'users' ? (
-        <section className="panel">
-          <SectionHeader title="User accounts" />
-          <DataTable
-            columns={['Name', 'Email', 'Role', 'Location']}
-            rows={users.map((user) => [user.name, user.email, user.role, user.location || ''])}
-            emptyText="No users available."
-          />
-        </section>
-      ) : null}
-
-      {activeView === 'doctors' ? (
-        <section className="panel">
-          <SectionHeader title="Doctor directory" />
-          <DataTable
-            columns={['Name', 'Email', 'Specialization', 'Availability']}
-            rows={doctors.map((doctor) => [
-              doctor.name,
-              doctor.email,
-              doctor.specialization,
-              doctor.availableTime || 'Not set',
-            ])}
-            emptyText="No doctors available."
-          />
-        </section>
       ) : null}
 
       {activeView === 'appointments' ? (
@@ -1267,6 +1261,87 @@ function AdminDashboard({
             ])}
             emptyText="No appointments available."
           />
+        </section>
+      ) : null}
+
+      {activeView === 'patients' ? (
+        <section className="panel">
+          <SectionHeader title="Patients" />
+          <DataTable
+            columns={['Name', 'Email', 'Location', 'Status']}
+            rows={patients.map((patient) => [
+              patient.name,
+              patient.email,
+              patient.location || '—',
+              'Active',
+            ])}
+            emptyText="No patient records available."
+          />
+        </section>
+      ) : null}
+
+      {activeView === 'doctors' ? (
+        <section className="panel">
+          <SectionHeader title="Doctors" />
+          <DataTable
+            columns={['Name', 'Email', 'Specialization', 'Availability']}
+            rows={doctors.map((doctor) => [
+              doctor.name,
+              doctor.email,
+              doctor.specialization,
+              doctor.availableTime || 'Not set',
+            ])}
+            emptyText="No doctors available."
+          />
+        </section>
+      ) : null}
+
+      {activeView === 'services' ? (
+        <section className="panel">
+          <SectionHeader title="Services" />
+          <div className="service-grid">
+            {clinicServices.map((service) => (
+              <article className="service-card" key={service.name}>
+                <h3>{service.name}</h3>
+                <p>{service.description}</p>
+                <span className={`status-pill status-${service.status === 'Active' ? 'confirmed' : 'pending'}`}>
+                  {service.status}
+                </span>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'reports' ? (
+        <section className="panel">
+          <SectionHeader title="Reports" action={<button className="ghost-button">Export CSV</button>} />
+          <div className="report-grid">
+            <article className="report-card">
+              <span>Weekly bookings</span>
+              <strong>{String(appointments.filter((appointment) => appointment.status !== 'cancelled').length)}</strong>
+            </article>
+            <article className="report-card">
+              <span>Completed visits</span>
+              <strong>{String(confirmed)}</strong>
+            </article>
+            <article className="report-card">
+              <span>Cancelled</span>
+              <strong>{String(cancelled)}</strong>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'settings' ? (
+        <section className="panel">
+          <SectionHeader title="Settings" />
+          <div className="settings-grid">
+            <InfoPair label="Clinic name" value="CareWell Clinic" />
+            <InfoPair label="Timezone" value="GMT+8" />
+            <InfoPair label="Appointment window" value="8:00 AM - 6:00 PM" />
+            <InfoPair label="Notification" value="Enabled" />
+          </div>
         </section>
       ) : null}
     </SidebarDashboard>
@@ -1300,8 +1375,8 @@ function SidebarDashboard({
     <div className="workspace-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <span className="eyebrow">Clinic workspace</span>
-          <h2>MCAS</h2>
+          <span className="eyebrow">CareWell Clinic</span>
+          <h2>Appointment System</h2>
           <p>{currentUser?.name ?? 'Guest'}</p>
         </div>
         <nav className="sidebar-nav">
