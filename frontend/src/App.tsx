@@ -447,7 +447,7 @@ function PatientDashboard({
   currentUser: AuthUser | null;
   onLogout: () => void;
 }) {
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState('dashboard');
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctorId, setDoctorId] = useState('');
@@ -471,9 +471,12 @@ function PatientDashboard({
   }, []);
 
   const navItems: NavItem[] = [
-    { key: 'overview', label: 'Overview', caption: 'Counts and quick context' },
-    { key: 'book', label: 'Book Visit', caption: 'Create a new appointment' },
-    { key: 'appointments', label: 'Appointments', caption: 'Manage your bookings' },
+    { key: 'dashboard', label: 'Dashboard', caption: 'Get started' },
+    { key: 'appointments', label: 'My Appointments', caption: 'View and manage bookings' },
+    { key: 'medical', label: 'Medical Records', caption: 'Health history' },
+    { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication list' },
+    { key: 'messages', label: 'Messages', caption: 'Inbox and updates' },
+    { key: 'profile', label: 'Profile Settings', caption: 'Account details' },
   ];
 
   async function loadData() {
@@ -569,56 +572,42 @@ function PatientDashboard({
       navItems={navItems}
       activeView={activeView}
       onSelectView={setActiveView}
-      title="Patient Dashboard"
-      subtitle="Track visits, browse doctors, and keep your booking flow tidy."
+      title="My Dashboard"
+      subtitle="Manage your appointments and health information in one place."
       onLogout={onLogout}
       message={message}
       error={error}
     >
-      {activeView === 'overview' ? (
+      {activeView === 'dashboard' ? (
         <>
           <div className="metrics-grid">
-            <MetricCard label="Available Doctors" value={String(doctors.length)} />
-            <MetricCard label="Appointments" value={String(appointments.length)} />
-            <MetricCard label="Active Visits" value={String(upcomingAppointments.length)} />
+            <MetricCard label="Upcoming visits" value={String(upcomingAppointments.length)} />
+            <MetricCard label="Doctors available" value={String(doctors.length)} />
+            <MetricCard label="Confirmed" value={String(appointments.filter((appt) => appt.status === 'confirmed').length)} />
+            <MetricCard label="Pending" value={String(appointments.filter((appt) => appt.status === 'pending').length)} />
           </div>
+
+          <section className="panel hero-dashboard-panel">
+            <div className="overview-hero">
+              <div>
+                <span className="eyebrow">Welcome back</span>
+                <h2>{currentUser?.name || 'Patient'}</h2>
+                <p>Manage your appointments and health information in one place.</p>
+              </div>
+              <div className="hero-actions-card">
+                <button className="primary-button" type="button" onClick={() => setActiveView('appointments')}>
+                  Book Appointment
+                </button>
+              </div>
+            </div>
+          </section>
+
           <div className="content-grid">
             <section className="panel">
-              <SectionHeader
-                title="Doctor directory"
-                action={<button className="ghost-button" onClick={() => void loadData()}>Refresh</button>}
-              />
-              <div className="list-stack">
-                {doctors.length === 0 ? (
-                  <EmptyState text="No doctors available yet." />
-                ) : (
-                  doctors.map((doctor) => (
-                    <article className="list-card" key={doctor.id}>
-                      <div>
-                        <h3>Dr. {doctor.name}</h3>
-                        <p>{doctor.specialization}</p>
-                        <p className="muted-copy">{doctor.address || 'Clinic address not set.'}</p>
-                      </div>
-                      <button
-                        className="primary-button compact-button"
-                        type="button"
-                        onClick={() => {
-                          setDoctorId(String(doctor.id));
-                          setActiveView('book');
-                        }}
-                      >
-                        Book
-                      </button>
-                    </article>
-                  ))
-                )}
-              </div>
-            </section>
-            <section className="panel">
-              <SectionHeader title="Upcoming visits" />
+              <SectionHeader title="Upcoming Appointments" action={<button className="ghost-button" onClick={() => void loadData()}>Refresh</button>} />
               <div className="list-stack">
                 {upcomingAppointments.length === 0 ? (
-                  <EmptyState text="No active appointments yet." />
+                  <EmptyState text="No upcoming appointments yet." />
                 ) : (
                   upcomingAppointments.slice(0, 4).map((appointment) => (
                     <article className="list-card" key={appointment.id}>
@@ -628,15 +617,87 @@ function PatientDashboard({
                             ? `Dr. ${doctorById[appointment.doctorId].name}`
                             : `Doctor #${appointment.doctorId}`}
                         </h3>
-                        <p>
-                          {appointment.date}
-                          {appointment.time ? ` at ${appointment.time}` : ''}
-                        </p>
+                        <p>{appointment.date} {appointment.time ? `• ${appointment.time}` : ''}</p>
+                        <p className="muted-copy">{doctorById[appointment.doctorId]?.specialization || 'General medicine'}</p>
                       </div>
                       <span className={`status-pill status-${appointment.status}`}>{appointment.status}</span>
                     </article>
                   ))
                 )}
+              </div>
+            </section>
+
+            <section className="panel quick-actions-panel">
+              <SectionHeader title="Quick Actions" />
+              <div className="quick-actions-grid">
+                <button className="secondary-button" type="button" onClick={() => setActiveView('appointments')}>
+                  Book Appointment
+                </button>
+                <button className="secondary-button" type="button" onClick={() => setActiveView('medical')}>
+                  View Medical Records
+                </button>
+                <button className="secondary-button" type="button" onClick={() => setActiveView('prescriptions')}>
+                  View Prescriptions
+                </button>
+                <button className="secondary-button" type="button" onClick={() => setActiveView('messages')}>
+                  Send Message
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <div className="content-grid">
+            <section className="panel">
+              <SectionHeader title="Medical Summary" />
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <strong>Medical Records</strong>
+                  <p>View and download your health records.</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Prescriptions</strong>
+                  <p>View your prescription history.</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Allergies</strong>
+                  <p>No known allergies.</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Blood Type</strong>
+                  <p>O+</p>
+                </article>
+              </div>
+            </section>
+          </div>
+
+          <div className="content-grid">
+            <section className="panel">
+              <SectionHeader title="Recent Prescriptions" />
+              <div className="list-stack">
+                <article className="list-card">
+                  <div>
+                    <h3>Amoxicillin 500mg</h3>
+                    <p>1 capsule every 8 hours</p>
+                    <p className="muted-copy">May 10, 2024 · Dr. John Reyes</p>
+                  </div>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>Cetirizine 10mg</h3>
+                    <p>1 tablet once daily</p>
+                    <p className="muted-copy">April 18, 2024 · Dr. Anna Lim</p>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section className="panel">
+              <SectionHeader title="My Profile" />
+              <div className="profile-summary">
+                <InfoPair label="Email" value={currentUser?.email || '—'} />
+                <InfoPair label="Phone" value={currentUser?.phone || '0917 123 4567'} />
+                <InfoPair label="Date of Birth" value="April 12, 1992 (32 yrs)" />
+                <InfoPair label="Location" value="123 Health St., Quezon City, Metro Manila" />
               </div>
             </section>
           </div>
@@ -811,6 +872,86 @@ function PatientDashboard({
                 </article>
               ))
             )}
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'medical' ? (
+        <section className="panel">
+          <SectionHeader title="Medical Records" />
+          <div className="summary-grid">
+            <article className="summary-card">
+              <strong>Recent lab results</strong>
+              <p>Blood work and imaging reports are available for download.</p>
+            </article>
+            <article className="summary-card">
+              <strong>Allergy report</strong>
+              <p>No known allergies on file.</p>
+            </article>
+            <article className="summary-card">
+              <strong>Immunization history</strong>
+              <p>Updated vaccinations and boosters.</p>
+            </article>
+            <article className="summary-card">
+              <strong>Health notes</strong>
+              <p>Personal health summary and doctor notes.</p>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'prescriptions' ? (
+        <section className="panel">
+          <SectionHeader title="Prescriptions" />
+          <div className="list-stack">
+            <article className="list-card">
+              <div>
+                <h3>Amoxicillin 500mg</h3>
+                <p>1 capsule every 8 hours</p>
+                <p className="muted-copy">May 10, 2024 · Dr. John Reyes</p>
+              </div>
+            </article>
+            <article className="list-card">
+              <div>
+                <h3>Cetirizine 10mg</h3>
+                <p>1 tablet once daily</p>
+                <p className="muted-copy">April 18, 2024 · Dr. Anna Lim</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'messages' ? (
+        <section className="panel">
+          <SectionHeader title="Messages" />
+          <div className="list-stack">
+            <article className="list-card">
+              <div>
+                <h3>CareWell Clinic</h3>
+                <p>Your appointment with Dr. Anna Lim on May 15, 2024 is confirmed.</p>
+              </div>
+              <span className="status-pill status-confirmed">New</span>
+            </article>
+            <article className="list-card">
+              <div>
+                <h3>Dr. John Reyes</h3>
+                <p>Please find attached your lab results.</p>
+              </div>
+              <span className="status-pill status-pending">Unread</span>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'profile' ? (
+        <section className="panel">
+          <SectionHeader title="Profile Settings" />
+          <div className="profile-summary">
+            <InfoPair label="Name" value={currentUser?.name || 'Patient'} />
+            <InfoPair label="Email" value={currentUser?.email || '—'} />
+            <InfoPair label="Role" value={currentUser?.role || 'user'} />
+            <InfoPair label="Status" value="Active" />
           </div>
         </section>
       ) : null}

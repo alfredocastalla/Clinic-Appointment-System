@@ -343,9 +343,39 @@ textarea {
 }
 
 .profile-summary,
-.settings-grid {
+.settings-grid,
+.summary-grid {
   display: grid;
   gap: 14px;
+}
+
+.hero-dashboard-panel {
+  padding: 28px;
+}
+
+.overview-hero {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.hero-actions-card {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.summary-card,
+.report-card {
+  border-radius: 24px;
+  padding: 22px;
+  display: grid;
+  gap: 10px;
+  background: rgba(247, 249, 255, 0.95);
+}
+
+.summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .service-grid {
