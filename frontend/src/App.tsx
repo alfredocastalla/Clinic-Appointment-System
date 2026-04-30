@@ -43,6 +43,7 @@ type NavItem = {
   key: string;
   label: string;
   caption: string;
+  icon?: string;
 };
 
 type AppointmentFilter = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
@@ -448,6 +449,7 @@ function PatientDashboard({
   onLogout: () => void;
 }) {
   const [activeView, setActiveView] = useState('dashboard');
+  const [isBookingMode, setIsBookingMode] = useState(false);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctorId, setDoctorId] = useState('');
@@ -471,12 +473,12 @@ function PatientDashboard({
   }, []);
 
   const navItems: NavItem[] = [
-    { key: 'dashboard', label: 'Dashboard', caption: 'Get started' },
-    { key: 'appointments', label: 'My Appointments', caption: 'View and manage bookings' },
-    { key: 'medical', label: 'Medical Records', caption: 'Health history' },
-    { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication list' },
-    { key: 'messages', label: 'Messages', caption: 'Inbox and updates' },
-    { key: 'profile', label: 'Profile Settings', caption: 'Account details' },
+    { key: 'dashboard', label: 'Dashboard', caption: 'Get started', icon: '🏠' },
+    { key: 'appointments', label: 'My Appointments', caption: 'View and manage bookings', icon: '📅' },
+    { key: 'medical', label: 'Medical Records', caption: 'Health history', icon: '📋' },
+    { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication list', icon: '💊' },
+    { key: 'messages', label: 'Messages', caption: 'Inbox and updates', icon: '💬' },
+    { key: 'profile', label: 'Profile Settings', caption: 'Account details', icon: '⚙️' },
   ];
 
   async function loadData() {
@@ -511,7 +513,7 @@ function PatientDashboard({
       setTime('');
       setSymptoms('');
       setMessage('Appointment booked successfully.');
-      setActiveView('appointments');
+      setIsBookingMode(false);
       await loadData();
     } catch (submitError) {
       setError((submitError as Error).message);
@@ -595,7 +597,7 @@ function PatientDashboard({
                 <p>Manage your appointments and health information in one place.</p>
               </div>
               <div className="hero-actions-card">
-                <button className="primary-button" type="button" onClick={() => setActiveView('appointments')}>
+                <button className="primary-button" type="button" onClick={() => { setActiveView('appointments'); setIsBookingMode(true); }}>
                   Book Appointment
                 </button>
               </div>
@@ -631,16 +633,16 @@ function PatientDashboard({
               <SectionHeader title="Quick Actions" />
               <div className="quick-actions-grid">
                 <button className="secondary-button" type="button" onClick={() => setActiveView('appointments')}>
-                  Book Appointment
+                  📅 Book or View Appointments
                 </button>
                 <button className="secondary-button" type="button" onClick={() => setActiveView('medical')}>
-                  View Medical Records
+                  📋 Medical Records
                 </button>
                 <button className="secondary-button" type="button" onClick={() => setActiveView('prescriptions')}>
-                  View Prescriptions
+                  💊 Prescriptions
                 </button>
                 <button className="secondary-button" type="button" onClick={() => setActiveView('messages')}>
-                  Send Message
+                  💬 Messages
                 </button>
               </div>
             </section>
@@ -704,68 +706,78 @@ function PatientDashboard({
         </>
       ) : null}
 
-      {activeView === 'book' ? (
-        <section className="panel">
-          <SectionHeader title="Book a new appointment" />
-          <form className="stack-form" onSubmit={handleBook}>
-            <label>
-              <span>Doctor</span>
-              <select value={doctorId} onChange={(event) => setDoctorId(event.target.value)} required>
-                <option value="">Select a doctor</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.name} - {doctor.specialization}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Date</span>
-              <input
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                type="date"
-                min={getTodayInputValue()}
-                required
-              />
-            </label>
-            <label>
-              <span>Time</span>
-              <input value={time} onChange={(event) => setTime(event.target.value)} type="time" />
-            </label>
-            <label>
-              <span>Symptoms or notes</span>
-              <textarea
-                rows={5}
-                value={symptoms}
-                onChange={(event) => setSymptoms(event.target.value)}
-                placeholder="Optional notes for the doctor"
-              />
-            </label>
-            <button className="primary-button" type="submit" disabled={booking}>
-              {booking ? 'Booking...' : 'Confirm appointment'}
-            </button>
-          </form>
-        </section>
-      ) : null}
-
       {activeView === 'appointments' ? (
-        <section className="panel">
-          <SectionHeader
-            title="Your appointments"
-            action={
-              <div className="toolbar-actions">
-                <select
-                  className="filter-select"
-                  value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value as AppointmentFilter)}
-                >
-                  <option value="all">All statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+        <>
+          {isBookingMode ? (
+            <section className="panel">
+              <SectionHeader
+                title="Book a new appointment"
+                action={<button className="ghost-button" onClick={() => setIsBookingMode(false)}>Back</button>}
+              />
+              <form className="stack-form" onSubmit={handleBook}>
+                <label>
+                  <span>Doctor</span>
+                  <select value={doctorId} onChange={(event) => setDoctorId(event.target.value)} required>
+                    <option value="">Select a doctor</option>
+                    {doctors.map((doctor) => (
+                      <option key={doctor.id} value={doctor.id}>
+                        Dr. {doctor.name} - {doctor.specialization}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Date</span>
+                  <input
+                    value={date}
+                    onChange={(event) => setDate(event.target.value)}
+                    type="date"
+                    min={getTodayInputValue()}
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Time</span>
+                  <input value={time} onChange={(event) => setTime(event.target.value)} type="time" />
+                </label>
+                <label>
+                  <span>Symptoms or notes</span>
+                  <textarea
+                    rows={5}
+                    value={symptoms}
+                    onChange={(event) => setSymptoms(event.target.value)}
+                    placeholder="Optional notes for the doctor"
+                  />
+                </label>
+                <button className="primary-button" type="submit" disabled={booking}>
+                  {booking ? 'Booking...' : 'Confirm appointment'}
+                </button>
+              </form>
+            </section>
+          ) : (
+            <section className="panel">
+              <SectionHeader
+                title="Your appointments"
+                action={
+                  <div className="toolbar-actions">
+                    <button className="primary-button compact-button" onClick={() => setIsBookingMode(true)}>
+                      + Book Appointment
+                    </button>
+                    <select
+                      className="filter-select"
+                      value={statusFilter}
+                      onChange={(event) => setStatusFilter(event.target.value as AppointmentFilter)}
+                    >
+                      <option value="all">All statuses</option>
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button className="ghost-button" onClick={() => void loadData()}>Refresh</button>
+                  </div>
+                }
+              />
                 <button className="ghost-button" onClick={() => void loadData()}>Refresh</button>
               </div>
             }
@@ -873,7 +885,9 @@ function PatientDashboard({
               ))
             )}
           </div>
-        </section>
+            </section>
+          )}
+        </>
       ) : null}
 
       {activeView === 'medical' ? (
@@ -981,9 +995,9 @@ function DoctorDashboard({
   }, [currentUser?.id]);
 
   const navItems: NavItem[] = [
-    { key: 'overview', label: 'Overview', caption: 'Status and quick totals' },
-    { key: 'appointments', label: 'Appointments', caption: 'Review and update visits' },
-    { key: 'profile', label: 'Profile', caption: 'Doctor account details' },
+    { key: 'overview', label: 'Overview', caption: 'Status and quick totals', icon: '📊' },
+    { key: 'appointments', label: 'Appointments', caption: 'Review and update visits', icon: '📅' },
+    { key: 'profile', label: 'Profile', caption: 'Doctor account details', icon: '👨‍⚕️' },
   ];
 
   async function loadDoctorData() {
@@ -1275,13 +1289,13 @@ function AdminDashboard({
   const [error, setError] = useState<string | null>(null);
 
   const navItems: NavItem[] = [
-    { key: 'dashboard', label: 'Dashboard', caption: 'Overview' },
-    { key: 'appointments', label: 'Appointments', caption: 'Booking activity' },
-    { key: 'patients', label: 'Patients', caption: 'Patient records' },
-    { key: 'doctors', label: 'Doctors', caption: 'Clinician directory' },
-    { key: 'services', label: 'Services', caption: 'Clinic offerings' },
-    { key: 'reports', label: 'Reports', caption: 'Performance insights' },
-    { key: 'settings', label: 'Settings', caption: 'System configuration' },
+    { key: 'dashboard', label: 'Dashboard', caption: 'Overview', icon: '📊' },
+    { key: 'appointments', label: 'Appointments', caption: 'Booking activity', icon: '📅' },
+    { key: 'patients', label: 'Patients', caption: 'Patient records', icon: '👥' },
+    { key: 'doctors', label: 'Doctors', caption: 'Clinician directory', icon: '👨‍⚕️' },
+    { key: 'services', label: 'Services', caption: 'Clinic offerings', icon: '🏥' },
+    { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
+    { key: 'settings', label: 'Settings', caption: 'System configuration', icon: '⚙️' },
   ];
 
   useEffect(() => {
@@ -1528,8 +1542,11 @@ function SidebarDashboard({
               className={`sidebar-link ${activeView === item.key ? 'active' : ''}`}
               onClick={() => onSelectView(item.key)}
             >
-              <strong>{item.label}</strong>
-              <span>{item.caption}</span>
+              {item.icon && <span className="sidebar-icon">{item.icon}</span>}
+              <div className="sidebar-link-text">
+                <strong>{item.label}</strong>
+                <span>{item.caption}</span>
+              </div>
             </button>
           ))}
         </nav>

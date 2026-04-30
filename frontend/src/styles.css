@@ -225,22 +225,41 @@ textarea {
 .sidebar-link {
   width: 100%;
   text-align: left;
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   padding: 16px;
   border-radius: 18px;
   background: rgba(37, 99, 235, 0.05);
   color: #16324f;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .sidebar-link strong {
   font-size: 0.98rem;
 }
 
+.sidebar-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+}
+
+.sidebar-link-text {
+  display: grid;
+  gap: 4px;
+}
+
 .sidebar-link.active {
   background: linear-gradient(135deg, #0f766e, #2563eb);
   color: #fff;
   box-shadow: 0 16px 30px rgba(37, 99, 235, 0.18);
+  transform: translateX(4px);
 }
 
 .sidebar-link.active span {
