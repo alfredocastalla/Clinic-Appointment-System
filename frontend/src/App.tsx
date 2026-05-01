@@ -478,7 +478,11 @@ function PatientDashboard({
     { key: 'medical', label: 'Medical Records', caption: 'Health history', icon: '📋' },
     { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication list', icon: '💊' },
     { key: 'messages', label: 'Messages', caption: 'Inbox and updates', icon: '💬' },
-    { key: 'profile', label: 'Profile Settings', caption: 'Account details', icon: '⚙️' },
+    { key: 'profile', label: 'Profile Settings', caption: 'Account details', icon: '👤' },
+    { key: 'payments', label: 'Payments', caption: 'Payment history', icon: '💳' },
+    { key: 'documents', label: 'Documents', caption: 'Store documents', icon: '📄' },
+    { key: 'settings', label: 'Settings', caption: 'Account preferences', icon: '⚙️' },
+    { key: 'support', label: 'Support & Session', caption: 'Get help', icon: '❓' },
   ];
 
   async function loadData() {
@@ -778,16 +782,12 @@ function PatientDashboard({
                   </div>
                 }
               />
-                <button className="ghost-button" onClick={() => void loadData()}>Refresh</button>
-              </div>
-            }
-          />
-          <div className="list-stack">
-            {filteredAppointments.length === 0 ? (
-              <EmptyState text="You have not booked any appointments yet." />
-            ) : (
-              filteredAppointments.map((appointment) => (
-                <article className="list-card" key={appointment.id}>
+              <div className="list-stack">
+                {filteredAppointments.length === 0 ? (
+                  <EmptyState text="You have not booked any appointments yet." />
+                ) : (
+                  filteredAppointments.map((appointment) => (
+                    <article className="list-card" key={appointment.id}>
                   {rescheduleForm?.id === appointment.id ? (
                     <form className="inline-edit-form" onSubmit={handleReschedule}>
                       <div className="inline-edit-grid">
@@ -882,9 +882,9 @@ function PatientDashboard({
                     </>
                   )}
                 </article>
-              ))
-            )}
-          </div>
+                  ))
+                )}
+              </div>
             </section>
           )}
         </>
@@ -966,6 +966,169 @@ function PatientDashboard({
             <InfoPair label="Email" value={currentUser?.email || '—'} />
             <InfoPair label="Role" value={currentUser?.role || 'user'} />
             <InfoPair label="Status" value="Active" />
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'payments' ? (
+        <section className="panel">
+          <SectionHeader title="Payments" />
+          <div className="content-grid">
+            <div className="summary-grid">
+              <article className="summary-card">
+                <strong>Total Paid</strong>
+                <p>₱18,650.00 This Year</p>
+              </article>
+              <article className="summary-card">
+                <strong>Outstanding Balance</strong>
+                <p>₱1,250.00 Due Now</p>
+              </article>
+              <article className="summary-card">
+                <strong>Total Transactions</strong>
+                <p>24 All Time</p>
+              </article>
+              <article className="summary-card">
+                <strong>Last Payment</strong>
+                <p>May 15, 2025</p>
+              </article>
+            </div>
+          </div>
+          <div style={{ marginTop: '24px' }}>
+            <h3 style={{ marginBottom: '16px' }}>Recent Transactions</h3>
+            <div className="list-stack">
+              <article className="list-card">
+                <div>
+                  <h3>General Consultation</h3>
+                  <p>Dr. Juan San Cruz</p>
+                  <p className="muted-copy">May 15, 2025</p>
+                </div>
+                <strong>₱1,200.00</strong>
+              </article>
+              <article className="list-card">
+                <div>
+                  <h3>Cardiology Consultation</h3>
+                  <p>Dr. Maria Reyes</p>
+                  <p className="muted-copy">April 28, 2025</p>
+                </div>
+                <strong>₱1,800.00</strong>
+              </article>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'documents' ? (
+        <section className="panel">
+          <SectionHeader title="Documents" />
+          <div className="content-grid">
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Your Documents</h3>
+              <div className="list-stack">
+                <article className="list-card">
+                  <div>
+                    <h3>Lab Results - April 2025.pdf</h3>
+                    <p className="muted-copy">May 15, 2025 • 1.2 MB</p>
+                  </div>
+                  <button className="secondary-button compact-button">Download</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>Medical Certificate.pdf</h3>
+                    <p className="muted-copy">April 28, 2025 • 680 KB</p>
+                  </div>
+                  <button className="secondary-button compact-button">Download</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>X-Ray Chest.png</h3>
+                    <p className="muted-copy">April 10, 2025 • 2.4 MB</p>
+                  </div>
+                  <button className="secondary-button compact-button">Download</button>
+                </article>
+              </div>
+            </div>
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Storage Overview</h3>
+              <article className="summary-card">
+                <strong>6.2 GB used of 10 GB</strong>
+                <p>3.8 GB available</p>
+              </article>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'settings' ? (
+        <section className="panel">
+          <SectionHeader title="Account Settings" />
+          <div className="settings-grid">
+            <article className="summary-card">
+              <strong>Notifications (Email/SMS)</strong>
+              <p>Manage how you receive notifications about appointments, prescriptions, and messages.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Configure</button>
+            </article>
+            <article className="summary-card">
+              <strong>Privacy & Security</strong>
+              <p>Control your privacy settings and manage two-factor authentication.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Manage</button>
+            </article>
+            <article className="summary-card">
+              <strong>Change Password</strong>
+              <p>Update your account password to keep your account secure.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Change</button>
+            </article>
+            <article className="summary-card">
+              <strong>Language & Timezone</strong>
+              <p>Set your preferred language and timezone for the platform.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Configure</button>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'support' ? (
+        <section className="panel">
+          <SectionHeader title="Support & Help" />
+          <div className="content-grid">
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Need Help?</h3>
+              <div className="list-stack">
+                <article className="list-card">
+                  <div>
+                    <h3>Getting Started Guide</h3>
+                    <p>Learn the basics of using the CareWell Clinic system.</p>
+                  </div>
+                  <button className="secondary-button compact-button">View</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>FAQs</h3>
+                    <p>Find answers to common questions about appointments and services.</p>
+                  </div>
+                  <button className="secondary-button compact-button">View</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>Contact Support</h3>
+                    <p>Reach out to our support team for assistance.</p>
+                  </div>
+                  <button className="secondary-button compact-button">Contact</button>
+                </article>
+              </div>
+            </div>
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Contact Information</h3>
+              <article className="summary-card">
+                <strong>Email Support</strong>
+                <p>support@carewellclinic.com</p>
+                <p className="muted-copy">Response within 24 hours</p>
+              </article>
+              <article className="summary-card" style={{ marginTop: '16px' }}>
+                <strong>Hotline (24/7)</strong>
+                <p>(02) 8123 4567</p>
+                <p className="muted-copy">Emergency & urgent concerns</p>
+              </article>
+            </div>
           </div>
         </section>
       ) : null}
@@ -1526,6 +1689,13 @@ function SidebarDashboard({
   message?: string | null;
   error?: string | null;
 }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    onLogout();
+    navigate('/');
+  };
+
   return (
     <div className="workspace-shell">
       <aside className="sidebar">
@@ -1552,8 +1722,8 @@ function SidebarDashboard({
         </nav>
         <div className="sidebar-footer">
           <span className="role-badge">{currentUser?.role ?? 'guest'}</span>
-          <button className="secondary-button sidebar-logout" onClick={onLogout}>
-            Logout
+          <button className="secondary-button sidebar-logout" onClick={handleLogout}>
+            🚪 Logout
           </button>
         </div>
       </aside>
