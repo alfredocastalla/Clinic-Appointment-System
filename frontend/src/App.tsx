@@ -44,6 +44,7 @@ type NavItem = {
   label: string;
   caption: string;
   icon?: string;
+  badge?: string | number;
 };
 
 type AppointmentFilter = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
@@ -61,6 +62,14 @@ type ProfileForm = {
   phone: string;
   location: string;
   dob: string;
+};
+
+type PaymentFormState = {
+  patientId?: string;
+  appointmentId?: string;
+  amount: string;
+  method: Payment['method'];
+  description: string;
 };
 
 function App() {
@@ -763,9 +772,10 @@ function PatientDashboard({
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [showAddPaymentMethod, setShowAddPaymentMethod] = useState(false);
-  const [paymentForm, setPaymentForm] = useState({
+  const [paymentForm, setPaymentForm] = useState<PaymentFormState>({
+    appointmentId: '',
     amount: '',
-    method: 'credit_card' as Payment['method'],
+    method: 'credit_card',
     description: '',
   });
   const [cardForm, setCardForm] = useState({
@@ -931,6 +941,11 @@ function PatientDashboard({
         .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     : [];
 
+  const unreadNotificationCount = useMemo(
+    () => conversationSummaries.reduce((sum, conversation) => sum + conversation.unreadCount, 0),
+    [conversationSummaries],
+  );
+
   function openConversation(conversationId: number) {
     setSelectedConversation(conversationId);
     setMessages((prevMessages) =>
@@ -940,6 +955,13 @@ function PatientDashboard({
           : msg,
       ),
     );
+  }
+
+  function openNotifications() {
+    setActiveView('messages');
+    if (selectedConversation === null && conversationSummaries.length > 0) {
+      openConversation(conversationSummaries[0].conversationId);
+    }
   }
 
   function closeConversation() {
@@ -987,12 +1009,13 @@ function PatientDashboard({
     { key: 'appointments', label: 'My Appointments', caption: 'View and manage bookings', icon: '📅' },
     { key: 'medical', label: 'Medical Records', caption: 'Health history', icon: '📋' },
     { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication list', icon: '💊' },
-    { key: 'messages', label: 'Messages', caption: 'Inbox and updates', icon: '💬' },
+    { key: 'messages', label: 'Messages', caption: 'Inbox and updates', icon: '💬', badge: unreadNotificationCount },
     { key: 'profile', label: 'Profile Settings', caption: 'Account details', icon: '👤' },
     { key: 'payments', label: 'Payments', caption: 'Payment history', icon: '💳' },
     { key: 'documents', label: 'Documents', caption: 'Store documents', icon: '📄' },
     { key: 'settings', label: 'Settings', caption: 'Account preferences', icon: '⚙️' },
     { key: 'support', label: 'Support & Session', caption: 'Get help', icon: '❓' },
+    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '🚪' },
   ];
 
   async function loadData() {
@@ -1147,8 +1170,10 @@ function PatientDashboard({
     setError(null);
 
     try {
+      const targetPatientId = paymentForm.patientId ? Number(paymentForm.patientId) : currentUser.id;
       const newPayment: Omit<Payment, 'id' | 'createdAt'> = {
-        patientId: currentUser.id,
+        patientId: targetPatientId,
+        appointmentId: paymentForm.appointmentId ? Number(paymentForm.appointmentId) : undefined,
         amount: parseFloat(paymentForm.amount),
         currency: 'PHP',
         status: 'completed',
@@ -1158,6 +1183,10 @@ function PatientDashboard({
         transactionId: `TXN-${Date.now()}`,
       };
 
+      if (!targetPatientId) {
+        throw new Error('Please select a patient for this payment.');
+      }
+
       const createdPayment = await api<Payment>('/payments', {
         method: 'POST',
         auth: true,
@@ -1165,7 +1194,7 @@ function PatientDashboard({
       });
 
       setPayments((prev) => [createdPayment, ...prev]);
-      setPaymentForm({ amount: '', method: 'credit_card', description: '' });
+      setPaymentForm({ appointmentId: '', amount: '', method: 'credit_card', description: '' });
       setShowPaymentForm(false);
       setMessage('Payment processed successfully.');
       await loadData();
@@ -1174,6 +1203,16 @@ function PatientDashboard({
     } finally {
       setProcessingPayment(false);
     }
+  }
+
+  function openPaymentForAppointment(appointment: Appointment) {
+    setPaymentForm({
+      appointmentId: String(appointment.id),
+      amount: '1200.00',
+      method: 'credit_card',
+      description: `Payment for consultation on ${appointment.date}${appointment.time ? ` at ${appointment.time}` : ''}`,
+    });
+    setShowPaymentForm(true);
   }
 
   async function handleAddPaymentMethod(event: FormEvent<HTMLFormElement>) {
@@ -1238,6 +1277,8 @@ function PatientDashboard({
         message={message}
         error={error}
         pageClassName="patient-dashboard"
+        notificationCount={unreadNotificationCount}
+        onNotificationClick={openNotifications}
       >
         {activeView === 'dashboard' ? (
         <>
@@ -1254,11 +1295,6 @@ function PatientDashboard({
                 <span className="eyebrow">Welcome back</span>
                 <h2>{currentUser?.name || 'Patient'}</h2>
                 <p>Manage your appointments and health information in one place.</p>
-              </div>
-              <div className="hero-actions-card">
-                <button className="primary-button" type="button" onClick={() => { setActiveView('appointments'); setIsBookingMode(true); }}>
-                  Book Appointment
-                </button>
               </div>
             </div>
           </section>
@@ -1285,24 +1321,6 @@ function PatientDashboard({
                     </article>
                   ))
                 )}
-              </div>
-            </section>
-
-            <section className="panel quick-actions-panel">
-              <SectionHeader title="Quick Actions" />
-              <div className="quick-actions-grid">
-                <button className="secondary-button" type="button" onClick={() => setActiveView('appointments')}>
-                  📅 Book or View Appointments
-                </button>
-                <button className="secondary-button" type="button" onClick={() => setActiveView('medical')}>
-                  📋 Medical Records
-                </button>
-                <button className="secondary-button" type="button" onClick={() => setActiveView('prescriptions')}>
-                  💊 Prescriptions
-                </button>
-                <button className="secondary-button" type="button" onClick={() => setActiveView('messages')}>
-                  💬 Messages
-                </button>
               </div>
             </section>
           </div>
@@ -1497,6 +1515,15 @@ function PatientDashboard({
                       </div>
                       <div className="list-actions">
                         <span className={`status-pill status-${appointment.status}`}>{appointment.status}</span>
+                        {appointment.status !== 'cancelled' && appointment.status !== 'completed' ? (
+                          <button
+                            className="secondary-button compact-button"
+                            type="button"
+                            onClick={() => openPaymentForAppointment(appointment)}
+                          >
+                            Pay service
+                          </button>
+                        ) : null}
                         {appointment.status === 'pending' ? (
                           <button
                             className="ghost-button compact-button"
@@ -2103,6 +2130,22 @@ function PatientDashboard({
           </div>
           <form className="stack-form" onSubmit={handlePayment}>
             <label>
+              <span>Appointment</span>
+              <select
+                value={paymentForm.appointmentId}
+                onChange={(e) => setPaymentForm({ ...paymentForm, appointmentId: e.target.value })}
+              >
+                <option value="">General service</option>
+                {appointments
+                  .filter((appointment) => appointment.status !== 'cancelled')
+                  .map((appointment) => (
+                    <option key={appointment.id} value={String(appointment.id)}>
+                      {appointment.date}{appointment.time ? ` at ${appointment.time}` : ''} · Dr. {doctorById[appointment.doctorId]?.name || `#${appointment.doctorId}`}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label>
               <span>Amount (₱)</span>
               <input
                 type="number"
@@ -2278,6 +2321,18 @@ function DoctorDashboard({
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [messageContent, setMessageContent] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentForm, setPaymentForm] = useState<PaymentFormState>({
+    patientId: '',
+    appointmentId: '',
+    amount: '',
+    method: 'credit_card',
+    description: '',
+  });
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     void loadDoctorData();
@@ -2377,6 +2432,28 @@ function DoctorDashboard({
         .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     : [];
 
+  const unreadNotificationCount = useMemo(
+    () => conversationSummaries.reduce((sum, conversation) => sum + conversation.unreadCount, 0),
+    [conversationSummaries],
+  );
+
+  const doctorPatientIds = useMemo(
+    () => new Set(appointments.map((appointment) => appointment.patientId).filter(Boolean)),
+    [appointments],
+  );
+
+  const doctorPayments = useMemo(
+    () => payments.filter((payment) => doctorPatientIds.has(payment.patientId)),
+    [payments, doctorPatientIds],
+  );
+
+  function openNotifications() {
+    setActiveView('messages');
+    if (selectedConversation === null && conversationSummaries.length > 0) {
+      openConversation(conversationSummaries[0].conversationId);
+    }
+  }
+
   function openConversation(conversationId: number) {
     setSelectedConversation(conversationId);
     setMessages((prevMessages) =>
@@ -2446,16 +2523,62 @@ function DoctorDashboard({
     }
   }
 
+  async function handlePayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!currentUser || !paymentForm.amount || !paymentForm.patientId) {
+      setError('Please choose a patient and amount before recording a payment.');
+      return;
+    }
+
+    setProcessingPayment(true);
+    setError(null);
+
+    try {
+      const createdPayment = await api<Payment>('/payments', {
+        method: 'POST',
+        auth: true,
+        body: {
+          patientId: Number(paymentForm.patientId),
+          appointmentId: paymentForm.appointmentId ? Number(paymentForm.appointmentId) : undefined,
+          amount: parseFloat(paymentForm.amount),
+          currency: 'PHP',
+          status: 'completed',
+          method: paymentForm.method,
+          description: paymentForm.description || 'Payment processed by doctor',
+          paidAt: new Date().toISOString(),
+          transactionId: `TXN-${Date.now()}`,
+        },
+      });
+
+      setPayments((prev) => [createdPayment, ...prev]);
+      setPaymentForm({ patientId: '', appointmentId: '', amount: '', method: 'credit_card', description: '' });
+      setShowPaymentForm(false);
+      setMessage('Payment recorded successfully.');
+      await loadDoctorData();
+    } catch (paymentError) {
+      setError((paymentError as Error).message);
+    } finally {
+      setProcessingPayment(false);
+    }
+  }
+
+  function viewPaymentDetails(payment: Payment) {
+    setSelectedPayment(payment);
+    setShowPaymentDetails(true);
+  }
+
   const navItems: NavItem[] = [
     { key: 'dashboard', label: 'Dashboard', caption: 'Status and quick totals', icon: '📊' },
     { key: 'appointments', label: 'Appointments', caption: 'Review and update visits', icon: '📅' },
     { key: 'patients', label: 'My Patients', caption: 'Patient records', icon: '👥' },
     { key: 'schedule', label: 'Schedule', caption: 'Calendar and availability', icon: '🗓️' },
     { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication management', icon: '💊' },
-    { key: 'messages', label: 'Messages', caption: 'Patient communication', icon: '💬' },
+    { key: 'messages', label: 'Messages', caption: 'Patient communication', icon: '💬', badge: unreadNotificationCount },
+    { key: 'payments', label: 'Payments', caption: 'Billing & receipts', icon: '💳' },
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'profile', label: 'Profile', caption: 'Doctor account details', icon: '👨‍⚕️' },
     { key: 'settings', label: 'Settings', caption: 'Preferences', icon: '⚙️' },
+    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '🚪' },
   ];
 
   async function loadDoctorData() {
@@ -2466,10 +2589,11 @@ function DoctorDashboard({
     setError(null);
 
     try {
-      const [doctor, appointmentData, patientData] = await Promise.all([
+      const [doctor, appointmentData, patientData, paymentData] = await Promise.all([
         api<Doctor>(`/doctors/${currentUser.id}`, { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
         api<UserRecord[]>('/users', { auth: true }),
+        api<Payment[]>('/payments', { auth: true }),
       ]);
       const doctorAppointments = appointmentData.filter((appointment) => appointment.doctorId === currentUser.id);
       const patientIds = new Set(doctorAppointments.map((appointment) => appointment.patientId));
@@ -2478,6 +2602,7 @@ function DoctorDashboard({
       setProfile(doctor);
       setAppointments(doctorAppointments);
       setPatients(activePatients);
+      setPayments(paymentData);
     } catch (loadError) {
       setError((loadError as Error).message);
     }
@@ -2568,6 +2693,8 @@ function DoctorDashboard({
       message={message}
       error={error}
       pageClassName="doctor-dashboard"
+      notificationCount={unreadNotificationCount}
+      onNotificationClick={openNotifications}
     >
       {activeView === 'dashboard' ? (
         <>
@@ -2737,6 +2864,170 @@ function DoctorDashboard({
               ))
             )}
           </div>
+        </section>
+      ) : null}
+
+      {activeView === 'payments' ? (
+        <section className="panel">
+          <SectionHeader
+            title="Payments & Billing"
+            action={
+              <div className="toolbar-actions">
+                <button className="secondary-button" type="button" onClick={() => setShowPaymentForm((prev) => !prev)}>
+                  {showPaymentForm ? 'Close payment form' : 'New payment'}
+                </button>
+                <button className="ghost-button" type="button" onClick={() => void loadDoctorData()}>
+                  Refresh
+                </button>
+              </div>
+            }
+          />
+
+          <div className="metrics-grid">
+            <MetricCard label="Total payments" value={String(doctorPayments.length)} />
+            <MetricCard label="Collected" value={`₱${doctorPayments
+              .filter((payment) => payment.status === 'completed')
+              .reduce((sum, payment) => sum + payment.amount, 0)
+              .toLocaleString('en-PH', { minimumFractionDigits: 2 })}`} />
+            <MetricCard label="Pending" value={String(doctorPayments.filter((payment) => payment.status === 'pending').length)} />
+            <MetricCard label="Billed patients" value={String(new Set(doctorPayments.map((payment) => payment.patientId)).size)} />
+          </div>
+
+          {showPaymentForm ? (
+            <form className="stack-form" onSubmit={handlePayment}>
+              <label>
+                <span>Patient</span>
+                <select
+                  value={paymentForm.patientId}
+                  onChange={(event) => setPaymentForm({ ...paymentForm, patientId: event.target.value })}
+                  required
+                >
+                  <option value="">Select patient</option>
+                  {patients.map((patient) => (
+                    <option key={patient.id} value={patient.id}>
+                      {patient.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Appointment</span>
+                <select
+                  value={paymentForm.appointmentId}
+                  onChange={(event) => setPaymentForm({ ...paymentForm, appointmentId: event.target.value })}
+                >
+                  <option value="">General service</option>
+                  {appointments
+                    .filter((appt) => appt.status !== 'cancelled' && !payments.some((p) => p.appointmentId === appt.id))
+                    .map((appointment) => {
+                      const patient = patients.find((p) => p.id === appointment.patientId);
+                      return (
+                        <option key={appointment.id} value={String(appointment.id)}>
+                          {appointment.date}{appointment.time ? ` at ${appointment.time}` : ''} · {patient?.name || `Patient #${appointment.patientId}`}
+                        </option>
+                      );
+                    })}
+                </select>
+              </label>
+              <label>
+                <span>Amount</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={paymentForm.amount}
+                  onChange={(event) => setPaymentForm({ ...paymentForm, amount: event.target.value })}
+                  placeholder="0.00"
+                  required
+                />
+              </label>
+              <label>
+                <span>Method</span>
+                <select
+                  value={paymentForm.method}
+                  onChange={(event) => setPaymentForm({ ...paymentForm, method: event.target.value as Payment['method'] })}
+                >
+                  <option value="credit_card">Credit card</option>
+                  <option value="debit_card">Debit card</option>
+                  <option value="cash">Cash</option>
+                  <option value="bank_transfer">Bank transfer</option>
+                  <option value="insurance">Insurance</option>
+                </select>
+              </label>
+              <label>
+                <span>Description</span>
+                <input
+                  value={paymentForm.description}
+                  onChange={(event) => setPaymentForm({ ...paymentForm, description: event.target.value })}
+                  placeholder="Reason for the payment"
+                />
+              </label>
+              <button className="primary-button" type="submit" disabled={processingPayment}>
+                {processingPayment ? 'Saving payment...' : 'Record payment'}
+              </button>
+            </form>
+          ) : null}
+
+          <div className="list-stack">
+            {doctorPayments.length === 0 ? (
+              <EmptyState text="No payments recorded yet." />
+            ) : (
+              doctorPayments.map((payment) => {
+                const patient = patients.find((user) => user.id === payment.patientId);
+                return (
+                  <article className="list-card" key={payment.id}>
+                    <div>
+                      <h3>{patient?.name || `Patient #${payment.patientId}`}</h3>
+                      <p>{payment.description || 'Payment record'}</p>
+                      <p className="muted-copy">
+                        ₱{payment.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })} · {payment.method.replace('_', ' ')} · {payment.status}
+                      </p>
+                    </div>
+                    <div className="list-actions">
+                      <button className="secondary-button compact-button" type="button" onClick={() => viewPaymentDetails(payment)}>
+                        Details
+                      </button>
+                    </div>
+                  </article>
+                );
+              })
+            )}
+          </div>
+
+          {showPaymentDetails && selectedPayment ? (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h3>Payment details</h3>
+                  <button className="ghost-button" type="button" onClick={() => setShowPaymentDetails(false)}>
+                    Close
+                  </button>
+                </div>
+                <div className="receipt-details">
+                  <div className="detail-section">
+                    <h4>Payment Information</h4>
+                    <div className="info-grid">
+                      <InfoPair label="Transaction ID" value={selectedPayment.transactionId || 'N/A'} />
+                      <InfoPair label="Amount" value={`₱${selectedPayment.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`} />
+                      <InfoPair label="Method" value={selectedPayment.method.replace('_', ' ')} />
+                      <InfoPair label="Status" value={selectedPayment.status} />
+                      <InfoPair label="Date" value={new Date(selectedPayment.paidAt || selectedPayment.createdAt).toLocaleString()} />
+                      <InfoPair label="Patient" value={patients.find((user) => user.id === selectedPayment.patientId)?.name || `Patient #${selectedPayment.patientId}`} />
+                    </div>
+                  </div>
+                  <div className="detail-section">
+                    <h4>Description</h4>
+                    <p>{selectedPayment.description}</p>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="secondary-button" onClick={() => setShowPaymentDetails(false)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -3110,12 +3401,13 @@ function AdminDashboard({
 
   const navItems: NavItem[] = [
     { key: 'dashboard', label: 'Dashboard', caption: 'Overview', icon: '📊' },
-    { key: 'appointments', label: 'Appointments', caption: 'Booking activity', icon: '📅' },
+    { key: 'appointments', label: 'Appointments', caption: 'Booking activity', icon: '📅', badge: appointments.filter((appointment) => appointment.status === 'pending').length },
     { key: 'patients', label: 'Patients', caption: 'Patient records', icon: '👥' },
     { key: 'doctors', label: 'Doctors', caption: 'Clinician directory', icon: '👨‍⚕️' },
     { key: 'services', label: 'Services', caption: 'Clinic offerings', icon: '🏥' },
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'settings', label: 'Settings', caption: 'System configuration', icon: '⚙️' },
+    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '🚪' },
   ];
 
   useEffect(() => {
@@ -3199,6 +3491,8 @@ function AdminDashboard({
       message={message}
       error={error}
       pageClassName="admin-dashboard"
+      notificationCount={appointments.filter((appointment) => appointment.status === 'pending').length}
+      onNotificationClick={() => setActiveView('appointments')}
     >
       {activeView === 'dashboard' ? (
         <>
@@ -3429,6 +3723,8 @@ function SidebarDashboard({
   message,
   error,
   pageClassName,
+  notificationCount,
+  onNotificationClick,
 }: {
   currentUser: AuthUser | null;
   navItems: NavItem[];
@@ -3441,6 +3737,8 @@ function SidebarDashboard({
   message?: string | null;
   error?: string | null;
   pageClassName?: string;
+  notificationCount?: number;
+  onNotificationClick?: () => void;
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -3492,6 +3790,9 @@ function SidebarDashboard({
                   <span>{item.caption}</span>
                 </div>
               )}
+              {item.badge !== undefined ? (
+                <span className="sidebar-badge">{item.badge}</span>
+              ) : null}
             </button>
           ))}
         </nav>
@@ -3519,9 +3820,17 @@ function SidebarDashboard({
             </div>
           </div>
           <div className="topbar-right">
-            <button type="button" className="icon-button">
+            <button
+              type="button"
+              className="icon-button"
+              onClick={onNotificationClick}
+              title="View notifications"
+              aria-label="View notifications"
+            >
               🔔
-              <span className="notification-badge">3</span>
+              <span className="notification-badge">
+                {notificationCount ?? 0}
+              </span>
             </button>
             <div className="user-chip">
               <strong>{currentUser?.name ?? 'Admin'}</strong>
