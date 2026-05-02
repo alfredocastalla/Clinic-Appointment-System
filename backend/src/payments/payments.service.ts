@@ -21,10 +21,13 @@ export class PaymentsService {
     if (!user) {
       return this.paymentRepo.find();
     }
-    if (user.role !== 'user') {
-      throw new UnauthorizedException('Only patients can view payments');
+    if (user.role === 'user') {
+      return this.paymentRepo.find({ where: { patientId: user.id } });
     }
-    return this.paymentRepo.find({ where: { patientId: user.id } });
+    if (user.role === 'doctor' || user.role === 'admin') {
+      return this.paymentRepo.find();
+    }
+    throw new UnauthorizedException('Only patients, doctors, or admins can view payments');
   }
 
   async createPaymentMethod(data: Partial<PaymentMethod>) {
