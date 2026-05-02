@@ -19,10 +19,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     const { sub: id, role } = payload;
-    if (role === 'user') {
+    if (role === 'user' || role === 'admin') {
       const user = await this.usersService.findOne(id);
       if (user) {
-        return { id: user.id, email: user.email, role: 'user', name: user.name };
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.role === 'admin' ? 'admin' : 'user',
+          name: user.name,
+          location: user.location,
+        };
       }
     } else if (role === 'doctor') {
       const doctor = await this.doctorsService.findOne(id);
@@ -33,6 +39,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           role: 'doctor',
           name: doctor.name,
           specialization: doctor.specialization,
+          address: doctor.address,
+          phone: doctor.phone,
+          photo: doctor.photo,
+          availableTime: doctor.availableTime,
         };
       }
     }

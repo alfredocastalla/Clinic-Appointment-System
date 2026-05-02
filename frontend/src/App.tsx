@@ -163,33 +163,110 @@ function HomePage({ currentUser }: { currentUser: AuthUser | null }) {
   const dashboardPath = currentUser ? getDashboardPath(currentUser.role) : '/login';
 
   return (
-    <div className="page-shell">
-      <section className="hero-card">
-        <div className="hero-copy">
-          <span className="eyebrow">Clinic Appointment System</span>
-          <h1>One frontend, cleaner roles, and dashboards that actually feel organized.</h1>
-          <p>
-            The project now uses React + TypeScript with dedicated dashboard flows for
-            patients, doctors, and admin. The backend seeds a default admin account so
-            you can test the admin workspace immediately.
-          </p>
-          <div className="hero-note">
-            <strong>Default admin</strong>
-            <span>`admin@clinic.local` / `admin123`</span>
+    <div className="home-page">
+      <header className="home-header">
+        <div className="header-content">
+          <div className="logo-section">
+            <div className="logo-icon">🏥</div>
+            <h1 className="logo-text">CareWell Clinic</h1>
           </div>
+          <nav className="nav-links">
+            <button className="nav-button" onClick={() => navigate('/login')}>
+              Login
+            </button>
+            <button className="nav-button secondary" onClick={() => navigate('/register/patient')}>
+              Register as Patient
+            </button>
+          </nav>
         </div>
-        <div className="hero-actions">
-          <button className="primary-button" onClick={() => navigate(dashboardPath)}>
-            {currentUser ? 'Open dashboard' : 'Login'}
-          </button>
-          <button className="secondary-button" onClick={() => navigate('/register/patient')}>
-            Register patient
-          </button>
-          <button className="secondary-button" onClick={() => navigate('/register/doctor')}>
-            Register doctor
-          </button>
-        </div>
-      </section>
+      </header>
+
+      <main className="home-main">
+        <section className="hero-section">
+          <div className="hero-content">
+            <div className="hero-text">
+              <h1>Your Health, Our Priority</h1>
+              <p>
+                Experience seamless healthcare management with our comprehensive clinic appointment system.
+                Connect with qualified doctors, manage appointments, and access your medical records all in one place.
+              </p>
+              <div className="hero-features">
+                <div className="feature-item">
+                  <span className="feature-icon">📅</span>
+                  <span>Easy Appointment Booking</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-icon">👨‍⚕️</span>
+                  <span>Qualified Doctors</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-icon">📋</span>
+                  <span>Medical Records</span>
+                </div>
+              </div>
+            </div>
+            <div className="hero-actions">
+              <button className="cta-button primary" onClick={() => navigate(dashboardPath)}>
+                {currentUser ? `Go to ${currentUser.role} Dashboard` : 'Get Started'}
+              </button>
+              <button className="cta-button secondary" onClick={() => navigate('/register/doctor')}>
+                Join as Doctor
+              </button>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="hero-image">
+              <div className="image-placeholder">
+                <span className="placeholder-icon">🏥</span>
+                <p>Healthcare Management</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="features-section">
+          <h2>Why Choose CareWell Clinic?</h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="card-icon">🚀</div>
+              <h3>Fast & Easy</h3>
+              <p>Book appointments in minutes with our intuitive interface</p>
+            </div>
+            <div className="feature-card">
+              <div className="card-icon">🔒</div>
+              <h3>Secure & Private</h3>
+              <p>Your medical information is protected with enterprise-grade security</p>
+            </div>
+            <div className="feature-card">
+              <div className="card-icon">📱</div>
+              <h3>24/7 Access</h3>
+              <p>Manage your healthcare anytime, anywhere</p>
+            </div>
+          </div>
+        </section>
+
+        {currentUser && (
+          <section className="welcome-section">
+            <div className="welcome-card">
+              <h3>Welcome back, {currentUser.name}!</h3>
+              <p>You are logged in as a {currentUser.role}</p>
+              <button className="dashboard-button" onClick={() => navigate(dashboardPath)}>
+                Go to Dashboard
+              </button>
+            </div>
+          </section>
+        )}
+
+        <footer className="home-footer">
+          <div className="footer-content">
+            <div className="footer-logo">
+              <span className="footer-icon">🏥</span>
+              <span className="footer-text">CareWell Clinic</span>
+            </div>
+            <p>&copy; 2024 CareWell Clinic. All rights reserved.</p>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }
@@ -238,36 +315,64 @@ function LoginPage({
 
   return (
     <AuthLayout
-      title="Login"
-      subtitle="Choose the role you want to open and sign in."
+      title="Welcome Back"
+      subtitle="Sign in to access your clinic dashboard"
       footer={<AuthFooter />}
       message={message}
       error={error}
     >
-      <form className="stack-form" onSubmit={handleSubmit}>
-        <label>
-          <span>Email</span>
-          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
-        </label>
-        <label>
-          <span>Password</span>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="email">
+            <span className="label-icon">📧</span>
+            Email Address
+          </label>
           <input
+            id="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            type="email"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">
+            <span className="label-icon">🔒</span>
+            Password
+          </label>
+          <input
+            id="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             type="password"
+            placeholder="Enter your password"
             required
           />
-        </label>
-        <label>
-          <span>Role</span>
-          <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
-            <option value="user">Patient</option>
-            <option value="doctor">Doctor</option>
-            <option value="admin">Admin</option>
+        </div>
+        <div className="form-group">
+          <label htmlFor="role">
+            <span className="label-icon">👤</span>
+            Account Type
+          </label>
+          <select id="role" value={role} onChange={(event) => setRole(event.target.value as Role)}>
+            <option value="user">👨‍⚕️ Patient</option>
+            <option value="doctor">👩‍⚕️ Doctor</option>
+            <option value="admin">⚙️ Admin</option>
           </select>
-        </label>
-        <button className="primary-button" type="submit" disabled={loading}>
-          {loading ? 'Signing in...' : 'Login'}
+        </div>
+        <button className="auth-button" type="submit" disabled={loading}>
+          {loading ? (
+            <>
+              <span className="spinner">⏳</span>
+              Signing in...
+            </>
+          ) : (
+            <>
+              <span className="button-icon">🚀</span>
+              Sign In
+            </>
+          )}
         </button>
       </form>
     </AuthLayout>
@@ -483,6 +588,7 @@ function PatientDashboard({
     { key: 'documents', label: 'Documents', caption: 'Store documents', icon: '📄' },
     { key: 'settings', label: 'Settings', caption: 'Account preferences', icon: '⚙️' },
     { key: 'support', label: 'Support & Session', caption: 'Get help', icon: '❓' },
+    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '↪️' },
   ];
 
   async function loadData() {
@@ -1148,6 +1254,7 @@ function DoctorDashboard({
   const [activeView, setActiveView] = useState('overview');
   const [profile, setProfile] = useState<Doctor | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patients, setPatients] = useState<UserRecord[]>([]);
   const [statusFilter, setStatusFilter] = useState<AppointmentFilter>('all');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -1160,7 +1267,14 @@ function DoctorDashboard({
   const navItems: NavItem[] = [
     { key: 'overview', label: 'Overview', caption: 'Status and quick totals', icon: '📊' },
     { key: 'appointments', label: 'Appointments', caption: 'Review and update visits', icon: '📅' },
+    { key: 'patients', label: 'My Patients', caption: 'Patient records', icon: '👥' },
+    { key: 'schedule', label: 'Schedule', caption: 'Calendar and availability', icon: '🗓️' },
+    { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication management', icon: '💊' },
+    { key: 'messages', label: 'Messages', caption: 'Patient communication', icon: '💬' },
+    { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'profile', label: 'Profile', caption: 'Doctor account details', icon: '👨‍⚕️' },
+    { key: 'settings', label: 'Settings', caption: 'Preferences', icon: '⚙️' },
+    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '↪️' },
   ];
 
   async function loadDoctorData() {
@@ -1171,12 +1285,14 @@ function DoctorDashboard({
     setError(null);
 
     try {
-      const [doctor, appointmentData] = await Promise.all([
+      const [doctor, appointmentData, patientData] = await Promise.all([
         api<Doctor>(`/doctors/${currentUser.id}`),
         api<Appointment[]>('/appointments', { auth: true }),
+        api<UserRecord[]>('/users'),
       ]);
       setProfile(doctor);
       setAppointments(appointmentData);
+      setPatients(patientData.filter(user => user.role === 'user')); // Only patients
     } catch (loadError) {
       setError((loadError as Error).message);
     }
@@ -1270,42 +1386,96 @@ function DoctorDashboard({
       {activeView === 'overview' ? (
         <>
           <div className="metrics-grid">
-            <MetricCard label="Total Visits" value={String(appointments.length)} />
-            <MetricCard
-              label="Pending"
-              value={String(appointments.filter((appointment) => appointment.status === 'pending').length)}
-            />
-            <MetricCard
-              label="Confirmed"
-              value={String(appointments.filter((appointment) => appointment.status === 'confirmed').length)}
-            />
+            <MetricCard label="Total Patients" value={String(patients.length)} />
+            <MetricCard label="Today's Appointments" value={String(appointments.filter(apt => apt.date === new Date().toISOString().split('T')[0]).length)} />
+            <MetricCard label="Pending Confirmations" value={String(appointments.filter((appointment) => appointment.status === 'pending').length)} />
+            <MetricCard label="Completed This Month" value={String(appointments.filter((appointment) => appointment.status === 'completed').length)} />
           </div>
           <div className="content-grid">
             <section className="panel">
-              <SectionHeader title="Today at a glance" />
+              <SectionHeader title="Today's Schedule" action={<button className="ghost-button" onClick={() => void loadDoctorData()}>Refresh</button>} />
               <div className="list-stack">
-                {appointments.slice(0, 4).map((appointment) => (
+                {appointments
+                  .filter(apt => apt.status === 'confirmed' && apt.date === new Date().toISOString().split('T')[0])
+                  .slice(0, 4)
+                  .map((appointment) => (
+                    <article className="list-card" key={appointment.id}>
+                      <div>
+                        <h3>{appointment.patientName}</h3>
+                        <p>
+                          {appointment.date}
+                          {appointment.time ? ` at ${appointment.time}` : ''}
+                        </p>
+                        <p className="muted-copy">{appointment.symptoms || 'No symptoms provided.'}</p>
+                      </div>
+                      <span className={`status-pill status-${appointment.status}`}>{appointment.status}</span>
+                    </article>
+                  ))}
+                {appointments.filter(apt => apt.status === 'confirmed' && apt.date === new Date().toISOString().split('T')[0]).length === 0 ? (
+                  <EmptyState text="No appointments scheduled for today." />
+                ) : null}
+              </div>
+            </section>
+            <section className="panel quick-actions-panel">
+              <SectionHeader title="Quick Actions" />
+              <div className="quick-actions-grid">
+                <button className="secondary-button" onClick={() => setActiveView('appointments')}>
+                  📅 Manage Appointments
+                </button>
+                <button className="secondary-button" onClick={() => setActiveView('patients')}>
+                  👥 View Patients
+                </button>
+                <button className="secondary-button" onClick={() => setActiveView('prescriptions')}>
+                  💊 Prescriptions
+                </button>
+                <button className="secondary-button" onClick={() => setActiveView('messages')}>
+                  💬 Messages
+                </button>
+              </div>
+              <div className="profile-summary">
+                <InfoPair label="Specialization" value={profile?.specialization || 'Not set'} />
+                <InfoPair label="Working Hours" value={profile?.availableTime || 'Not set'} />
+                <InfoPair label="Clinic Address" value={profile?.address || 'Not set'} />
+                <InfoPair label="Total Patients" value={String(patients.length)} />
+              </div>
+            </section>
+          </div>
+          <div className="content-grid">
+            <section className="panel">
+              <SectionHeader title="Recent Activity" />
+              <div className="list-stack">
+                {appointments.slice(0, 3).map((appointment) => (
                   <article className="list-card" key={appointment.id}>
                     <div>
                       <h3>{appointment.patientName}</h3>
-                      <p>
-                        {appointment.date}
-                        {appointment.time ? ` at ${appointment.time}` : ''}
-                      </p>
+                      <p>Appointment {appointment.status}</p>
+                      <p className="muted-copy">{appointment.date} {appointment.time ? `• ${appointment.time}` : ''}</p>
                     </div>
                     <span className={`status-pill status-${appointment.status}`}>{appointment.status}</span>
                   </article>
                 ))}
-                {appointments.length === 0 ? <EmptyState text="No appointments yet." /> : null}
+                {appointments.length === 0 ? <EmptyState text="No recent activity." /> : null}
               </div>
             </section>
             <section className="panel">
-              <SectionHeader title="Profile summary" />
-              <div className="profile-summary">
-                <InfoPair label="Name" value={profile?.name || 'Loading...'} />
-                <InfoPair label="Specialization" value={profile?.specialization || 'Not set'} />
-                <InfoPair label="Address" value={profile?.address || 'Not set'} />
-                <InfoPair label="Availability" value={profile?.availableTime || 'Not set'} />
+              <SectionHeader title="Performance Summary" />
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <strong>Patient Satisfaction</strong>
+                  <p>4.8/5 average rating</p>
+                </article>
+                <article className="summary-card">
+                  <strong>On-time Rate</strong>
+                  <p>95% appointments on time</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Monthly Revenue</strong>
+                  <p>₱85,000 generated</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Active Patients</strong>
+                  <p>{patients.length} registered</p>
+                </article>
               </div>
             </section>
           </div>
@@ -1433,6 +1603,222 @@ function DoctorDashboard({
           )}
         </section>
       ) : null}
+
+      {activeView === 'patients' ? (
+        <section className="panel">
+          <SectionHeader title="My Patients" />
+          <div className="list-stack">
+            {patients.length === 0 ? (
+              <EmptyState text="No patients registered yet." />
+            ) : (
+              patients.map((patient) => {
+                const patientAppointments = appointments.filter(apt => apt.patientId === patient.id);
+                return (
+                  <article className="list-card" key={patient.id}>
+                    <div>
+                      <h3>{patient.name}</h3>
+                      <p>{patient.email}</p>
+                      <p className="muted-copy">
+                        {patient.location || 'No location set'} • {patientAppointments.length} appointment{patientAppointments.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="list-actions">
+                      <button
+                        className="secondary-button compact-button"
+                        onClick={() => setActiveView('appointments')}
+                      >
+                        View Appointments
+                      </button>
+                    </div>
+                  </article>
+                );
+              })
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'schedule' ? (
+        <section className="panel">
+          <SectionHeader title="Schedule & Availability" />
+          <div className="content-grid">
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Today's Schedule</h3>
+              <div className="list-stack">
+                {appointments
+                  .filter(apt => apt.status === 'confirmed' && apt.date === new Date().toISOString().split('T')[0])
+                  .map((appointment) => (
+                    <article className="list-card" key={appointment.id}>
+                      <div>
+                        <h3>{appointment.patientName}</h3>
+                        <p>{appointment.time || 'Time not set'}</p>
+                        <p className="muted-copy">{appointment.symptoms || 'No notes'}</p>
+                      </div>
+                      <span className="status-pill status-confirmed">Confirmed</span>
+                    </article>
+                  ))}
+                {appointments.filter(apt => apt.status === 'confirmed' && apt.date === new Date().toISOString().split('T')[0]).length === 0 ? (
+                  <EmptyState text="No appointments scheduled for today." />
+                ) : null}
+              </div>
+            </div>
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Availability Settings</h3>
+              <div className="profile-summary">
+                <InfoPair label="Working Hours" value={profile?.availableTime || 'Not set'} />
+                <InfoPair label="Clinic Address" value={profile?.address || 'Not set'} />
+                <InfoPair label="Contact" value={profile?.phone || 'Not set'} />
+                <InfoPair label="Specialization" value={profile?.specialization || 'Not set'} />
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'prescriptions' ? (
+        <section className="panel">
+          <SectionHeader title="Prescription Management" />
+          <div className="content-grid">
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Recent Prescriptions</h3>
+              <div className="list-stack">
+                <article className="list-card">
+                  <div>
+                    <h3>Amoxicillin 500mg</h3>
+                    <p>Patient: Maria Santos</p>
+                    <p className="muted-copy">May 15, 2024 • 1 capsule every 8 hours</p>
+                  </div>
+                  <button className="secondary-button compact-button">View Details</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>Cetirizine 10mg</h3>
+                    <p>Patient: Juan Reyes</p>
+                    <p className="muted-copy">April 28, 2024 • 1 tablet daily</p>
+                  </div>
+                  <button className="secondary-button compact-button">View Details</button>
+                </article>
+              </div>
+            </div>
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Quick Actions</h3>
+              <div className="quick-actions-grid">
+                <button className="secondary-button">New Prescription</button>
+                <button className="secondary-button">Refill Request</button>
+                <button className="secondary-button">Medication History</button>
+                <button className="secondary-button">Drug Interactions</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'messages' ? (
+        <section className="panel">
+          <SectionHeader title="Patient Messages" />
+          <div className="list-stack">
+            <article className="list-card">
+              <div>
+                <h3>Maria Santos</h3>
+                <p>Follow-up appointment request for next week.</p>
+                <p className="muted-copy">May 15, 2024 • 2:30 PM</p>
+              </div>
+              <span className="status-pill status-pending">Unread</span>
+            </article>
+            <article className="list-card">
+              <div>
+                <h3>Juan Reyes</h3>
+                <p>Lab results are ready for review.</p>
+                <p className="muted-copy">May 14, 2024 • 11:15 AM</p>
+              </div>
+              <span className="status-pill status-confirmed">Read</span>
+            </article>
+            <article className="list-card">
+              <div>
+                <h3>Ana Lim</h3>
+                <p>Prescription refill needed.</p>
+                <p className="muted-copy">May 12, 2024 • 9:45 AM</p>
+              </div>
+              <span className="status-pill status-confirmed">Read</span>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'reports' ? (
+        <section className="panel">
+          <SectionHeader title="Performance Reports" />
+          <div className="content-grid">
+            <div className="report-grid">
+              <article className="report-card">
+                <span>Total Patients</span>
+                <strong>{patients.length}</strong>
+              </article>
+              <article className="report-card">
+                <span>Appointments This Month</span>
+                <strong>{appointments.filter(apt => apt.status !== 'cancelled').length}</strong>
+              </article>
+              <article className="report-card">
+                <span>Completion Rate</span>
+                <strong>
+                  {appointments.length > 0
+                    ? Math.round((appointments.filter(apt => apt.status === 'completed').length / appointments.length) * 100)
+                    : 0}%
+                </strong>
+              </article>
+              <article className="report-card">
+                <span>Average Rating</span>
+                <strong>4.8/5</strong>
+              </article>
+            </div>
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Monthly Trends</h3>
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <strong>Patient Growth</strong>
+                  <p>+12% from last month</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Appointment Volume</strong>
+                  <p>45 appointments scheduled</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Revenue</strong>
+                  <p>₱125,000 generated</p>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'settings' ? (
+        <section className="panel">
+          <SectionHeader title="Doctor Settings" />
+          <div className="settings-grid">
+            <article className="summary-card">
+              <strong>Notification Preferences</strong>
+              <p>Manage how you receive appointment reminders and patient messages.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Configure</button>
+            </article>
+            <article className="summary-card">
+              <strong>Working Hours</strong>
+              <p>Set your availability and clinic operating hours.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Update</button>
+            </article>
+            <article className="summary-card">
+              <strong>Security Settings</strong>
+              <p>Change password and manage two-factor authentication.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Manage</button>
+            </article>
+            <article className="summary-card">
+              <strong>System Preferences</strong>
+              <p>Customize dashboard layout and default views.</p>
+              <button className="secondary-button" style={{ marginTop: '12px' }}>Customize</button>
+            </article>
+          </div>
+        </section>
+      ) : null}
     </SidebarDashboard>
   );
 }
@@ -1459,6 +1845,7 @@ function AdminDashboard({
     { key: 'services', label: 'Services', caption: 'Clinic offerings', icon: '🏥' },
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'settings', label: 'Settings', caption: 'System configuration', icon: '⚙️' },
+    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '↪️' },
   ];
 
   useEffect(() => {
@@ -1689,6 +2076,7 @@ function SidebarDashboard({
   message?: string | null;
   error?: string | null;
 }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -1697,8 +2085,8 @@ function SidebarDashboard({
   };
 
   return (
-    <div className="workspace-shell">
-      <aside className="sidebar">
+    <div className={`workspace-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-brand">
           <span className="eyebrow">CareWell Clinic</span>
           <h2>Appointment System</h2>
@@ -1710,7 +2098,14 @@ function SidebarDashboard({
               key={item.key}
               type="button"
               className={`sidebar-link ${activeView === item.key ? 'active' : ''}`}
-              onClick={() => onSelectView(item.key)}
+              onClick={() => {
+                if (item.key === 'logout') {
+                  handleLogout();
+                  return;
+                }
+
+                onSelectView(item.key);
+              }}
             >
               {item.icon && <span className="sidebar-icon">{item.icon}</span>}
               <div className="sidebar-link-text">
@@ -1728,7 +2123,32 @@ function SidebarDashboard({
         </div>
       </aside>
 
-      <main className="dashboard-shell">
+      <main className={`dashboard-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className="workspace-header">
+          <div className="topbar-left">
+            <button
+              type="button"
+              className="sidebar-toggle"
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+            >
+              ☰
+            </button>
+            <div className="topbar-title">
+              <strong>CLINIC APPOINTMENT SYSTEM</strong>
+              <p>{title}</p>
+            </div>
+          </div>
+          <div className="topbar-right">
+            <button type="button" className="icon-button">
+              🔔
+              <span className="notification-badge">3</span>
+            </button>
+            <div className="user-chip">
+              <strong>{currentUser?.name ?? 'Admin'}</strong>
+              <span>{currentUser?.role ?? 'admin'}</span>
+            </div>
+          </div>
+        </div>
         <header className="dashboard-header">
           <div>
             <span className="eyebrow">Dashboard</span>
@@ -1760,18 +2180,25 @@ function AuthLayout({
   error?: string | null;
 }) {
   return (
-    <div className="page-shell">
-      <section className="auth-card">
-        <div className="section-heading">
-          <span className="eyebrow">Frontend / React + TypeScript</span>
-          <h1>{title}</h1>
-          <p>{subtitle}</p>
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-header">
+          <div className="auth-logo">
+            <div className="logo-icon">🏥</div>
+            <h1 className="logo-text">CareWell Clinic</h1>
+          </div>
+          <div className="auth-title-section">
+            <h2>{title}</h2>
+            <p>{subtitle}</p>
+          </div>
         </div>
-        {message ? <div className="notice success-notice">{message}</div> : null}
-        {error ? <div className="notice error-notice">{error}</div> : null}
-        {children}
-        {footer}
-      </section>
+        <div className="auth-content">
+          {message ? <div className="notice success-notice">✅ {message}</div> : null}
+          {error ? <div className="notice error-notice">❌ {error}</div> : null}
+          {children}
+        </div>
+        {footer && <div className="auth-footer">{footer}</div>}
+      </div>
     </div>
   );
 }
