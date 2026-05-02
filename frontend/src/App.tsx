@@ -3431,7 +3431,7 @@ function AdminDashboard({
         (doctor) => doctor.name && doctor.email && doctor.specialization,
       );
 
-      setUsers(registeredPatients);
+      setUsers(userData);
       setDoctors(registeredDoctors);
       setAppointments(appointmentData);
     } catch (loadError) {
@@ -3499,7 +3499,7 @@ function AdminDashboard({
           <div className="metrics-grid">
             <MetricCard label="Total Patients" value={String(patients.length)} />
             <MetricCard label="Total Doctors" value={String(doctors.length)} />
-            <MetricCard label="Appointments" value={String(appointments.length)} />
+            <MetricCard label="Admin accounts" value={String(admins.length)} />
             <MetricCard label="Pending" value={String(pending)} />
           </div>
 
@@ -3549,6 +3549,7 @@ function AdminDashboard({
                 <InfoPair label="Admin account" value="admin@clinic.local" />
                 <InfoPair label="Registered patients" value={String(patients.length)} />
                 <InfoPair label="Total doctors" value={String(doctors.length)} />
+                <InfoPair label="Admin accounts" value={String(admins.length)} />
                 <InfoPair label="Pending appointments" value={String(pending)} />
               </div>
             </section>
