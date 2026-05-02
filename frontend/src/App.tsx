@@ -1,5 +1,5 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { api } from './lib/api';
 import {
   AuthUser,
@@ -55,6 +55,14 @@ type RescheduleForm = {
   symptoms: string;
 };
 
+type ProfileForm = {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  dob: string;
+};
+
 function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getStoredUser());
 
@@ -77,13 +85,14 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage currentUser={currentUser} />} />
       <Route path="/login" element={<LoginPage currentUser={currentUser} onLogin={handleLogin} />} />
+      <Route path="/dashboard" element={currentUser ? <Navigate to={getDashboardPath(currentUser.role)} replace /> : <Navigate to="/login" replace />} />
       <Route path="/register/patient" element={<RegisterPatientPage />} />
       <Route path="/register/doctor" element={<RegisterDoctorPage />} />
       <Route
         path="/dashboard/patient"
         element={
           <ProtectedRoute currentUser={currentUser} expectedRole="user">
-            <PatientDashboard currentUser={currentUser} onLogout={handleLogout} />
+            <PatientDashboard currentUser={currentUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />
           </ProtectedRoute>
         }
       />
@@ -285,6 +294,8 @@ function LoginPage({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -292,8 +303,34 @@ function LoginPage({
     }
   }, [currentUser, navigate]);
 
+  const validateForm = () => {
+    let isValid = true;
+    setEmailError(null);
+    setPasswordError(null);
+
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Please enter a valid email address');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!validateForm()) return;
+
     setLoading(true);
     setMessage(null);
     setError(null);
@@ -305,7 +342,7 @@ function LoginPage({
       });
       onLogin(response.access_token, response.user);
       setMessage('Login successful. Redirecting...');
-      navigate(getDashboardPath(response.user.role));
+      setTimeout(() => navigate(getDashboardPath(response.user.role)), 1000);
     } catch (submitError) {
       setError((submitError as Error).message);
     } finally {
@@ -321,60 +358,111 @@ function LoginPage({
       message={message}
       error={error}
     >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="email">
-            <span className="label-icon">📧</span>
-            Email Address
-          </label>
-          <input
-            id="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            type="email"
-            placeholder="Enter your email"
-            required
-          />
+      <div className="login-grid">
+        <div className="login-panel">
+          <div className="auth-hero-banner">
+            <div className="hero-pill">Welcome to CareWell</div>
+            <h3>Your health journey begins here</h3>
+            <p>Sign in to access your appointments, doctor care, and clinic insights in one modern experience.</p>
+            <div className="hero-metrics">
+              <span>Fast booking</span>
+              <span>Secure access</span>
+              <span>Smart reminders</span>
+            </div>
+          </div>
+          <div className="login-welcome-card">
+            <span className="eyebrow">CareWell Clinic</span>
+            <h2>Sign in securely</h2>
+            <p>
+              Manage appointments, patient records, and care workflows with one account. Choose the correct role and sign in to continue.
+            </p>
+          </div>
+          <div className="role-highlights">
+            <article className="role-card">
+              <h3>Patient</h3>
+              <p>Book appointments, track prescriptions, and view your medical history.</p>
+            </article>
+            <article className="role-card">
+              <h3>Doctor</h3>
+              <p>Review your schedule, confirm visits, and manage patient communications.</p>
+            </article>
+            <article className="role-card">
+              <h3>Admin</h3>
+              <p>Oversee clinic operations, staff, and appointment performance.</p>
+            </article>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="password">
-            <span className="label-icon">🔒</span>
-            Password
-          </label>
-          <input
-            id="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            placeholder="Enter your password"
-            required
-          />
+
+        <div className="login-form-panel">
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="email">
+                <span className="label-icon">📧</span>
+                Email Address
+              </label>
+              <input
+                id="email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  if (emailError) setEmailError(null);
+                }}
+                type="email"
+                placeholder="Enter your email"
+                required
+                className={emailError ? 'error' : ''}
+              />
+              {emailError && <span className="field-error">{emailError}</span>}
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">
+                <span className="label-icon">🔒</span>
+                Password
+              </label>
+              <input
+                id="password"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  if (passwordError) setPasswordError(null);
+                }}
+                type="password"
+                placeholder="Enter your password"
+                required
+                className={passwordError ? 'error' : ''}
+              />
+              {passwordError && <span className="field-error">{passwordError}</span>}
+            </div>
+            <div className="form-group">
+              <label htmlFor="role">
+                <span className="label-icon">👤</span>
+                Account Type
+              </label>
+              <select id="role" value={role} onChange={(event) => setRole(event.target.value as Role)}>
+                <option value="user">👨‍⚕️ Patient</option>
+                <option value="doctor">👩‍⚕️ Doctor</option>
+                <option value="admin">⚙️ Admin</option>
+              </select>
+            </div>
+            <button className="auth-button" type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner">⏳</span>
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <span className="button-icon">🚀</span>
+                  Sign In
+                </>
+              )}
+            </button>
+            <p className="login-footnote">
+              Don't have an account yet? <Link to="/register/patient">Register as patient</Link> or <Link to="/register/doctor">register as doctor</Link>.
+            </p>
+          </form>
         </div>
-        <div className="form-group">
-          <label htmlFor="role">
-            <span className="label-icon">👤</span>
-            Account Type
-          </label>
-          <select id="role" value={role} onChange={(event) => setRole(event.target.value as Role)}>
-            <option value="user">👨‍⚕️ Patient</option>
-            <option value="doctor">👩‍⚕️ Doctor</option>
-            <option value="admin">⚙️ Admin</option>
-          </select>
-        </div>
-        <button className="auth-button" type="submit" disabled={loading}>
-          {loading ? (
-            <>
-              <span className="spinner">⏳</span>
-              Signing in...
-            </>
-          ) : (
-            <>
-              <span className="button-icon">🚀</span>
-              Sign In
-            </>
-          )}
-        </button>
-      </form>
+      </div>
     </AuthLayout>
   );
 }
@@ -416,7 +504,12 @@ function RegisterPatientPage() {
       message={message}
       error={error}
     >
-      <form className="stack-form" onSubmit={handleSubmit}>
+      <section className="register-hero register-hero-patient">
+        <span className="hero-pill">Patient onboarding</span>
+        <h3>Begin your care journey with confidence</h3>
+        <p>Register quickly and start booking appointments with trusted doctors in just a few clicks.</p>
+      </section>
+      <form className="stack-form register-form" onSubmit={handleSubmit}>
         <label>
           <span>Full name</span>
           <input
@@ -496,7 +589,12 @@ function RegisterDoctorPage() {
       message={message}
       error={error}
     >
-      <form className="stack-form" onSubmit={handleSubmit}>
+      <section className="register-hero register-hero-doctor">
+        <span className="hero-pill">Doctor access</span>
+        <h3>Join CareWell and manage your practice</h3>
+        <p>Create your profile to receive appointments, track schedules, and support patient care.</p>
+      </section>
+      <form className="stack-form register-form" onSubmit={handleSubmit}>
         <label>
           <span>Full name</span>
           <input
@@ -549,9 +647,11 @@ function RegisterDoctorPage() {
 function PatientDashboard({
   currentUser,
   onLogout,
+  onUserUpdate,
 }: {
   currentUser: AuthUser | null;
   onLogout: () => void;
+  onUserUpdate?: (user: AuthUser) => void;
 }) {
   const [activeView, setActiveView] = useState('dashboard');
   const [isBookingMode, setIsBookingMode] = useState(false);
@@ -573,6 +673,56 @@ function PatientDashboard({
     [doctors],
   );
 
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState<ProfileForm>({
+    name: currentUser?.name ?? '',
+    email: currentUser?.email ?? '',
+    phone: (currentUser as any)?.phone ?? '0917 123 4567',
+    location: currentUser?.location ?? '',
+    dob: '1992-04-12',
+  });
+
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    setProfileForm({
+      name: currentUser.name,
+      email: currentUser.email,
+      phone: (currentUser as any)?.phone ?? '0917 123 4567',
+      location: currentUser.location ?? '',
+      dob: '1992-04-12',
+    });
+  }, [currentUser]);
+
+  async function handleProfileSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!currentUser) {
+      return;
+    }
+
+    setMessage(null);
+    setError(null);
+
+    try {
+      const updatedUser = {
+        ...currentUser,
+        name: profileForm.name,
+        email: profileForm.email,
+        location: profileForm.location,
+        phone: profileForm.phone,
+      } as AuthUser;
+
+      updateStoredUser(updatedUser);
+      onUserUpdate?.(updatedUser);
+      setMessage('Profile updated successfully.');
+      setIsEditingProfile(false);
+    } catch (saveError) {
+      setError((saveError as Error).message);
+    }
+  }
+
   useEffect(() => {
     void loadData();
   }, []);
@@ -588,7 +738,6 @@ function PatientDashboard({
     { key: 'documents', label: 'Documents', caption: 'Store documents', icon: '📄' },
     { key: 'settings', label: 'Settings', caption: 'Account preferences', icon: '⚙️' },
     { key: 'support', label: 'Support & Session', caption: 'Get help', icon: '❓' },
-    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '↪️' },
   ];
 
   async function loadData() {
@@ -689,6 +838,7 @@ function PatientDashboard({
       onLogout={onLogout}
       message={message}
       error={error}
+      pageClassName="patient-dashboard"
     >
       {activeView === 'dashboard' ? (
         <>
@@ -996,39 +1146,19 @@ function PatientDashboard({
         </>
       ) : null}
 
-      {activeView === 'medical' ? (
-        <section className="panel">
-          <SectionHeader title="Medical Records" />
-          <div className="summary-grid">
-            <article className="summary-card">
-              <strong>Recent lab results</strong>
-              <p>Blood work and imaging reports are available for download.</p>
-            </article>
-            <article className="summary-card">
-              <strong>Allergy report</strong>
-              <p>No known allergies on file.</p>
-            </article>
-            <article className="summary-card">
-              <strong>Immunization history</strong>
-              <p>Updated vaccinations and boosters.</p>
-            </article>
-            <article className="summary-card">
-              <strong>Health notes</strong>
-              <p>Personal health summary and doctor notes.</p>
-            </article>
-          </div>
-        </section>
-      ) : null}
-
       {activeView === 'prescriptions' ? (
         <section className="panel">
-          <SectionHeader title="Prescriptions" />
+          <SectionHeader title="Prescriptions" action={<button className="ghost-button" type="button" onClick={() => setMessage('Prescription list refreshed.')}>Refresh</button>} />
           <div className="list-stack">
             <article className="list-card">
               <div>
                 <h3>Amoxicillin 500mg</h3>
                 <p>1 capsule every 8 hours</p>
                 <p className="muted-copy">May 10, 2024 · Dr. John Reyes</p>
+              </div>
+              <div className="list-actions">
+                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Viewing prescription details soon.')}>View</button>
+                <button className="primary-button compact-button" type="button" onClick={() => setMessage('Refill request sent.')}>Refill</button>
               </div>
             </article>
             <article className="list-card">
@@ -1037,28 +1167,95 @@ function PatientDashboard({
                 <p>1 tablet once daily</p>
                 <p className="muted-copy">April 18, 2024 · Dr. Anna Lim</p>
               </div>
+              <div className="list-actions">
+                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Viewing prescription details soon.')}>View</button>
+                <button className="primary-button compact-button" type="button" onClick={() => setMessage('Refill request sent.')}>Refill</button>
+              </div>
             </article>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === 'medical' ? (
+        <section className="panel">
+          <SectionHeader title="Medical Records" action={<button className="ghost-button" type="button" onClick={() => setMessage('Medical records refreshed.')}>Refresh</button>} />
+          <div className="content-grid">
+            <div>
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <strong>Recent lab results</strong>
+                  <p>Blood work and imaging reports are available for download.</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Allergy report</strong>
+                  <p>No known allergies on file.</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Immunization history</strong>
+                  <p>Updated vaccinations and boosters.</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Health notes</strong>
+                  <p>Personal health summary and doctor notes.</p>
+                </article>
+              </div>
+            </div>
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Recent Visits</h3>
+              <div className="list-stack">
+                <article className="list-card">
+                  <div>
+                    <h3>General Consultation</h3>
+                    <p>Dr. Anna Lim - Cardiology</p>
+                    <p className="muted-copy">May 15, 2025 • Blood pressure check, ECG</p>
+                  </div>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Appointment details view coming soon.')}>View Details</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>Follow-up Visit</h3>
+                    <p>Dr. John Reyes - General Medicine</p>
+                    <p className="muted-copy">April 28, 2025 • Medication review</p>
+                  </div>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Appointment details view coming soon.')}>View Details</button>
+                </article>
+                <article className="list-card">
+                  <div>
+                    <h3>Annual Check-up</h3>
+                    <p>Dr. Maria Santos - Internal Medicine</p>
+                    <p className="muted-copy">March 10, 2025 • Complete physical exam</p>
+                  </div>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Appointment details view coming soon.')}>View Details</button>
+                </article>
+              </div>
+            </div>
           </div>
         </section>
       ) : null}
 
       {activeView === 'messages' ? (
         <section className="panel">
-          <SectionHeader title="Messages" />
+          <SectionHeader title="Messages" action={<button className="ghost-button" type="button" onClick={() => setMessage('All messages marked as read.')}>Mark all read</button>} />
           <div className="list-stack">
             <article className="list-card">
               <div>
                 <h3>CareWell Clinic</h3>
                 <p>Your appointment with Dr. Anna Lim on May 15, 2024 is confirmed.</p>
               </div>
-              <span className="status-pill status-confirmed">New</span>
+              <div className="list-actions">
+                <span className="status-pill status-confirmed">New</span>
+                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Opening message conversation soon.')}>Open</button>
+              </div>
             </article>
             <article className="list-card">
               <div>
                 <h3>Dr. John Reyes</h3>
                 <p>Please find attached your lab results.</p>
               </div>
-              <span className="status-pill status-pending">Unread</span>
+              <div className="list-actions">
+                <span className="status-pill status-pending">Unread</span>
+                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Opening message conversation soon.')}>Open</button>
+              </div>
             </article>
           </div>
         </section>
@@ -1066,19 +1263,91 @@ function PatientDashboard({
 
       {activeView === 'profile' ? (
         <section className="panel">
-          <SectionHeader title="Profile Settings" />
-          <div className="profile-summary">
-            <InfoPair label="Name" value={currentUser?.name || 'Patient'} />
-            <InfoPair label="Email" value={currentUser?.email || '—'} />
-            <InfoPair label="Role" value={currentUser?.role || 'user'} />
-            <InfoPair label="Status" value="Active" />
-          </div>
+          <SectionHeader
+            title="Profile Settings"
+            action={
+              <button
+                className="ghost-button"
+                type="button"
+                onClick={() => setIsEditingProfile((current) => !current)}
+              >
+                {isEditingProfile ? 'Cancel edit' : 'Edit profile'}
+              </button>
+            }
+          />
+          {isEditingProfile ? (
+            <form className="stack-form profile-edit-form" onSubmit={handleProfileSave}>
+              <div className="profile-edit-grid">
+                <label>
+                  <span>Full name</span>
+                  <input
+                    value={profileForm.name}
+                    onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    value={profileForm.email}
+                    onChange={(event) => setProfileForm({ ...profileForm, email: event.target.value })}
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Phone</span>
+                  <input
+                    value={profileForm.phone}
+                    onChange={(event) => setProfileForm({ ...profileForm, phone: event.target.value })}
+                    placeholder="0917 123 4567"
+                  />
+                </label>
+                <label>
+                  <span>Location</span>
+                  <input
+                    value={profileForm.location}
+                    onChange={(event) => setProfileForm({ ...profileForm, location: event.target.value })}
+                  />
+                </label>
+                <label>
+                  <span>Date of birth</span>
+                  <input
+                    type="date"
+                    value={profileForm.dob}
+                    onChange={(event) => setProfileForm({ ...profileForm, dob: event.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="list-actions profile-form-actions">
+                <button className="primary-button" type="submit">
+                  Save profile
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="profile-summary">
+              <InfoPair label="Name" value={currentUser?.name || 'Patient'} />
+              <InfoPair label="Email" value={currentUser?.email || '—'} />
+              <InfoPair label="Phone" value={(currentUser as any)?.phone || '0917 123 4567'} />
+              <InfoPair label="Location" value={currentUser?.location || 'Not set'} />
+              <InfoPair label="Member since" value="April 2024" />
+              <InfoPair label="Status" value="Active" />
+            </div>
+          )}
         </section>
       ) : null}
 
       {activeView === 'payments' ? (
         <section className="panel">
-          <SectionHeader title="Payments" />
+          <SectionHeader title="Payments" action={<button className="ghost-button" type="button" onClick={() => setMessage('Payment summary refreshed.')}>Refresh</button>} />
           <div className="content-grid">
             <div className="summary-grid">
               <article className="summary-card">
@@ -1108,7 +1377,10 @@ function PatientDashboard({
                   <p>Dr. Juan San Cruz</p>
                   <p className="muted-copy">May 15, 2025</p>
                 </div>
-                <strong>₱1,200.00</strong>
+                <div className="list-actions">
+                  <strong>₱1,200.00</strong>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Transaction details coming soon.')}>View Receipt</button>
+                </div>
               </article>
               <article className="list-card">
                 <div>
@@ -1116,16 +1388,22 @@ function PatientDashboard({
                   <p>Dr. Maria Reyes</p>
                   <p className="muted-copy">April 28, 2025</p>
                 </div>
-                <strong>₱1,800.00</strong>
+                <div className="list-actions">
+                  <strong>₱1,800.00</strong>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Transaction details coming soon.')}>View Receipt</button>
+                </div>
               </article>
             </div>
+          </div>
+          <div className="list-actions" style={{ marginTop: '24px' }}>
+            <button className="primary-button" type="button" onClick={() => setMessage('Payment page coming soon.')}>Pay Now</button>
           </div>
         </section>
       ) : null}
 
       {activeView === 'documents' ? (
         <section className="panel">
-          <SectionHeader title="Documents" />
+          <SectionHeader title="Documents" action={<button className="ghost-button" type="button" onClick={() => setMessage('Document list refreshed.')}>Refresh</button>} />
           <div className="content-grid">
             <div>
               <h3 style={{ marginBottom: '16px' }}>Your Documents</h3>
@@ -1135,21 +1413,30 @@ function PatientDashboard({
                     <h3>Lab Results - April 2025.pdf</h3>
                     <p className="muted-copy">May 15, 2025 • 1.2 MB</p>
                   </div>
-                  <button className="secondary-button compact-button">Download</button>
+                  <div className="list-actions">
+                    <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Document download will be ready soon.')}>Download</button>
+                    <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Preview mode will be available soon.')}>Preview</button>
+                  </div>
                 </article>
                 <article className="list-card">
                   <div>
                     <h3>Medical Certificate.pdf</h3>
                     <p className="muted-copy">April 28, 2025 • 680 KB</p>
                   </div>
-                  <button className="secondary-button compact-button">Download</button>
+                  <div className="list-actions">
+                    <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Document download will be ready soon.')}>Download</button>
+                    <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Preview mode will be available soon.')}>Preview</button>
+                  </div>
                 </article>
                 <article className="list-card">
                   <div>
                     <h3>X-Ray Chest.png</h3>
                     <p className="muted-copy">April 10, 2025 • 2.4 MB</p>
                   </div>
-                  <button className="secondary-button compact-button">Download</button>
+                  <div className="list-actions">
+                    <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Document download will be ready soon.')}>Download</button>
+                    <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Preview mode will be available soon.')}>Preview</button>
+                  </div>
                 </article>
               </div>
             </div>
@@ -1159,6 +1446,7 @@ function PatientDashboard({
                 <strong>6.2 GB used of 10 GB</strong>
                 <p>3.8 GB available</p>
               </article>
+              <button className="primary-button" type="button" style={{ marginTop: '16px' }} onClick={() => setMessage('Upload document flow coming soon.')}>Upload Document</button>
             </div>
           </div>
         </section>
@@ -1171,22 +1459,22 @@ function PatientDashboard({
             <article className="summary-card">
               <strong>Notifications (Email/SMS)</strong>
               <p>Manage how you receive notifications about appointments, prescriptions, and messages.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Configure</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Notification settings will be available soon.')}>Configure</button>
             </article>
             <article className="summary-card">
               <strong>Privacy & Security</strong>
               <p>Control your privacy settings and manage two-factor authentication.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Manage</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Privacy customization is coming soon.')}>Manage</button>
             </article>
             <article className="summary-card">
               <strong>Change Password</strong>
               <p>Update your account password to keep your account secure.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Change</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Password change will be added soon.')}>Change</button>
             </article>
             <article className="summary-card">
               <strong>Language & Timezone</strong>
               <p>Set your preferred language and timezone for the platform.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Configure</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Language settings are coming soon.')}>Configure</button>
             </article>
           </div>
         </section>
@@ -1204,21 +1492,21 @@ function PatientDashboard({
                     <h3>Getting Started Guide</h3>
                     <p>Learn the basics of using the CareWell Clinic system.</p>
                   </div>
-                  <button className="secondary-button compact-button">View</button>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Support content is opening soon.')}>View</button>
                 </article>
                 <article className="list-card">
                   <div>
                     <h3>FAQs</h3>
                     <p>Find answers to common questions about appointments and services.</p>
                   </div>
-                  <button className="secondary-button compact-button">View</button>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('FAQ content is coming soon.')}>View</button>
                 </article>
                 <article className="list-card">
                   <div>
                     <h3>Contact Support</h3>
                     <p>Reach out to our support team for assistance.</p>
                   </div>
-                  <button className="secondary-button compact-button">Contact</button>
+                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Support contact will be available soon.')}>Contact</button>
                 </article>
               </div>
             </div>
@@ -1274,7 +1562,6 @@ function DoctorDashboard({
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'profile', label: 'Profile', caption: 'Doctor account details', icon: '👨‍⚕️' },
     { key: 'settings', label: 'Settings', caption: 'Preferences', icon: '⚙️' },
-    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '↪️' },
   ];
 
   async function loadDoctorData() {
@@ -1290,9 +1577,13 @@ function DoctorDashboard({
         api<Appointment[]>('/appointments', { auth: true }),
         api<UserRecord[]>('/users'),
       ]);
+      const doctorAppointments = appointmentData.filter((appointment) => appointment.doctorId === currentUser.id);
+      const patientIds = new Set(doctorAppointments.map((appointment) => appointment.patientId));
+      const activePatients = patientData.filter((user) => user.role === 'user' && patientIds.has(user.id));
+
       setProfile(doctor);
-      setAppointments(appointmentData);
-      setPatients(patientData.filter(user => user.role === 'user')); // Only patients
+      setAppointments(doctorAppointments);
+      setPatients(activePatients);
     } catch (loadError) {
       setError((loadError as Error).message);
     }
@@ -1382,6 +1673,7 @@ function DoctorDashboard({
       onLogout={onLogout}
       message={message}
       error={error}
+      pageClassName="doctor-dashboard"
     >
       {activeView === 'overview' ? (
         <>
@@ -1688,7 +1980,7 @@ function DoctorDashboard({
                     <p>Patient: Maria Santos</p>
                     <p className="muted-copy">May 15, 2024 • 1 capsule every 8 hours</p>
                   </div>
-                  <button className="secondary-button compact-button">View Details</button>
+                  <button className="secondary-button compact-button" onClick={() => setMessage('Prescription details view coming soon.')}>View Details</button>
                 </article>
                 <article className="list-card">
                   <div>
@@ -1696,17 +1988,17 @@ function DoctorDashboard({
                     <p>Patient: Juan Reyes</p>
                     <p className="muted-copy">April 28, 2024 • 1 tablet daily</p>
                   </div>
-                  <button className="secondary-button compact-button">View Details</button>
+                  <button className="secondary-button compact-button" onClick={() => setMessage('Prescription details view coming soon.')}>View Details</button>
                 </article>
               </div>
             </div>
             <div>
               <h3 style={{ marginBottom: '16px' }}>Quick Actions</h3>
               <div className="quick-actions-grid">
-                <button className="secondary-button">New Prescription</button>
-                <button className="secondary-button">Refill Request</button>
-                <button className="secondary-button">Medication History</button>
-                <button className="secondary-button">Drug Interactions</button>
+                <button className="secondary-button" onClick={() => setMessage('New prescription form coming soon.')}>New Prescription</button>
+                <button className="secondary-button" onClick={() => setMessage('Refill request management coming soon.')}>Refill Request</button>
+                <button className="secondary-button" onClick={() => setMessage('Medication history view coming soon.')}>Medication History</button>
+                <button className="secondary-button" onClick={() => setMessage('Drug interaction checker coming soon.')}>Drug Interactions</button>
               </div>
             </div>
           </div>
@@ -1799,22 +2091,22 @@ function DoctorDashboard({
             <article className="summary-card">
               <strong>Notification Preferences</strong>
               <p>Manage how you receive appointment reminders and patient messages.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Configure</button>
+              <button className="secondary-button" style={{ marginTop: '12px' }} onClick={() => setMessage('Notification settings will be available soon.')}>Configure</button>
             </article>
             <article className="summary-card">
               <strong>Working Hours</strong>
               <p>Set your availability and clinic operating hours.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Update</button>
+              <button className="secondary-button" style={{ marginTop: '12px' }} onClick={() => setMessage('Working hours settings coming soon.')}>Update</button>
             </article>
             <article className="summary-card">
               <strong>Security Settings</strong>
               <p>Change password and manage two-factor authentication.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Manage</button>
+              <button className="secondary-button" style={{ marginTop: '12px' }} onClick={() => setMessage('Security settings panel coming soon.')}>Manage</button>
             </article>
             <article className="summary-card">
               <strong>System Preferences</strong>
               <p>Customize dashboard layout and default views.</p>
-              <button className="secondary-button" style={{ marginTop: '12px' }}>Customize</button>
+              <button className="secondary-button" style={{ marginTop: '12px' }} onClick={() => setMessage('System preferences coming soon.')}>Customize</button>
             </article>
           </div>
         </section>
@@ -1845,7 +2137,6 @@ function AdminDashboard({
     { key: 'services', label: 'Services', caption: 'Clinic offerings', icon: '🏥' },
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'settings', label: 'Settings', caption: 'System configuration', icon: '⚙️' },
-    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '↪️' },
   ];
 
   useEffect(() => {
@@ -1862,8 +2153,15 @@ function AdminDashboard({
         api<Doctor[]>('/doctors'),
         api<Appointment[]>('/appointments', { auth: true }),
       ]);
-      setUsers(userData);
-      setDoctors(doctorData);
+      const registeredPatients = userData.filter(
+        (user) => user.role === 'user' && user.name && user.email,
+      );
+      const registeredDoctors = doctorData.filter(
+        (doctor) => doctor.name && doctor.email && doctor.specialization,
+      );
+
+      setUsers(registeredPatients);
+      setDoctors(registeredDoctors);
       setAppointments(appointmentData);
     } catch (loadError) {
       setError((loadError as Error).message);
@@ -1895,6 +2193,7 @@ function AdminDashboard({
       onLogout={onLogout}
       message={message}
       error={error}
+      pageClassName="admin-dashboard"
     >
       {activeView === 'dashboard' ? (
         <>
@@ -1936,16 +2235,22 @@ function AdminDashboard({
             <section className="panel quick-actions-panel">
               <SectionHeader title="Quick actions" />
               <div className="quick-actions-grid">
-                <button className="secondary-button">New Patient</button>
-                <button className="secondary-button">New Appointment</button>
-                <button className="secondary-button">Manage Doctors</button>
-                <button className="secondary-button">View Reports</button>
+                <button className="secondary-button" type="button" onClick={() => setMessage('New patient form will be available soon.')}>New Patient</button>
+                <button className="secondary-button" type="button" onClick={() => setMessage('New appointment flow will be available soon.')}>New Appointment</button>
+                <button className="secondary-button" type="button" onClick={() => setMessage('Doctor management tools are coming soon.')}>Manage Doctors</button>
+                <button className="secondary-button" type="button" onClick={() => {
+                  setUsers([]);
+                  setDoctors([]);
+                  setAppointments([]);
+                  setMessage('Account data reset. Reloading registered users...');
+                  void loadAdminData();
+                }}>Reset Accounts</button>
               </div>
               <div className="profile-summary">
                 <InfoPair label="Admin account" value="admin@clinic.local" />
-                <InfoPair label="Seed password" value="admin123" />
+                <InfoPair label="Registered patients" value={String(patients.length)} />
                 <InfoPair label="Total doctors" value={String(doctors.length)} />
-                <InfoPair label="Confirmed" value={String(confirmed)} />
+                <InfoPair label="Pending appointments" value={String(pending)} />
               </div>
             </section>
           </div>
@@ -2020,7 +2325,7 @@ function AdminDashboard({
 
       {activeView === 'reports' ? (
         <section className="panel">
-          <SectionHeader title="Reports" action={<button className="ghost-button">Export CSV</button>} />
+          <SectionHeader title="Reports" action={<button className="ghost-button" type="button" onClick={() => setMessage('CSV export will be enabled soon.')}>Export CSV</button>} />
           <div className="report-grid">
             <article className="report-card">
               <span>Weekly bookings</span>
@@ -2064,6 +2369,7 @@ function SidebarDashboard({
   onLogout,
   message,
   error,
+  pageClassName,
 }: {
   currentUser: AuthUser | null;
   navItems: NavItem[];
@@ -2075,6 +2381,7 @@ function SidebarDashboard({
   onLogout: () => void;
   message?: string | null;
   error?: string | null;
+  pageClassName?: string;
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -2085,12 +2392,13 @@ function SidebarDashboard({
   };
 
   return (
-    <div className={`workspace-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className={`workspace-shell ${pageClassName ?? ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-brand">
           <span className="eyebrow">CareWell Clinic</span>
           <h2>Appointment System</h2>
           <p>{currentUser?.name ?? 'Guest'}</p>
+          <button type="button" className="sidebar-home-link" onClick={() => navigate('/')}>Home</button>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -2205,11 +2513,11 @@ function AuthLayout({
 
 function AuthFooter() {
   return (
-    <div className="auth-footer">
-      <a href="/">Home</a>
-      <a href="/login">Login</a>
-      <a href="/register/patient">Patient</a>
-      <a href="/register/doctor">Doctor</a>
+    <div className="auth-footer footer-links">
+      <Link to="/">Home</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/register/patient">Patient</Link>
+      <Link to="/register/doctor">Doctor</Link>
     </div>
   );
 }
