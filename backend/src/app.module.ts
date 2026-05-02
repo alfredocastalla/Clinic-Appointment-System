@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { AuthModule } from './auth/auth.module';
+import { PaymentsModule } from './payments/payments.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -26,6 +27,7 @@ import { AppService } from './app.service';
     DoctorsModule,
     AppointmentsModule,
     AuthModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -9,7 +9,7 @@ import {
   setSession,
   updateStoredUser,
 } from './lib/auth';
-import { Appointment, Doctor } from './types';
+import { Appointment, Doctor, Message, Payment, PaymentMethod } from './types';
 
 type RegisterUserPayload = {
   name: string;
@@ -136,7 +136,12 @@ function ProtectedRoute({
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (currentUser.role !== expectedRole) {
+  const isPatientRoute = expectedRole === 'user';
+  const allowed = isPatientRoute
+    ? currentUser.role === 'user' || currentUser.role === 'patient'
+    : currentUser.role === expectedRole;
+
+  if (!allowed) {
     return <Navigate to={getDashboardPath(currentUser.role)} replace />;
   }
 
@@ -180,11 +185,20 @@ function HomePage({ currentUser }: { currentUser: AuthUser | null }) {
             <h1 className="logo-text">CareWell Clinic</h1>
           </div>
           <nav className="nav-links">
-            <button className="nav-button" onClick={() => navigate('/login')}>
+            <button className="nav-button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              Home
+            </button>
+            <button className="nav-button" onClick={() => document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' })}>
+              Features
+            </button>
+            <button className="nav-button" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
+              How it works
+            </button>
+            <button className="nav-button secondary" onClick={() => navigate('/login')}>
               Login
             </button>
             <button className="nav-button secondary" onClick={() => navigate('/register/patient')}>
-              Register as Patient
+              Register
             </button>
           </nav>
         </div>
@@ -193,78 +207,132 @@ function HomePage({ currentUser }: { currentUser: AuthUser | null }) {
       <main className="home-main">
         <section className="hero-section">
           <div className="hero-content">
-            <div className="hero-text">
-              <h1>Your Health, Our Priority</h1>
-              <p>
-                Experience seamless healthcare management with our comprehensive clinic appointment system.
-                Connect with qualified doctors, manage appointments, and access your medical records all in one place.
-              </p>
-              <div className="hero-features">
-                <div className="feature-item">
-                  <span className="feature-icon">📅</span>
-                  <span>Easy Appointment Booking</span>
-                </div>
-                <div className="feature-item">
-                  <span className="feature-icon">👨‍⚕️</span>
-                  <span>Qualified Doctors</span>
-                </div>
-                <div className="feature-item">
-                  <span className="feature-icon">📋</span>
-                  <span>Medical Records</span>
-                </div>
-              </div>
-            </div>
+            <span className="eyebrow-pill">Smart clinic management</span>
+            <h1>One platform for patients, doctors, and clinic teams.</h1>
+            <p>
+              CareWell Clinic brings appointment bookings, patient records, and doctor coordination together in a clean, modern experience.
+              Save time, reduce no-shows, and deliver better care across every stage of the patient journey.
+            </p>
+
             <div className="hero-actions">
               <button className="cta-button primary" onClick={() => navigate(dashboardPath)}>
-                {currentUser ? `Go to ${currentUser.role} Dashboard` : 'Get Started'}
+                {currentUser ? `Open ${currentUser.role} Dashboard` : 'Start free trial'}
               </button>
               <button className="cta-button secondary" onClick={() => navigate('/register/doctor')}>
                 Join as Doctor
               </button>
             </div>
+
+            <div className="hero-stat-grid">
+              <article className="stat-card">
+                <strong>120+</strong>
+                <span>Trusted doctors</span>
+              </article>
+              <article className="stat-card">
+                <strong>4.9/5</strong>
+                <span>Patient rating</span>
+              </article>
+              <article className="stat-card">
+                <strong>15K</strong>
+                <span>Appointments managed</span>
+              </article>
+            </div>
           </div>
+
           <div className="hero-visual">
             <div className="hero-image">
-              <div className="image-placeholder">
-                <span className="placeholder-icon">🏥</span>
-                <p>Healthcare Management</p>
+              <div className="image-panel">
+                <div className="image-panel-header">CareWell Clinic</div>
+                <div className="image-panel-body">
+                  <div className="panel-item">
+                    <span>Upcoming appointments</span>
+                    <strong>18 scheduled</strong>
+                  </div>
+                  <div className="panel-item">
+                    <span>New messages</span>
+                    <strong>5 unread</strong>
+                  </div>
+                  <div className="panel-item">
+                    <span>Pending requests</span>
+                    <strong>3 approvals</strong>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="features-section">
-          <h2>Why Choose CareWell Clinic?</h2>
+        <section id="features-section" className="features-section">
+          <div className="section-heading">
+            <span className="eyebrow-pill">Why choose us</span>
+            <h2>Built for modern clinics and caring teams.</h2>
+            <p>From patient bookings to doctor availability, every detail is designed to make healthcare easier.</p>
+          </div>
           <div className="features-grid">
             <div className="feature-card">
-              <div className="card-icon">🚀</div>
-              <h3>Fast & Easy</h3>
-              <p>Book appointments in minutes with our intuitive interface</p>
+              <div className="card-icon">📅</div>
+              <h3>Appointment automation</h3>
+              <p>Keep schedules organized, reduce wait times, and let patients book directly online.</p>
             </div>
             <div className="feature-card">
-              <div className="card-icon">🔒</div>
-              <h3>Secure & Private</h3>
-              <p>Your medical information is protected with enterprise-grade security</p>
+              <div className="card-icon">👨‍⚕️</div>
+              <h3>Doctor collaboration</h3>
+              <p>Doctors can manage visits, update patient records, and coordinate care in one dashboard.</p>
             </div>
             <div className="feature-card">
-              <div className="card-icon">📱</div>
-              <h3>24/7 Access</h3>
-              <p>Manage your healthcare anytime, anywhere</p>
+              <div className="card-icon">🔐</div>
+              <h3>Secure health data</h3>
+              <p>Patient information stays protected with strong access controls and privacy-first design.</p>
             </div>
           </div>
         </section>
 
-        {currentUser && (
-          <section className="welcome-section">
-            <div className="welcome-card">
-              <h3>Welcome back, {currentUser.name}!</h3>
-              <p>You are logged in as a {currentUser.role}</p>
-              <button className="dashboard-button" onClick={() => navigate(dashboardPath)}>
-                Go to Dashboard
-              </button>
-            </div>
-          </section>
-        )}
+        <section id="how-it-works" className="how-it-works">
+          <div className="section-heading">
+            <h2>How it works</h2>
+            <p>Quick setup, easy booking, and complete visibility for everyone who uses your clinic system.</p>
+          </div>
+          <div className="how-grid">
+            <article className="step-card">
+              <span className="step-number">1</span>
+              <h3>Create patient profiles</h3>
+              <p>Register patients and doctors quickly so everyone can access appointments and records.</p>
+            </article>
+            <article className="step-card">
+              <span className="step-number">2</span>
+              <h3>Book appointments</h3>
+              <p>Patients choose a doctor, pick an available slot, and get instant confirmation.</p>
+            </article>
+            <article className="step-card">
+              <span className="step-number">3</span>
+              <h3>Manage care</h3>
+              <p>Doctors review patient history, update treatment notes, and complete visits with confidence.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="testimonial-section">
+          <div className="section-heading">
+            <h2>Trusted by clinics that care</h2>
+            <p>Teams love using CareWell Clinic to keep patients on schedule and staff aligned.</p>
+          </div>
+          <div className="testimonial-grid">
+            <article className="testimonial-card">
+              <p>
+                “CareWell Clinic made appointment management so much easier. Our staff can focus on patients instead of paperwork.”
+              </p>
+              <strong>Dr. Anna Lim</strong>
+              <span>Cardiologist</span>
+            </article>
+            <article className="testimonial-card">
+              <p>
+                “I can see all my upcoming visits and patient notes in one place. It has transformed how our clinic runs.”
+              </p>
+              <strong>Mark Santos</strong>
+              <span>Clinic Administrator</span>
+            </article>
+          </div>
+        </section>
 
         <footer className="home-footer">
           <div className="footer-content">
@@ -272,7 +340,15 @@ function HomePage({ currentUser }: { currentUser: AuthUser | null }) {
               <span className="footer-icon">🏥</span>
               <span className="footer-text">CareWell Clinic</span>
             </div>
-            <p>&copy; 2024 CareWell Clinic. All rights reserved.</p>
+            <p>Modern clinic software for patients, doctors, and care teams.</p>
+            <div className="footer-actions">
+              <button className="nav-button secondary" onClick={() => navigate('/register/patient')}>
+                Register as Patient
+              </button>
+              <button className="nav-button secondary" onClick={() => navigate('/register/doctor')}>
+                Register as Doctor
+              </button>
+            </div>
           </div>
         </footer>
       </main>
@@ -653,20 +729,78 @@ function PatientDashboard({
   onLogout: () => void;
   onUserUpdate?: (user: AuthUser) => void;
 }) {
+  if (!currentUser) {
+    return (
+      <div className="dashboard-fallback">
+        <h2>Patient Dashboard Unavailable</h2>
+        <p>
+          We could not load your patient dashboard right now. Please log in again or contact support if the issue persists.
+        </p>
+        <Link to="/login" className="cta-button primary">
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
   const [activeView, setActiveView] = useState('dashboard');
   const [isBookingMode, setIsBookingMode] = useState(false);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [doctorId, setDoctorId] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [symptoms, setSymptoms] = useState('');
-  const [statusFilter, setStatusFilter] = useState<AppointmentFilter>('all');
-  const [rescheduleForm, setRescheduleForm] = useState<RescheduleForm | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [booking, setBooking] = useState(false);
-  const [updatingAppointment, setUpdatingAppointment] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [messageContent, setMessageContent] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [showTransactionDetails, setShowTransactionDetails] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
+  const [showAddPaymentMethod, setShowAddPaymentMethod] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    method: 'credit_card' as Payment['method'],
+    description: '',
+  });
+  const [cardForm, setCardForm] = useState({
+    number: '',
+    expiry: '',
+    cvc: '',
+    name: '',
+  });
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailReminders: true,
+    smsReminders: false,
+    prescriptionAlerts: true,
+    appointmentConfirmations: true,
+  });
+  const [privacySettings, setPrivacySettings] = useState({
+    shareMedicalHistory: false,
+    allowDoctorCommunication: true,
+    dataRetention: '1year',
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [languageSettings, setLanguageSettings] = useState({
+    language: 'en',
+    timezone: 'Asia/Manila',
+  });
+  const [showFAQ, setShowFAQ] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    subject: '',
+    message: '',
+  });
 
   const doctorById = useMemo(
     () => Object.fromEntries(doctors.map((doctor) => [doctor.id, doctor])),
@@ -681,6 +815,15 @@ function PatientDashboard({
     location: currentUser?.location ?? '',
     dob: '1992-04-12',
   });
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [booking, setBooking] = useState(false);
+  const [doctorId, setDoctorId] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [symptoms, setSymptoms] = useState('');
+  const [rescheduleForm, setRescheduleForm] = useState<Partial<Appointment> | null>(null);
+  const [updatingAppointment, setUpdatingAppointment] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -695,6 +838,118 @@ function PatientDashboard({
       dob: '1992-04-12',
     });
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser || messages.length > 0 || appointments.length === 0) {
+      return;
+    }
+
+    // Seed messages based on actual appointments
+    const seededMessages: Message[] = [];
+    const uniqueDoctorIds = new Set(appointments.map((appt) => appt.doctorId));
+    let messageId = 1;
+
+    uniqueDoctorIds.forEach((doctorId) => {
+      const doctor = doctorById[doctorId];
+      if (!doctor) return;
+
+      // Create a confirmation message for each doctor
+      seededMessages.push({
+        id: messageId++,
+        senderId: doctorId,
+        senderName: doctor.name,
+        senderRole: 'doctor',
+        recipientId: currentUser.id,
+        recipientName: currentUser.name,
+        content: `Your appointment with ${doctor.name} is confirmed.`,
+        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(), // Random recent date
+        read: false,
+        conversationId: doctorId,
+      });
+
+      // Add a follow-up message for some doctors
+      if (Math.random() > 0.5) {
+        seededMessages.push({
+          id: messageId++,
+          senderId: doctorId,
+          senderName: doctor.name,
+          senderRole: 'doctor',
+          recipientId: currentUser.id,
+          recipientName: currentUser.name,
+          content: 'Please remember to bring your medical records to the appointment.',
+          timestamp: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
+          read: false,
+          conversationId: doctorId,
+        });
+      }
+    });
+
+    setMessages(seededMessages);
+  }, [currentUser, messages.length, appointments, doctorById]);
+
+  const conversationSummaries = useMemo(() => {
+    if (!currentUser) {
+      return [];
+    }
+
+    const conversations = new Map<number, {
+      conversationId: number;
+      doctorId: number;
+      doctorName: string;
+      lastMessage: Message;
+      unreadCount: number;
+    }>();
+
+    messages.forEach((msg) => {
+      const conversationId = msg.conversationId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+      const doctorId = conversationId; // Since we set conversationId to doctorId
+      const doctor = doctorById[doctorId];
+      const doctorName = doctor ? doctor.name : (msg.senderRole === 'doctor' ? msg.senderName : msg.recipientName);
+      const existing = conversations.get(conversationId);
+      const unreadCount = (existing?.unreadCount ?? 0) + (!msg.read && msg.senderRole === 'doctor' ? 1 : 0);
+      const latestMessage = existing && existing.lastMessage.timestamp > msg.timestamp ? existing.lastMessage : msg;
+
+      conversations.set(conversationId, {
+        conversationId,
+        doctorId,
+        doctorName,
+        lastMessage: latestMessage,
+        unreadCount,
+      });
+    });
+
+    return Array.from(conversations.values()).sort((a, b) => b.lastMessage.timestamp.localeCompare(a.lastMessage.timestamp));
+  }, [messages, currentUser?.id, doctorById]);
+
+  const activeConversation = selectedConversation !== null
+    ? conversationSummaries.find((conversation) => conversation.conversationId === selectedConversation) ?? null
+    : null;
+
+  const conversationMessages = selectedConversation !== null
+    ? messages
+        .filter((msg) => msg.conversationId === selectedConversation)
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+    : [];
+
+  function openConversation(conversationId: number) {
+    setSelectedConversation(conversationId);
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.conversationId === conversationId && msg.senderRole === 'doctor'
+          ? { ...msg, read: true }
+          : msg,
+      ),
+    );
+  }
+
+  function closeConversation() {
+    setSelectedConversation(null);
+  }
+
+  function markAllRead() {
+    setMessages((prevMessages) => prevMessages.map((msg) => ({ ...msg, read: true })));
+    setMessage('All messages marked as read.');
+  }
 
   async function handleProfileSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -744,12 +999,16 @@ function PatientDashboard({
     setError(null);
 
     try {
-      const [doctorData, appointmentData] = await Promise.all([
-        api<Doctor[]>('/doctors'),
+      const [doctorData, appointmentData, paymentData, paymentMethodData] = await Promise.all([
+        api<Doctor[]>('/doctors', { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
+        api<Payment[]>('/payments', { auth: true }),
+        api<PaymentMethod[]>('/payment-methods', { auth: true }),
       ]);
       setDoctors(doctorData);
       setAppointments(appointmentData);
+      setPayments(paymentData);
+      setPaymentMethods(paymentMethodData);
     } catch (loadError) {
       setError((loadError as Error).message);
     }
@@ -824,23 +1083,163 @@ function PatientDashboard({
     }
   }
 
+  async function handleSendMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!currentUser || !messageContent.trim() || selectedConversation === null) {
+      return;
+    }
+
+    const conversation = conversationSummaries.find((conv) => conv.conversationId === selectedConversation);
+    if (!conversation) {
+      return;
+    }
+
+    setSendingMessage(true);
+    setError(null);
+
+    try {
+      const newMessage: Message = {
+        id: Date.now(),
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        senderRole: 'user',
+        recipientId: conversation.doctorId,
+        recipientName: conversation.doctorName,
+        content: messageContent.trim(),
+        timestamp: new Date().toISOString(),
+        read: true,
+        conversationId: selectedConversation,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setMessageContent('');
+      setMessage('Message sent successfully.');
+
+      setTimeout(() => {
+        const reply: Message = {
+          id: Date.now() + 1,
+          senderId: conversation.doctorId,
+          senderName: conversation.doctorName,
+          senderRole: 'doctor',
+          recipientId: currentUser.id,
+          recipientName: currentUser.name,
+          content: 'Thanks for your message. I will review this and get back to you shortly.',
+          timestamp: new Date().toISOString(),
+          read: false,
+          conversationId: selectedConversation,
+        };
+        setMessages((prevMessages) => [...prevMessages, reply]);
+      }, 1200);
+    } catch (sendError) {
+      setError((sendError as Error).message);
+    } finally {
+      setSendingMessage(false);
+    }
+  }
+
+  async function handlePayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!currentUser || !paymentForm.amount) {
+      return;
+    }
+
+    setProcessingPayment(true);
+    setError(null);
+
+    try {
+      const newPayment: Omit<Payment, 'id' | 'createdAt'> = {
+        patientId: currentUser.id,
+        amount: parseFloat(paymentForm.amount),
+        currency: 'PHP',
+        status: 'completed',
+        method: paymentForm.method,
+        description: paymentForm.description || 'Payment for services',
+        paidAt: new Date().toISOString(),
+        transactionId: `TXN-${Date.now()}`,
+      };
+
+      const createdPayment = await api<Payment>('/payments', {
+        method: 'POST',
+        auth: true,
+        body: newPayment,
+      });
+
+      setPayments((prev) => [createdPayment, ...prev]);
+      setPaymentForm({ amount: '', method: 'credit_card', description: '' });
+      setShowPaymentForm(false);
+      setMessage('Payment processed successfully.');
+      await loadData();
+    } catch (paymentError) {
+      setError((paymentError as Error).message);
+    } finally {
+      setProcessingPayment(false);
+    }
+  }
+
+  async function handleAddPaymentMethod(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setProcessingPayment(true);
+    setError(null);
+
+    try {
+      const newMethod: Omit<PaymentMethod, 'id'> = {
+        type: 'credit_card',
+        last4: cardForm.number.slice(-4),
+        brand: cardForm.number.startsWith('4') ? 'Visa' : cardForm.number.startsWith('5') ? 'Mastercard' : 'Unknown',
+        expiryMonth: parseInt(cardForm.expiry.split('/')[0]),
+        expiryYear: parseInt(`20${cardForm.expiry.split('/')[1]}`),
+        isDefault: paymentMethods.length === 0,
+      };
+
+      const createdMethod = await api<PaymentMethod>('/payment-methods', {
+        method: 'POST',
+        auth: true,
+        body: newMethod,
+      });
+
+      setPaymentMethods((prev) => [...prev, createdMethod]);
+      setCardForm({ number: '', expiry: '', cvc: '', name: '' });
+      setShowAddPaymentMethod(false);
+      setMessage('Payment method added successfully.');
+    } catch (methodError) {
+      setError((methodError as Error).message);
+    } finally {
+      setProcessingPayment(false);
+    }
+  }
+
+  function viewPaymentReceipt(payment: Payment) {
+    setSelectedPayment(payment);
+    setShowPaymentDetails(true);
+  }
+
+  const totalPaid = payments
+    .filter((p) => p.status === 'completed')
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  const outstandingBalance = appointments
+    .filter((appt) => appt.status === 'confirmed' || appt.status === 'completed')
+    .filter((appt) => !payments.some((p) => p.appointmentId === appt.id))
+    .length * 1200; // Assuming ₱1,200 per appointment
+
   const upcomingAppointments = appointments.filter((appointment) => appointment.status !== 'cancelled');
-  const filteredAppointments = getFilteredAppointments(appointments, statusFilter);
 
   return (
-    <SidebarDashboard
-      currentUser={currentUser}
-      navItems={navItems}
-      activeView={activeView}
-      onSelectView={setActiveView}
-      title="My Dashboard"
-      subtitle="Manage your appointments and health information in one place."
-      onLogout={onLogout}
-      message={message}
-      error={error}
-      pageClassName="patient-dashboard"
-    >
-      {activeView === 'dashboard' ? (
+    <>
+      <SidebarDashboard
+        currentUser={currentUser}
+        navItems={navItems}
+        activeView={activeView}
+        onSelectView={setActiveView}
+        title="My Dashboard"
+        subtitle="Manage your appointments and health information in one place."
+        onLogout={onLogout}
+        message={message}
+        error={error}
+        pageClassName="patient-dashboard"
+      >
+        {activeView === 'dashboard' ? (
         <>
           <div className="metrics-grid">
             <MetricCard label="Upcoming visits" value={String(upcomingAppointments.length)} />
@@ -1023,26 +1422,15 @@ function PatientDashboard({
                     <button className="primary-button compact-button" onClick={() => setIsBookingMode(true)}>
                       + Book Appointment
                     </button>
-                    <select
-                      className="filter-select"
-                      value={statusFilter}
-                      onChange={(event) => setStatusFilter(event.target.value as AppointmentFilter)}
-                    >
-                      <option value="all">All statuses</option>
-                      <option value="pending">Pending</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
                     <button className="ghost-button" onClick={() => void loadData()}>Refresh</button>
                   </div>
                 }
               />
               <div className="list-stack">
-                {filteredAppointments.length === 0 ? (
+                {appointments.length === 0 ? (
                   <EmptyState text="You have not booked any appointments yet." />
                 ) : (
-                  filteredAppointments.map((appointment) => (
+                  appointments.map((appointment) => (
                     <article className="list-card" key={appointment.id}>
                   {rescheduleForm?.id === appointment.id ? (
                     <form className="inline-edit-form" onSubmit={handleReschedule}>
@@ -1209,7 +1597,19 @@ function PatientDashboard({
                     <p>Dr. Anna Lim - Cardiology</p>
                     <p className="muted-copy">May 15, 2025 • Blood pressure check, ECG</p>
                   </div>
-                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Appointment details view coming soon.')}>View Details</button>
+                  <button className="secondary-button compact-button" type="button" onClick={() => {
+                    setSelectedAppointment({
+                      id: 1,
+                      patientId: currentUser?.id,
+                      patientName: currentUser?.name || '',
+                      doctorId: 1,
+                      date: '2025-05-15',
+                      time: '10:00',
+                      symptoms: 'Blood pressure check, ECG',
+                      status: 'completed'
+                    });
+                    setShowAppointmentDetails(true);
+                  }}>View Details</button>
                 </article>
                 <article className="list-card">
                   <div>
@@ -1217,7 +1617,19 @@ function PatientDashboard({
                     <p>Dr. John Reyes - General Medicine</p>
                     <p className="muted-copy">April 28, 2025 • Medication review</p>
                   </div>
-                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Appointment details view coming soon.')}>View Details</button>
+                  <button className="secondary-button compact-button" type="button" onClick={() => {
+                    setSelectedAppointment({
+                      id: 2,
+                      patientId: currentUser?.id,
+                      patientName: currentUser?.name || '',
+                      doctorId: 2,
+                      date: '2025-04-28',
+                      time: '14:30',
+                      symptoms: 'Medication review',
+                      status: 'completed'
+                    });
+                    setShowAppointmentDetails(true);
+                  }}>View Details</button>
                 </article>
                 <article className="list-card">
                   <div>
@@ -1225,7 +1637,19 @@ function PatientDashboard({
                     <p>Dr. Maria Santos - Internal Medicine</p>
                     <p className="muted-copy">March 10, 2025 • Complete physical exam</p>
                   </div>
-                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Appointment details view coming soon.')}>View Details</button>
+                  <button className="secondary-button compact-button" type="button" onClick={() => {
+                    setSelectedAppointment({
+                      id: 3,
+                      patientId: currentUser?.id,
+                      patientName: currentUser?.name || '',
+                      doctorId: 3,
+                      date: '2025-03-10',
+                      time: '09:00',
+                      symptoms: 'Complete physical exam',
+                      status: 'completed'
+                    });
+                    setShowAppointmentDetails(true);
+                  }}>View Details</button>
                 </article>
               </div>
             </div>
@@ -1235,29 +1659,89 @@ function PatientDashboard({
 
       {activeView === 'messages' ? (
         <section className="panel">
-          <SectionHeader title="Messages" action={<button className="ghost-button" type="button" onClick={() => setMessage('All messages marked as read.')}>Mark all read</button>} />
-          <div className="list-stack">
-            <article className="list-card">
-              <div>
-                <h3>CareWell Clinic</h3>
-                <p>Your appointment with Dr. Anna Lim on May 15, 2024 is confirmed.</p>
+          <SectionHeader
+            title={selectedConversation ? `Conversation with ${activeConversation?.doctorName ?? 'Doctor'}` : 'Messages'}
+            action={
+              <div className="toolbar-actions">
+                {selectedConversation ? (
+                  <button className="ghost-button compact-button" type="button" onClick={closeConversation}>
+                    ← Back
+                  </button>
+                ) : null}
+                <button className="ghost-button compact-button" type="button" onClick={markAllRead}>
+                  Mark all read
+                </button>
               </div>
-              <div className="list-actions">
-                <span className="status-pill status-confirmed">New</span>
-                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Opening message conversation soon.')}>Open</button>
+            }
+          />
+
+          {selectedConversation && activeConversation ? (
+            <div className="chat-thread">
+              <div className="chat-header">
+                <div>
+                  <strong>{activeConversation.doctorName}</strong>
+                  <p className="muted-copy">Last message: {new Date(activeConversation.lastMessage.timestamp).toLocaleString()}</p>
+                </div>
               </div>
-            </article>
-            <article className="list-card">
-              <div>
-                <h3>Dr. John Reyes</h3>
-                <p>Please find attached your lab results.</p>
+              <div className="message-list">
+                {conversationMessages.length === 0 ? (
+                  <EmptyState text="No messages in this conversation yet." />
+                ) : (
+                  conversationMessages.map((msg) => (
+                    <div key={msg.id} className={`message-bubble ${msg.senderRole === 'user' ? 'sent' : 'received'}`}>
+                      <div className="message-meta">
+                        <span>{msg.senderRole === 'user' ? 'You' : msg.senderName}</span>
+                        <span className="message-time">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p>{msg.content}</p>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="list-actions">
-                <span className="status-pill status-pending">Unread</span>
-                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Opening message conversation soon.')}>Open</button>
-              </div>
-            </article>
-          </div>
+
+              <form className="stack-form" onSubmit={handleSendMessage}>
+                <label>
+                  <span>Reply to {activeConversation.doctorName}</span>
+                  <textarea
+                    rows={4}
+                    value={messageContent}
+                    onChange={(event) => setMessageContent(event.target.value)}
+                    placeholder="Write your reply..."
+                    required
+                  />
+                </label>
+                <button className="primary-button" type="submit" disabled={sendingMessage}>
+                  {sendingMessage ? 'Sending...' : 'Send message'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="list-stack">
+              {conversationSummaries.length === 0 ? (
+                <EmptyState text="No conversations yet. Start by opening a thread." />
+              ) : (
+                conversationSummaries.map((conversation) => (
+                  <article className="list-card" key={conversation.conversationId}>
+                    <div>
+                      <h3>{conversation.doctorName}</h3>
+                      <p>{conversation.lastMessage.content}</p>
+                      <p className="muted-copy">{new Date(conversation.lastMessage.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="list-actions">
+                      {conversation.unreadCount ? (
+                        <span className="status-pill status-confirmed">{conversation.unreadCount} New</span>
+                      ) : (
+                        <span className="status-pill status-completed">Read</span>
+                      )}
+                      <button className="secondary-button compact-button" type="button" onClick={() => openConversation(conversation.conversationId)}>
+                        Open
+                      </button>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          )}
         </section>
       ) : null}
 
@@ -1347,56 +1831,103 @@ function PatientDashboard({
 
       {activeView === 'payments' ? (
         <section className="panel">
-          <SectionHeader title="Payments" action={<button className="ghost-button" type="button" onClick={() => setMessage('Payment summary refreshed.')}>Refresh</button>} />
+          <SectionHeader
+            title="Payments"
+            action={
+              <div className="toolbar-actions">
+                <button className="primary-button compact-button" onClick={() => setShowPaymentForm(true)}>
+                  + Make Payment
+                </button>
+                <button className="ghost-button compact-button" onClick={() => void loadData()}>
+                  Refresh
+                </button>
+              </div>
+            }
+          />
           <div className="content-grid">
             <div className="summary-grid">
               <article className="summary-card">
                 <strong>Total Paid</strong>
-                <p>₱18,650.00 This Year</p>
+                <p>₱{totalPaid.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
               </article>
               <article className="summary-card">
                 <strong>Outstanding Balance</strong>
-                <p>₱1,250.00 Due Now</p>
+                <p>₱{outstandingBalance.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
               </article>
               <article className="summary-card">
                 <strong>Total Transactions</strong>
-                <p>24 All Time</p>
+                <p>{payments.length}</p>
               </article>
               <article className="summary-card">
                 <strong>Last Payment</strong>
-                <p>May 15, 2025</p>
+                <p>{payments.length > 0 ? new Date(payments[0].paidAt || payments[0].createdAt).toLocaleDateString() : 'None'}</p>
               </article>
             </div>
           </div>
+
+          <div style={{ marginTop: '24px' }}>
+            <h3 style={{ marginBottom: '16px' }}>Payment Methods</h3>
+            <div className="list-stack">
+              {paymentMethods.length === 0 ? (
+                <EmptyState text="No payment methods saved." />
+              ) : (
+                paymentMethods.map((method) => (
+                  <article className="list-card" key={method.id}>
+                    <div>
+                      <h3>{method.brand} ****{method.last4}</h3>
+                      <p className="muted-copy">
+                        Expires {String(method.expiryMonth).padStart(2, '0')}/{method.expiryYear}
+                        {method.isDefault && ' • Default'}
+                      </p>
+                    </div>
+                    <div className="list-actions">
+                      <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Payment method management coming soon.')}>
+                        Edit
+                      </button>
+                    </div>
+                  </article>
+                ))
+              )}
+              <div className="list-actions" style={{ marginTop: '16px' }}>
+                <button className="secondary-button" type="button" onClick={() => setShowAddPaymentMethod(true)}>
+                  + Add Payment Method
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div style={{ marginTop: '24px' }}>
             <h3 style={{ marginBottom: '16px' }}>Recent Transactions</h3>
             <div className="list-stack">
-              <article className="list-card">
-                <div>
-                  <h3>General Consultation</h3>
-                  <p>Dr. Juan San Cruz</p>
-                  <p className="muted-copy">May 15, 2025</p>
-                </div>
-                <div className="list-actions">
-                  <strong>₱1,200.00</strong>
-                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Transaction details coming soon.')}>View Receipt</button>
-                </div>
-              </article>
-              <article className="list-card">
-                <div>
-                  <h3>Cardiology Consultation</h3>
-                  <p>Dr. Maria Reyes</p>
-                  <p className="muted-copy">April 28, 2025</p>
-                </div>
-                <div className="list-actions">
-                  <strong>₱1,800.00</strong>
-                  <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Transaction details coming soon.')}>View Receipt</button>
-                </div>
-              </article>
+              {payments.length === 0 ? (
+                <EmptyState text="No payments yet." />
+              ) : (
+                payments.slice(0, 10).map((payment) => (
+                  <article className="list-card" key={payment.id}>
+                    <div>
+                      <h3>{payment.description}</h3>
+                      <p className="muted-copy">
+                        {new Date(payment.createdAt).toLocaleDateString()} • {payment.method.replace('_', ' ')}
+                        {payment.transactionId && ` • ${payment.transactionId}`}
+                      </p>
+                    </div>
+                    <div className="list-actions">
+                      <strong className={payment.status === 'completed' ? 'text-success' : payment.status === 'pending' ? 'text-warning' : 'text-error'}>
+                        ₱{payment.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                      </strong>
+                      <span className={`status-pill status-${payment.status}`}>
+                        {payment.status}
+                      </span>
+                      {payment.status === 'completed' && (
+                        <button className="secondary-button compact-button" type="button" onClick={() => viewPaymentReceipt(payment)}>
+                          View Receipt
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                ))
+              )}
             </div>
-          </div>
-          <div className="list-actions" style={{ marginTop: '24px' }}>
-            <button className="primary-button" type="button" onClick={() => setMessage('Payment page coming soon.')}>Pay Now</button>
           </div>
         </section>
       ) : null}
@@ -1527,6 +2058,201 @@ function PatientDashboard({
         </section>
       ) : null}
     </SidebarDashboard>
+
+    {showAppointmentDetails && selectedAppointment && (
+      <div className="modal-overlay" onClick={() => setShowAppointmentDetails(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Appointment Details</h3>
+            <button className="modal-close" onClick={() => setShowAppointmentDetails(false)}>×</button>
+          </div>
+          <div className="modal-body">
+            <div className="appointment-details">
+              <div className="detail-section">
+                <h4>Appointment Information</h4>
+                <div className="info-grid">
+                  <InfoPair label="Patient" value={selectedAppointment!.patientName} />
+                  <InfoPair label="Date" value={selectedAppointment!.date} />
+                  <InfoPair label="Time" value={selectedAppointment!.time || 'Not specified'} />
+                  <InfoPair label="Status" value={selectedAppointment!.status} />
+                </div>
+              </div>
+              <div className="detail-section">
+                <h4>Symptoms & Notes</h4>
+                <p>{selectedAppointment!.symptoms || 'No symptoms provided.'}</p>
+              </div>
+              <div className="detail-section">
+                <h4>Doctor Information</h4>
+                <p>Doctor details will be displayed here when available.</p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="secondary-button" onClick={() => setShowAppointmentDetails(false)}>Close</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {showPaymentForm && (
+      <div className="modal-overlay" onClick={() => setShowPaymentForm(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Make a Payment</h3>
+            <button className="modal-close" onClick={() => setShowPaymentForm(false)}>×</button>
+          </div>
+          <form className="stack-form" onSubmit={handlePayment}>
+            <label>
+              <span>Amount (₱)</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={paymentForm.amount}
+                onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                placeholder="0.00"
+                required
+              />
+            </label>
+            <label>
+              <span>Payment Method</span>
+              <select
+                value={paymentForm.method}
+                onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value as Payment['method'] })}
+              >
+                <option value="credit_card">Credit Card</option>
+                <option value="debit_card">Debit Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="cash">Cash</option>
+                <option value="insurance">Insurance</option>
+              </select>
+            </label>
+            <label>
+              <span>Description</span>
+              <input
+                type="text"
+                value={paymentForm.description}
+                onChange={(e) => setPaymentForm({ ...paymentForm, description: e.target.value })}
+                placeholder="Payment for consultation"
+                required
+              />
+            </label>
+            <div className="modal-footer">
+              <button className="secondary-button" type="button" onClick={() => setShowPaymentForm(false)}>
+                Cancel
+              </button>
+              <button className="primary-button" type="submit" disabled={processingPayment}>
+                {processingPayment ? 'Processing...' : 'Pay Now'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {showAddPaymentMethod && (
+      <div className="modal-overlay" onClick={() => setShowAddPaymentMethod(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Add Payment Method</h3>
+            <button className="modal-close" onClick={() => setShowAddPaymentMethod(false)}>×</button>
+          </div>
+          <form className="stack-form" onSubmit={handleAddPaymentMethod}>
+            <label>
+              <span>Card Number</span>
+              <input
+                type="text"
+                value={cardForm.number}
+                onChange={(e) => setCardForm({ ...cardForm, number: e.target.value.replace(/\D/g, '') })}
+                placeholder="1234 5678 9012 3456"
+                maxLength={19}
+                required
+              />
+            </label>
+            <div className="form-row">
+              <label>
+                <span>Expiry Date</span>
+                <input
+                  type="text"
+                  value={cardForm.expiry}
+                  onChange={(e) => setCardForm({ ...cardForm, expiry: e.target.value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2') })}
+                  placeholder="MM/YY"
+                  maxLength={5}
+                  required
+                />
+              </label>
+              <label>
+                <span>CVC</span>
+                <input
+                  type="text"
+                  value={cardForm.cvc}
+                  onChange={(e) => setCardForm({ ...cardForm, cvc: e.target.value.replace(/\D/g, '') })}
+                  placeholder="123"
+                  maxLength={4}
+                  required
+                />
+              </label>
+            </div>
+            <label>
+              <span>Cardholder Name</span>
+              <input
+                type="text"
+                value={cardForm.name}
+                onChange={(e) => setCardForm({ ...cardForm, name: e.target.value })}
+                placeholder="John Doe"
+                required
+              />
+            </label>
+            <div className="modal-footer">
+              <button className="secondary-button" type="button" onClick={() => setShowAddPaymentMethod(false)}>
+                Cancel
+              </button>
+              <button className="primary-button" type="submit" disabled={processingPayment}>
+                {processingPayment ? 'Adding...' : 'Add Card'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {showPaymentDetails && selectedPayment && (
+      <div className="modal-overlay" onClick={() => setShowPaymentDetails(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Payment Receipt</h3>
+            <button className="modal-close" onClick={() => setShowPaymentDetails(false)}>×</button>
+          </div>
+          <div className="modal-body">
+            <div className="receipt-details">
+              <div className="detail-section">
+                <h4>Payment Information</h4>
+                <div className="info-grid">
+                  <InfoPair label="Transaction ID" value={selectedPayment.transactionId || 'N/A'} />
+                  <InfoPair label="Amount" value={`₱${selectedPayment.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`} />
+                  <InfoPair label="Method" value={selectedPayment.method.replace('_', ' ')} />
+                  <InfoPair label="Status" value={selectedPayment.status} />
+                  <InfoPair label="Date" value={new Date(selectedPayment.paidAt || selectedPayment.createdAt).toLocaleString()} />
+                </div>
+              </div>
+              <div className="detail-section">
+                <h4>Description</h4>
+                <p>{selectedPayment.description}</p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="secondary-button" onClick={() => setShowPaymentDetails(false)}>
+              Close
+            </button>
+            <button className="primary-button" type="button" onClick={() => setMessage('Receipt download coming soon.')}>
+              Download PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -1539,21 +2265,189 @@ function DoctorDashboard({
   onLogout: () => void;
   onUserUpdate: (user: AuthUser) => void;
 }) {
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState('dashboard');
   const [profile, setProfile] = useState<Doctor | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<UserRecord[]>([]);
   const [statusFilter, setStatusFilter] = useState<AppointmentFilter>('all');
+  const [patientSearch, setPatientSearch] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [messageContent, setMessageContent] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     void loadDoctorData();
   }, [currentUser?.id]);
 
+  useEffect(() => {
+    if (!currentUser || messages.length > 0 || appointments.length === 0) {
+      return;
+    }
+
+    // Seed messages based on actual appointments with patients
+    const seededMessages: Message[] = [];
+    const uniquePatientIds = new Set(appointments.map((appt) => appt.patientId).filter(Boolean));
+    let messageId = 101;
+
+    uniquePatientIds.forEach((patientId) => {
+      if (!patientId) return;
+
+      const patient = patients.find((p) => p.id === patientId);
+      if (!patient) return;
+
+      // Create patient inquiry messages
+      seededMessages.push({
+        id: messageId++,
+        senderId: patientId,
+        senderName: patient.name,
+        senderRole: 'user',
+        recipientId: currentUser.id,
+        recipientName: currentUser.name,
+        content: `Hello Dr. ${currentUser.name}, I have a question about my upcoming appointment.`,
+        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        read: false,
+        conversationId: patientId,
+      });
+
+      // Add follow-up messages for some patients
+      if (Math.random() > 0.5) {
+        seededMessages.push({
+          id: messageId++,
+          senderId: patientId,
+          senderName: patient.name,
+          senderRole: 'user',
+          recipientId: currentUser.id,
+          recipientName: currentUser.name,
+          content: 'Thank you for your response. I will see you at the appointment.',
+          timestamp: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
+          read: Math.random() > 0.5,
+          conversationId: patientId,
+        });
+      }
+    });
+
+    setMessages(seededMessages);
+  }, [currentUser, messages.length, appointments, patients]);
+
+  const conversationSummaries = useMemo(() => {
+    if (!currentUser) {
+      return [];
+    }
+
+    const conversations = new Map<number, {
+      conversationId: number;
+      patientId: number;
+      patientName: string;
+      lastMessage: Message;
+      unreadCount: number;
+    }>();
+
+    messages.forEach((msg) => {
+      const conversationId = msg.conversationId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+      const patientId = conversationId; // Since we set conversationId to patientId
+      const patient = patients.find((p) => p.id === patientId);
+      const patientName = patient ? patient.name : (msg.senderRole === 'user' ? msg.senderName : msg.recipientName);
+      const existing = conversations.get(conversationId);
+      const unreadCount = (existing?.unreadCount ?? 0) + (!msg.read && msg.senderRole === 'user' ? 1 : 0);
+      const latestMessage = existing && existing.lastMessage.timestamp > msg.timestamp ? existing.lastMessage : msg;
+
+      conversations.set(conversationId, {
+        conversationId,
+        patientId,
+        patientName,
+        lastMessage: latestMessage,
+        unreadCount,
+      });
+    });
+
+    return Array.from(conversations.values()).sort((a, b) => b.lastMessage.timestamp.localeCompare(a.lastMessage.timestamp));
+  }, [messages, currentUser?.id, patients]);
+
+  const activeConversation = selectedConversation !== null
+    ? conversationSummaries.find((conversation) => conversation.conversationId === selectedConversation) ?? null
+    : null;
+
+  const conversationMessages = selectedConversation !== null
+    ? messages
+        .filter((msg) => msg.conversationId === selectedConversation)
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+    : [];
+
+  function openConversation(conversationId: number) {
+    setSelectedConversation(conversationId);
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.conversationId === conversationId && msg.senderRole === 'user'
+          ? { ...msg, read: true }
+          : msg,
+      ),
+    );
+  }
+
+  function closeConversation() {
+    setSelectedConversation(null);
+  }
+
+  async function handleSendMessageToPatient(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!currentUser || !messageContent.trim() || selectedConversation === null) {
+      return;
+    }
+
+    const conversation = conversationSummaries.find((conv) => conv.conversationId === selectedConversation);
+    if (!conversation) {
+      return;
+    }
+
+    setSendingMessage(true);
+    setError(null);
+
+    try {
+      const newMessage: Message = {
+        id: Date.now(),
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        senderRole: 'doctor',
+        recipientId: conversation.patientId,
+        recipientName: conversation.patientName,
+        content: messageContent.trim(),
+        timestamp: new Date().toISOString(),
+        read: true,
+        conversationId: selectedConversation,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setMessageContent('');
+      setMessage('Message sent to patient.');
+
+      setTimeout(() => {
+        const reply: Message = {
+          id: Date.now() + 1,
+          senderId: conversation.patientId,
+          senderName: conversation.patientName,
+          senderRole: 'user',
+          recipientId: currentUser.id,
+          recipientName: currentUser.name,
+          content: 'Thank you, doctor. I will follow your instructions.',
+          timestamp: new Date().toISOString(),
+          read: false,
+          conversationId: selectedConversation,
+        };
+        setMessages((prevMessages) => [...prevMessages, reply]);
+      }, 1400);
+    } catch (sendError) {
+      setError((sendError as Error).message);
+    } finally {
+      setSendingMessage(false);
+    }
+  }
+
   const navItems: NavItem[] = [
-    { key: 'overview', label: 'Overview', caption: 'Status and quick totals', icon: '📊' },
+    { key: 'dashboard', label: 'Dashboard', caption: 'Status and quick totals', icon: '📊' },
     { key: 'appointments', label: 'Appointments', caption: 'Review and update visits', icon: '📅' },
     { key: 'patients', label: 'My Patients', caption: 'Patient records', icon: '👥' },
     { key: 'schedule', label: 'Schedule', caption: 'Calendar and availability', icon: '🗓️' },
@@ -1573,9 +2467,9 @@ function DoctorDashboard({
 
     try {
       const [doctor, appointmentData, patientData] = await Promise.all([
-        api<Doctor>(`/doctors/${currentUser.id}`),
+        api<Doctor>(`/doctors/${currentUser.id}`, { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
-        api<UserRecord[]>('/users'),
+        api<UserRecord[]>('/users', { auth: true }),
       ]);
       const doctorAppointments = appointmentData.filter((appointment) => appointment.doctorId === currentUser.id);
       const patientIds = new Set(doctorAppointments.map((appointment) => appointment.patientId));
@@ -1675,7 +2569,7 @@ function DoctorDashboard({
       error={error}
       pageClassName="doctor-dashboard"
     >
-      {activeView === 'overview' ? (
+      {activeView === 'dashboard' ? (
         <>
           <div className="metrics-grid">
             <MetricCard label="Total Patients" value={String(patients.length)} />
@@ -1898,33 +2792,66 @@ function DoctorDashboard({
 
       {activeView === 'patients' ? (
         <section className="panel">
-          <SectionHeader title="My Patients" />
+          <SectionHeader title="My Patients" action={<button className="ghost-button" onClick={() => void loadDoctorData()}>Refresh</button>} />
+          <div style={{ marginBottom: '20px' }}>
+            <input
+              type="text"
+              placeholder="Search patients by name or email..."
+              value={patientSearch}
+              onChange={(e) => setPatientSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '1px solid rgba(99, 102, 241, 0.16)',
+                fontSize: '1rem',
+                transition: 'all 0.2s ease',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.08)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.16)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            />
+          </div>
           <div className="list-stack">
             {patients.length === 0 ? (
               <EmptyState text="No patients registered yet." />
             ) : (
-              patients.map((patient) => {
-                const patientAppointments = appointments.filter(apt => apt.patientId === patient.id);
-                return (
-                  <article className="list-card" key={patient.id}>
-                    <div>
-                      <h3>{patient.name}</h3>
-                      <p>{patient.email}</p>
-                      <p className="muted-copy">
-                        {patient.location || 'No location set'} • {patientAppointments.length} appointment{patientAppointments.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <div className="list-actions">
-                      <button
-                        className="secondary-button compact-button"
-                        onClick={() => setActiveView('appointments')}
-                      >
-                        View Appointments
-                      </button>
-                    </div>
-                  </article>
-                );
-              })
+              patients
+                .filter(
+                  (patient) =>
+                    patient.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
+                    patient.email.toLowerCase().includes(patientSearch.toLowerCase())
+                )
+                .map((patient) => {
+                  const patientAppointments = appointments.filter(apt => apt.patientId === patient.id);
+                  const totalAppointments = patientAppointments.length;
+                  const completedAppointments = patientAppointments.filter(apt => apt.status === 'completed').length;
+                  return (
+                    <article className="list-card" key={patient.id}>
+                      <div>
+                        <h3>{patient.name}</h3>
+                        <p>{patient.email}</p>
+                        <p className="muted-copy">
+                          {patient.location || 'No location set'} • {totalAppointments} appointment{totalAppointments !== 1 ? 's' : ''} 
+                          {completedAppointments > 0 && ` (${completedAppointments} completed)`}
+                        </p>
+                      </div>
+                      <div className="list-actions">
+                        <button
+                          className="secondary-button compact-button"
+                          onClick={() => setActiveView('appointments')}
+                        >
+                          View Appointments
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })
             )}
           </div>
         </section>
@@ -2007,33 +2934,83 @@ function DoctorDashboard({
 
       {activeView === 'messages' ? (
         <section className="panel">
-          <SectionHeader title="Patient Messages" />
-          <div className="list-stack">
-            <article className="list-card">
-              <div>
-                <h3>Maria Santos</h3>
-                <p>Follow-up appointment request for next week.</p>
-                <p className="muted-copy">May 15, 2024 • 2:30 PM</p>
+          <SectionHeader
+            title={selectedConversation ? `Conversation with ${activeConversation?.patientName ?? 'Patient'}` : 'Patient Messages'}
+            action={
+              selectedConversation ? (
+                <button className="ghost-button compact-button" type="button" onClick={closeConversation}>
+                  ← Back
+                </button>
+              ) : null
+            }
+          />
+
+          {selectedConversation && activeConversation ? (
+            <div className="chat-thread">
+              <div className="chat-header">
+                <div>
+                  <strong>{activeConversation.patientName}</strong>
+                  <p className="muted-copy">Last message: {new Date(activeConversation.lastMessage.timestamp).toLocaleString()}</p>
+                </div>
               </div>
-              <span className="status-pill status-pending">Unread</span>
-            </article>
-            <article className="list-card">
-              <div>
-                <h3>Juan Reyes</h3>
-                <p>Lab results are ready for review.</p>
-                <p className="muted-copy">May 14, 2024 • 11:15 AM</p>
+              <div className="message-list">
+                {conversationMessages.length === 0 ? (
+                  <EmptyState text="No messages exchanged yet." />
+                ) : (
+                  conversationMessages.map((msg) => (
+                    <div key={msg.id} className={`message-bubble ${msg.senderRole === 'doctor' ? 'sent' : 'received'}`}>
+                      <div className="message-meta">
+                        <span>{msg.senderRole === 'doctor' ? 'You' : msg.senderName}</span>
+                        <span className="message-time">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p>{msg.content}</p>
+                    </div>
+                  ))
+                )}
               </div>
-              <span className="status-pill status-confirmed">Read</span>
-            </article>
-            <article className="list-card">
-              <div>
-                <h3>Ana Lim</h3>
-                <p>Prescription refill needed.</p>
-                <p className="muted-copy">May 12, 2024 • 9:45 AM</p>
-              </div>
-              <span className="status-pill status-confirmed">Read</span>
-            </article>
-          </div>
+              <form className="stack-form" onSubmit={handleSendMessageToPatient}>
+                <label>
+                  <span>Reply to {activeConversation.patientName}</span>
+                  <textarea
+                    rows={4}
+                    value={messageContent}
+                    onChange={(event) => setMessageContent(event.target.value)}
+                    placeholder="Write your message..."
+                    required
+                  />
+                </label>
+                <button className="primary-button" type="submit" disabled={sendingMessage}>
+                  {sendingMessage ? 'Sending...' : 'Send message'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="list-stack">
+              {conversationSummaries.length === 0 ? (
+                <EmptyState text="No patient conversations yet." />
+              ) : (
+                conversationSummaries.map((conversation) => (
+                  <article className="list-card" key={conversation.conversationId}>
+                    <div>
+                      <h3>{conversation.patientName}</h3>
+                      <p>{conversation.lastMessage.content}</p>
+                      <p className="muted-copy">{new Date(conversation.lastMessage.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="list-actions">
+                      {conversation.unreadCount ? (
+                        <span className="status-pill status-pending">{conversation.unreadCount} Unread</span>
+                      ) : (
+                        <span className="status-pill status-confirmed">Read</span>
+                      )}
+                      <button className="secondary-button compact-button" type="button" onClick={() => openConversation(conversation.conversationId)}>
+                        Open
+                      </button>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          )}
         </section>
       ) : null}
 
@@ -2126,6 +3103,8 @@ function AdminDashboard({
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patientSearch, setPatientSearch] = useState('');
+  const [doctorSearch, setDoctorSearch] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -2149,8 +3128,8 @@ function AdminDashboard({
 
     try {
       const [userData, doctorData, appointmentData] = await Promise.all([
-        api<UserRecord[]>('/users'),
-        api<Doctor[]>('/doctors'),
+        api<UserRecord[]>('/users', { auth: true }),
+        api<Doctor[]>('/doctors', { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
       ]);
       const registeredPatients = userData.filter(
@@ -2174,6 +3153,32 @@ function AdminDashboard({
   const confirmed = appointments.filter((appointment) => appointment.status === 'confirmed').length;
   const cancelled = appointments.filter((appointment) => appointment.status === 'cancelled').length;
   const doctorById = Object.fromEntries(doctors.map((doctor) => [doctor.id, doctor]));
+  const patientById = Object.fromEntries(patients.map((patient) => [patient.id, patient]));
+
+  const doctorAppointmentCounts = appointments.reduce<Record<number, number>>((counts, appointment) => {
+    counts[appointment.doctorId] = (counts[appointment.doctorId] ?? 0) + 1;
+    return counts;
+  }, {});
+
+  const patientAppointmentCounts = appointments.reduce<Record<number, number>>((counts, appointment) => {
+    if (appointment.patientId != null) {
+      counts[appointment.patientId] = (counts[appointment.patientId] ?? 0) + 1;
+    }
+    return counts;
+  }, {});
+
+  const topDoctorEntry = Object.entries(doctorAppointmentCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0];
+  const topPatientEntry = Object.entries(patientAppointmentCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0];
+
+  const topDoctorName = topDoctorEntry
+    ? doctorById[Number(topDoctorEntry[0])]?.name ?? `Doctor #${topDoctorEntry[0]}`
+    : 'No doctor data';
+  const topDoctorCount = topDoctorEntry ? Number(topDoctorEntry[1]) : 0;
+
+  const topPatientName = topPatientEntry
+    ? patientById[Number(topPatientEntry[0])]?.name ?? `Patient #${topPatientEntry[0]}`
+    : 'No patient data';
+  const topPatientCount = topPatientEntry ? Number(topPatientEntry[1]) : 0;
 
   const clinicServices = [
     { name: 'Appointment Scheduling', description: 'Book and manage patient visits', status: 'Active' },
@@ -2276,15 +3281,37 @@ function AdminDashboard({
 
       {activeView === 'patients' ? (
         <section className="panel">
-          <SectionHeader title="Patients" />
+          <SectionHeader title="Patients" action={<button className="ghost-button" onClick={() => void loadAdminData()}>Refresh</button>} />
+          <div style={{ marginBottom: '20px' }}>
+            <input
+              type="text"
+              placeholder="Search patients by name, email, or location..."
+              value={patientSearch}
+              onChange={(e) => setPatientSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '1px solid rgba(99, 102, 241, 0.16)',
+                fontSize: '1rem',
+              }}
+            />
+          </div>
           <DataTable
             columns={['Name', 'Email', 'Location', 'Status']}
-            rows={patients.map((patient) => [
-              patient.name,
-              patient.email,
-              patient.location || '—',
-              'Active',
-            ])}
+            rows={patients
+              .filter(
+                (patient) =>
+                  patient.name.toLowerCase().includes(patientSearch.toLowerCase()) ||
+                  patient.email.toLowerCase().includes(patientSearch.toLowerCase()) ||
+                  (patient.location || '').toLowerCase().includes(patientSearch.toLowerCase())
+              )
+              .map((patient) => [
+                patient.name,
+                patient.email,
+                patient.location || '—',
+                'Active',
+              ])}
             emptyText="No patient records available."
           />
         </section>
@@ -2292,15 +3319,37 @@ function AdminDashboard({
 
       {activeView === 'doctors' ? (
         <section className="panel">
-          <SectionHeader title="Doctors" />
+          <SectionHeader title="Doctors" action={<button className="ghost-button" onClick={() => void loadAdminData()}>Refresh</button>} />
+          <div style={{ marginBottom: '20px' }}>
+            <input
+              type="text"
+              placeholder="Search doctors by name, email, or specialization..."
+              value={doctorSearch}
+              onChange={(e) => setDoctorSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '1px solid rgba(99, 102, 241, 0.16)',
+                fontSize: '1rem',
+              }}
+            />
+          </div>
           <DataTable
             columns={['Name', 'Email', 'Specialization', 'Availability']}
-            rows={doctors.map((doctor) => [
-              doctor.name,
-              doctor.email,
-              doctor.specialization,
-              doctor.availableTime || 'Not set',
-            ])}
+            rows={doctors
+              .filter(
+                (doctor) =>
+                  doctor.name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
+                  doctor.email.toLowerCase().includes(doctorSearch.toLowerCase()) ||
+                  doctor.specialization.toLowerCase().includes(doctorSearch.toLowerCase())
+              )
+              .map((doctor) => [
+                doctor.name,
+                doctor.email,
+                doctor.specialization,
+                doctor.availableTime || 'Not set',
+              ])}
             emptyText="No doctors available."
           />
         </section>
@@ -2339,17 +3388,16 @@ function AdminDashboard({
               <span>Cancelled</span>
               <strong>{String(cancelled)}</strong>
             </article>
-            <article className="report-card clickable" onClick={() => setActiveView('patients')}>
-              <span>Patient records</span>
-              <strong>{String(users.length)}</strong>
+            <article className="report-card">
+              <span>Top doctor</span>
+              <strong>{topDoctorName}</strong>
+              <p>{topDoctorCount} appointment{topDoctorCount !== 1 ? 's' : ''}</p>
             </article>
-            <article className="report-card clickable" onClick={() => setActiveView('doctors')}>
-              <span>Doctor roster</span>
-              <strong>{String(doctors.length)}</strong>
+            <article className="report-card">
+              <span>Top patient</span>
+              <strong>{topPatientName}</strong>
+              <p>{topPatientCount} appointment{topPatientCount !== 1 ? 's' : ''}</p>
             </article>
-          </div>
-          <div className="report-note">
-            <p>Click the patient or doctor cards to open the related management pages.</p>
           </div>
         </section>
       ) : null}
@@ -2405,11 +3453,21 @@ function SidebarDashboard({
   return (
     <div className={`workspace-shell ${pageClassName ?? ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-brand">
-          <span className="eyebrow">CareWell Clinic</span>
-          <h2>Appointment System</h2>
-          <p>{currentUser?.name ?? 'Guest'}</p>
-          <button type="button" className="sidebar-home-link" onClick={() => navigate('/')}>Home</button>
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <span className="eyebrow">CareWell Clinic</span>
+            <h2>Appointment System</h2>
+            <p>{currentUser?.name ?? 'Guest'}</p>
+            <button type="button" className="sidebar-home-link" onClick={() => navigate('/')}>Home</button>
+          </div>
+          <button 
+            type="button" 
+            className="sidebar-toggle" 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? '▶' : '◀'}
+          </button>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -2425,19 +3483,22 @@ function SidebarDashboard({
 
                 onSelectView(item.key);
               }}
+              title={sidebarCollapsed ? item.label : undefined}
             >
               {item.icon && <span className="sidebar-icon">{item.icon}</span>}
-              <div className="sidebar-link-text">
-                <strong>{item.label}</strong>
-                <span>{item.caption}</span>
-              </div>
+              {!sidebarCollapsed && (
+                <div className="sidebar-link-text">
+                  <strong>{item.label}</strong>
+                  <span>{item.caption}</span>
+                </div>
+              )}
             </button>
           ))}
         </nav>
         <div className="sidebar-footer">
           <span className="role-badge">{currentUser?.role ?? 'guest'}</span>
           <button className="secondary-button sidebar-logout" onClick={handleLogout}>
-            🚪 Logout
+            {sidebarCollapsed ? '🚪' : '🚪 Logout'}
           </button>
         </div>
       </aside>

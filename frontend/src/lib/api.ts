@@ -1,5 +1,7 @@
 import { getToken } from './auth';
 
+const API_BASE_URL = 'http://localhost:3001';
+
 type ApiOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
@@ -18,7 +20,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? 'GET',
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,

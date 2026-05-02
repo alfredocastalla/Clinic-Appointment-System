@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -32,7 +32,12 @@ export class UsersController {
   }
 
   @Get()
-  async findAll() {
+  @UseGuards(JwtAuthGuard)
+  async findAll(@Request() req: any) {
+    if (!['admin', 'doctor'].includes(req.user.role)) {
+      throw new UnauthorizedException('Only admin and doctors can access user records');
+    }
+
     const users = await this.usersService.findAll();
     return users.map((user) => this.sanitizeUser(user));
   }
