@@ -2339,6 +2339,17 @@ function AdminDashboard({
               <span>Cancelled</span>
               <strong>{String(cancelled)}</strong>
             </article>
+            <article className="report-card clickable" onClick={() => setActiveView('patients')}>
+              <span>Patient records</span>
+              <strong>{String(users.length)}</strong>
+            </article>
+            <article className="report-card clickable" onClick={() => setActiveView('doctors')}>
+              <span>Doctor roster</span>
+              <strong>{String(doctors.length)}</strong>
+            </article>
+          </div>
+          <div className="report-note">
+            <p>Click the patient or doctor cards to open the related management pages.</p>
           </div>
         </section>
       ) : null}
