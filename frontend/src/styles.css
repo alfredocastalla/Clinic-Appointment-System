@@ -78,7 +78,9 @@ button {
   width: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
   position: relative;
+  padding: 0;
 }
 
 .sidebar.collapsed .sidebar-brand,
@@ -136,6 +138,7 @@ button {
   gap: 10px;
   position: relative;
   width: 100%;
+  padding-right: 4px;
 }
 
 .sidebar-brand {
@@ -166,24 +169,41 @@ button {
 
 .sidebar-toggle {
   position: absolute;
-  top: 0;
-  right: -8px;
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  z-index: 10;
+  padding: 0;
+  font-weight: 600;
+  user-select: none;
+  flex-shrink: 0;
 }
 
 .sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateX(1px);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.42);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-toggle:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.sidebar-toggle:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
 }
 
 .sidebar-nav {
