@@ -72,6 +72,30 @@ type PaymentFormState = {
   description: string;
 };
 
+type LabResult = {
+  id: number;
+  title: string;
+  date: string;
+  doctor: string;
+  summary: string;
+  fileName: string;
+};
+
+type ImmunizationRecord = {
+  id: number;
+  vaccine: string;
+  date: string;
+  provider: string;
+  notes: string;
+};
+
+type HealthNote = {
+  id: number;
+  title: string;
+  date: string;
+  details: string;
+};
+
 const MESSAGE_STORE_KEY = 'clinic-appointment-system-messages';
 
 function loadStoredMessages(): Message[] {
@@ -836,6 +860,64 @@ function PatientDashboard({
     name: '',
   });
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [medicalSummary, setMedicalSummary] = useState<{
+    recentLabResults: LabResult[];
+    allergies: string[];
+    immunizations: ImmunizationRecord[];
+    healthNotes: HealthNote[];
+  }>({
+    recentLabResults: [
+      {
+        id: 1,
+        title: 'Complete Blood Count',
+        date: '2025-05-15',
+        doctor: 'Dr. Anna Lim',
+        summary: 'Normal hemoglobin, white blood cells slightly elevated. No anemia detected.',
+        fileName: 'CBC_Report_May_2025.pdf',
+      },
+      {
+        id: 2,
+        title: 'Chest X-ray',
+        date: '2025-04-28',
+        doctor: 'Dr. John Reyes',
+        summary: 'No acute findings. Lungs are clear and heart size is normal.',
+        fileName: 'Chest_Xray_April_2025.pdf',
+      },
+    ],
+    allergies: ['No known drug allergies.'],
+    immunizations: [
+      {
+        id: 1,
+        vaccine: 'COVID-19 Booster',
+        date: '2024-12-10',
+        provider: 'City Health Clinic',
+        notes: 'Completed booster dose as recommended.',
+      },
+      {
+        id: 2,
+        vaccine: 'Influenza',
+        date: '2024-09-22',
+        provider: 'CareWell Clinic',
+        notes: 'Annual flu vaccine administered.',
+      },
+    ],
+    healthNotes: [
+      {
+        id: 1,
+        title: 'Annual wellness summary',
+        date: '2025-03-10',
+        details: 'Overall good health. Recommended regular exercise and balanced diet. Follow-up in 12 months.',
+      },
+      {
+        id: 2,
+        title: 'Medication review note',
+        date: '2025-04-28',
+        details: 'Reviewed current medication. No issues with the prescribed treatment plan.',
+      },
+    ],
+  });
+  const [selectedMedicalRecord, setSelectedMedicalRecord] = useState<LabResult | ImmunizationRecord | HealthNote | null>(null);
+  const [selectedMedicalCategory, setSelectedMedicalCategory] = useState<'lab' | 'immunization' | 'note' | null>(null);
   const [notificationSettings, setNotificationSettings] = useState({
     emailReminders: true,
     smsReminders: false,
@@ -1777,88 +1859,89 @@ function PatientDashboard({
             <div>
               <div className="summary-grid">
                 <article className="summary-card">
-                  <strong>Recent lab results</strong>
-                  <p>Blood work and imaging reports are available for download.</p>
+                  <strong>Lab reports</strong>
+                  <p>{medicalSummary.recentLabResults.length} available reports</p>
+                  <button className="secondary-button compact-button" type="button" onClick={() => {
+                    setSelectedMedicalCategory('lab');
+                    setSelectedMedicalRecord(medicalSummary.recentLabResults[0]);
+                  }}>View latest</button>
                 </article>
                 <article className="summary-card">
-                  <strong>Allergy report</strong>
-                  <p>No known allergies on file.</p>
+                  <strong>Allergies</strong>
+                  <p>{medicalSummary.allergies.join(' ')}</p>
+                  <button className="secondary-button compact-button" type="button" onClick={() => { setMessage('Allergy records are up to date.'); }}>Review</button>
                 </article>
                 <article className="summary-card">
-                  <strong>Immunization history</strong>
-                  <p>Updated vaccinations and boosters.</p>
+                  <strong>Immunizations</strong>
+                  <p>{medicalSummary.immunizations.length} completed vaccines</p>
+                  <button className="secondary-button compact-button" type="button" onClick={() => {
+                    setSelectedMedicalCategory('immunization');
+                    setSelectedMedicalRecord(medicalSummary.immunizations[0]);
+                  }}>View history</button>
                 </article>
                 <article className="summary-card">
                   <strong>Health notes</strong>
-                  <p>Personal health summary and doctor notes.</p>
+                  <p>{medicalSummary.healthNotes.length} notes from your care team</p>
+                  <button className="secondary-button compact-button" type="button" onClick={() => {
+                    setSelectedMedicalCategory('note');
+                    setSelectedMedicalRecord(medicalSummary.healthNotes[0]);
+                  }}>Read note</button>
                 </article>
               </div>
             </div>
             <div>
-              <h3 style={{ marginBottom: '16px' }}>Recent Visits</h3>
+              <h3 style={{ marginBottom: '16px' }}>Recent Medical Records</h3>
               <div className="list-stack">
-                <article className="list-card">
-                  <div>
-                    <h3>General Consultation</h3>
-                    <p>Dr. Anna Lim - Cardiology</p>
-                    <p className="muted-copy">May 15, 2025 • Blood pressure check, ECG</p>
-                  </div>
-                  <button className="secondary-button compact-button" type="button" onClick={() => {
-                    setSelectedAppointment({
-                      id: 1,
-                      patientId: currentUser?.id,
-                      patientName: currentUser?.name || '',
-                      doctorId: 1,
-                      date: '2025-05-15',
-                      time: '10:00',
-                      symptoms: 'Blood pressure check, ECG',
-                      status: 'completed'
-                    });
-                    setShowAppointmentDetails(true);
-                  }}>View Details</button>
-                </article>
-                <article className="list-card">
-                  <div>
-                    <h3>Follow-up Visit</h3>
-                    <p>Dr. John Reyes - General Medicine</p>
-                    <p className="muted-copy">April 28, 2025 • Medication review</p>
-                  </div>
-                  <button className="secondary-button compact-button" type="button" onClick={() => {
-                    setSelectedAppointment({
-                      id: 2,
-                      patientId: currentUser?.id,
-                      patientName: currentUser?.name || '',
-                      doctorId: 2,
-                      date: '2025-04-28',
-                      time: '14:30',
-                      symptoms: 'Medication review',
-                      status: 'completed'
-                    });
-                    setShowAppointmentDetails(true);
-                  }}>View Details</button>
-                </article>
-                <article className="list-card">
-                  <div>
-                    <h3>Annual Check-up</h3>
-                    <p>Dr. Maria Santos - Internal Medicine</p>
-                    <p className="muted-copy">March 10, 2025 • Complete physical exam</p>
-                  </div>
-                  <button className="secondary-button compact-button" type="button" onClick={() => {
-                    setSelectedAppointment({
-                      id: 3,
-                      patientId: currentUser?.id,
-                      patientName: currentUser?.name || '',
-                      doctorId: 3,
-                      date: '2025-03-10',
-                      time: '09:00',
-                      symptoms: 'Complete physical exam',
-                      status: 'completed'
-                    });
-                    setShowAppointmentDetails(true);
-                  }}>View Details</button>
-                </article>
+                {medicalSummary.recentLabResults.map((lab) => (
+                  <article className="list-card" key={lab.id}>
+                    <div>
+                      <h3>{lab.title}</h3>
+                      <p>{lab.doctor}</p>
+                      <p className="muted-copy">{lab.date}</p>
+                    </div>
+                    <div className="list-actions">
+                      <button className="secondary-button compact-button" type="button" onClick={() => { setSelectedMedicalCategory('lab'); setSelectedMedicalRecord(lab); }}>View</button>
+                      <button className="primary-button compact-button" type="button" onClick={() => setMessage(`${lab.fileName} download started.`)}>Download</button>
+                    </div>
+                  </article>
+                ))}
               </div>
             </div>
+          </div>
+
+          <div className="content-grid" style={{ marginTop: '24px' }}>
+            <section className="panel">
+              <SectionHeader title="Immunization History" />
+              <div className="list-stack">
+                {medicalSummary.immunizations.map((record) => (
+                  <article className="list-card" key={record.id}>
+                    <div>
+                      <h3>{record.vaccine}</h3>
+                      <p>{record.provider}</p>
+                      <p className="muted-copy">{record.date}</p>
+                    </div>
+                    <button className="secondary-button compact-button" type="button" onClick={() => { setSelectedMedicalCategory('immunization'); setSelectedMedicalRecord(record); }}>View</button>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="content-grid" style={{ marginTop: '24px' }}>
+            <section className="panel">
+              <SectionHeader title="Health Notes" />
+              <div className="list-stack">
+                {medicalSummary.healthNotes.map((note) => (
+                  <article className="list-card" key={note.id}>
+                    <div>
+                      <h3>{note.title}</h3>
+                      <p className="muted-copy">{note.date}</p>
+                    </div>
+                    <button className="secondary-button compact-button" type="button" onClick={() => { setSelectedMedicalCategory('note'); setSelectedMedicalRecord(note); }}>Read</button>
+                  </article>
+                ))}
+              </div>
+            </section>
           </div>
         </section>
       ) : null}
@@ -2471,6 +2554,63 @@ function PatientDashboard({
           </div>
           <div className="modal-footer">
             <button className="secondary-button" onClick={() => setShowAppointmentDetails(false)}>Close</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {selectedMedicalRecord && selectedMedicalCategory && (
+      <div className="modal-overlay" onClick={() => setSelectedMedicalRecord(null)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>{
+              selectedMedicalCategory === 'lab' ? 'Lab Result Details' :
+              selectedMedicalCategory === 'immunization' ? 'Immunization Record' :
+              'Health Note'
+            }</h3>
+            <button className="modal-close" onClick={() => setSelectedMedicalRecord(null)}>×</button>
+          </div>
+          <div className="modal-body">
+            {selectedMedicalCategory === 'lab' ? (
+              <>
+                <div className="info-grid">
+                  <InfoPair label="Title" value={(selectedMedicalRecord as LabResult).title} />
+                  <InfoPair label="Date" value={(selectedMedicalRecord as LabResult).date} />
+                  <InfoPair label="Doctor" value={(selectedMedicalRecord as LabResult).doctor} />
+                  <InfoPair label="File" value={(selectedMedicalRecord as LabResult).fileName} />
+                </div>
+                <div className="detail-section">
+                  <h4>Summary</h4>
+                  <p>{(selectedMedicalRecord as LabResult).summary}</p>
+                </div>
+              </>
+            ) : selectedMedicalCategory === 'immunization' ? (
+              <>
+                <div className="info-grid">
+                  <InfoPair label="Vaccine" value={(selectedMedicalRecord as ImmunizationRecord).vaccine} />
+                  <InfoPair label="Date" value={(selectedMedicalRecord as ImmunizationRecord).date} />
+                  <InfoPair label="Provider" value={(selectedMedicalRecord as ImmunizationRecord).provider} />
+                </div>
+                <div className="detail-section">
+                  <h4>Notes</h4>
+                  <p>{(selectedMedicalRecord as ImmunizationRecord).notes}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="info-grid">
+                  <InfoPair label="Title" value={(selectedMedicalRecord as HealthNote).title} />
+                  <InfoPair label="Date" value={(selectedMedicalRecord as HealthNote).date} />
+                </div>
+                <div className="detail-section">
+                  <h4>Details</h4>
+                  <p>{(selectedMedicalRecord as HealthNote).details}</p>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="modal-footer">
+            <button className="secondary-button" onClick={() => setSelectedMedicalRecord(null)}>Close</button>
           </div>
         </div>
       </div>
