@@ -4,7 +4,7 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 
 ## Features
 
-### Backend (NestJS + TypeORM + SQLite)
+### Backend (NestJS + TypeORM + MySQL)
 - **Authentication System**: JWT-based login with bcrypt password hashing
 - **User Management**: Full CRUD operations for users and doctors
 - **Appointment System**: Book, view, confirm, complete, and cancel appointments
@@ -12,7 +12,7 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 - **Payment Processing**: Payment creation and history tracking
 - **Payment Methods**: Credit/debit card management for users
 - **Role-based Access**: Separate registration for patients and doctors with admin capabilities
-- **Database**: SQLite with TypeORM entities and relationships
+- **Database**: MySQL with TypeORM entities and relationships
 - **API Validation**: Class-validator for input validation
 - **CORS Support**: Cross-origin resource sharing for frontend integration
 
@@ -28,9 +28,9 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 
 ## Tech Stack
 
-- **Backend**: NestJS, TypeORM, SQLite, JWT, bcrypt, Passport
+- **Backend**: NestJS, TypeORM, MySQL, JWT, bcrypt, Passport
 - **Frontend**: React, TypeScript, Vite, Fetch API
-- **Database**: SQLite with automatic schema generation
+- **Database**: MySQL with automatic schema generation
 - **Authentication**: JWT with role-based access control
 
 ## Installation
@@ -46,15 +46,23 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
    npm run install:all
    ```
 
-3. **Start the application**:
+3. **Configure backend environment**:
+   ```bash
+   cd backend
+   copy .env.example .env
+   ```
+   Then update `.env` with your MySQL settings if needed.
+
+4. **Start the backend**:
    ```bash
    npm run backend:dev
    ```
 
    The API server will run on `http://localhost:3001`
 
-4. **Start the frontend**:
+5. **Start the frontend** in a separate terminal from the repository root:
    ```bash
+   cd ..
    npm run frontend:dev
    ```
 
@@ -79,7 +87,8 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 ### Authentication
 - `POST /auth/register/user` - Register new patient
 - `POST /auth/register/doctor` - Register new doctor
-- `POST /auth/login` - Login with email/password
+- `POST /auth/login` - Login with email/password and role
+  - Body: `{ email, password, role }`
 
 ### Users (Admin/Doctor access)
 - `GET /users` - Get all users

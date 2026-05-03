@@ -8,7 +8,7 @@ The Clinic Appointment System is a full-stack web application built with NestJS 
 
 ### Backend
 - **Framework**: NestJS (Node.js)
-- **Database**: SQLite with TypeORM ORM
+- **Database**: MySQL with TypeORM ORM
 - **Authentication**: JWT (JSON Web Tokens) with Passport.js
 - **Password Hashing**: bcrypt
 - **Validation**: Class-validator for input validation
@@ -316,7 +316,7 @@ npm run start:prod
 ```
 
 ### Database
-- SQLite database file is created automatically
+- MySQL database is created automatically when using `backend/setup-db.js`
 - Schema synchronization enabled in development
 - Migrations can be added for production
 
