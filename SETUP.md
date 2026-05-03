@@ -3,8 +3,8 @@
 ## Overview
 This is a full-stack clinic appointment management system built with:
 - **Backend**: NestJS (TypeScript)
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Database**: SQLite
+- **Frontend**: React (TypeScript)
+- **Database**: MySQL (via WAMP Server)
 - **Authentication**: JWT
 
 ## System Features
@@ -24,30 +24,178 @@ This is a full-stack clinic appointment management system built with:
 - Update their profile and availability
 - View appointment statistics
 
-### For Admins (Future)
+### For Admins
 - View all users, doctors, and appointments
 - Manage system data
+- Performance reports
 
 ## Prerequisites
 - Node.js (v18 or higher)
 - npm (v9 or higher)
+- WAMP Server (for MySQL database)
+- Git
+
+## Database Setup (MySQL with WAMP)
+
+1. **Install WAMP Server**
+   - Download from https://www.wampserver.com/
+   - Install and start WAMP Server (icon should turn green)
+
+2. **Start MySQL Service**
+   - Left-click WAMP icon > "MySQL" > "Service" > "Start/Resume Service"
+
+3. **Create Database**
+   - Left-click WAMP icon > "phpMyAdmin"
+   - Login with username: `root`, password: (empty)
+   - Click "New" > Database name: `clinic_appointment`
+   - Click "Create"
 
 ## Installation
 
-1. **Install dependencies**:
+1. **Clone Repository**:
 ```bash
-npm install
+git clone https://github.com/alfredocastalla/Clinic-Appointment-System.git
+cd clinic-appointment-system
 ```
 
-2. **Verify build** (optional):
+2. **Backend Setup**:
 ```bash
-npm run build
+cd backend
+npm install
+npm run setup-db  # Creates database tables
+```
+
+3. **Frontend Setup**:
+```bash
+cd frontend
+npm install
 ```
 
 ## Running the Application
 
-### Development Mode (with auto-reload)
+### Development Mode
 ```bash
+# Backend (Terminal 1)
+cd backend
+npm run start:dev
+
+# Frontend (Terminal 2)
+cd frontend
+npm run dev
+```
+
+### Production Mode
+```bash
+# Backend
+cd backend
+npm run start:prod
+
+# Frontend (build and serve)
+cd frontend
+npm run build
+# Serve the dist folder with any static server
+```
+
+## Environment Configuration
+
+Backend uses `.env` file (already configured for local development):
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=
+DB_NAME=clinic_appointment
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+ADMIN_EMAIL=admin@clinic.local
+ADMIN_PASSWORD=admin123
+```
+
+## Accessing the Application
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3001
+- **phpMyAdmin**: http://localhost/phpmyadmin
+
+## Default Accounts
+
+- **Admin**: admin@clinic.local / admin123
+- **Doctor**: Register new doctor account
+- **Patient**: Register new patient account
+
+## API Endpoints
+
+### Authentication
+- `POST /auth/login` - User login
+- `POST /auth/register` - User registration
+
+### Users
+- `GET /users` - Get all users (admin)
+- `GET /users/:id` - Get user by ID
+- `PATCH /users/:id` - Update user
+
+### Doctors
+- `GET /doctors` - Get all doctors (public)
+- `GET /doctors/:id` - Get doctor by ID
+- `POST /doctors` - Create doctor
+- `PATCH /doctors/:id` - Update doctor
+
+### Appointments
+- `GET /appointments` - Get user appointments
+- `POST /appointments` - Book appointment
+- `DELETE /appointments/:id` - Cancel appointment
+
+### Payments
+- `GET /payments` - Get user payments
+- `POST /payments` - Process payment
+
+### Notifications
+- `GET /notifications` - Get user notifications
+- `POST /notifications/mark-all-read` - Mark all as read
+
+## Troubleshooting
+
+1. **WAMP/MySQL Issues**:
+   - Ensure WAMP is running (green icon)
+   - Check MySQL service is started
+   - Verify database `clinic_appointment` exists
+
+2. **Port Conflicts**:
+   - Backend: 3001
+   - Frontend: 5173
+   - MySQL: 3306
+
+3. **Database Connection**:
+   - Check `.env` file configuration
+   - Ensure MySQL credentials are correct
+
+4. **Build Errors**:
+   - Run `npm install` in both backend and frontend
+   - Check Node.js version (v18+)
+
+## Development
+
+### Project Structure
+```
+clinic-appointment-system/
+├── backend/          # NestJS API
+├── frontend/         # React SPA
+├── student-min-specs/ # Requirements
+└── docs/            # Documentation
+```
+
+### Available Scripts
+
+**Backend**:
+- `npm run start:dev` - Development with watch
+- `npm run build` - Build for production
+- `npm run test` - Run all tests
+- `npm run lint` - Lint code
+
+**Frontend**:
+- `npm run dev` - Development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 npm run start:dev
 ```
 The server will start on `http://localhost:3001`
