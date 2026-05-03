@@ -48,6 +48,17 @@ export type Payment = {
   receiptUrl?: string;
 };
 
+export type Prescription = {
+  id: number;
+  patientId?: number;
+  patientName: string;
+  medication: string;
+  dosage: string;
+  instructions: string;
+  date: string;
+  notes?: string;
+};
+
 export type Notification = {
   id: number;
   title: string;

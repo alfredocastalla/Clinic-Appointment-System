@@ -9,7 +9,7 @@ import {
   setSession,
   updateStoredUser,
 } from './lib/auth';
-import { Appointment, Doctor, Message, Payment, PaymentMethod, Notification } from './types';
+import { Appointment, Doctor, Message, Payment, PaymentMethod, Notification, Prescription } from './types';
 
 type RegisterUserPayload = {
   name: string;
@@ -70,6 +70,14 @@ type PaymentFormState = {
   amount: string;
   method: Payment['method'];
   description: string;
+};
+
+type PrescriptionFormState = {
+  patientId: string;
+  medication: string;
+  dosage: string;
+  instructions: string;
+  notes: string;
 };
 
 type LabResult = {
@@ -2944,6 +2952,16 @@ function DoctorDashboard({
     description: '',
   });
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
+  const [prescriptionForm, setPrescriptionForm] = useState<PrescriptionFormState>({
+    patientId: '',
+    medication: '',
+    dosage: '',
+    instructions: '',
+    notes: '',
+  });
+  const [prescriptionSaving, setPrescriptionSaving] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeMessageTab, setActiveMessageTab] = useState<'messages' | 'notifications'>('messages');
@@ -3215,11 +3233,12 @@ function DoctorDashboard({
     setError(null);
 
     try {
-      const [doctor, appointmentData, patientData, paymentData, notifs, count] = await Promise.all([
+      const [doctor, appointmentData, patientData, paymentData, prescriptionData, notifs, count] = await Promise.all([
         api<Doctor>(`/doctors/${currentUser.id}`, { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
         api<UserRecord[]>('/users', { auth: true }),
         api<Payment[]>('/payments', { auth: true }),
+        api<Prescription[]>('/prescriptions', { auth: true }),
         getNotifications(),
         getUnreadNotificationCount(),
       ]);
@@ -3231,6 +3250,7 @@ function DoctorDashboard({
       setAppointments(doctorAppointments);
       setPatients(activePatients);
       setPayments(paymentData);
+      setPrescriptions(prescriptionData);
       setNotifications(notifs);
       setUnreadCount(count.count);
     } catch (loadError) {
@@ -3336,6 +3356,45 @@ function DoctorDashboard({
       setUnreadCount(prev => prev - (notifications.find(n => n.id === id)?.isRead ? 0 : 1));
     } catch (error) {
       console.error('Failed to delete notification:', error);
+    }
+  }
+
+  async function handleAddPrescription(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!prescriptionForm.patientId || !prescriptionForm.medication.trim() || !prescriptionForm.dosage.trim()) {
+      setError('Please choose a patient, medication, and dosage to save the prescription.');
+      return;
+    }
+
+    setPrescriptionSaving(true);
+    setError(null);
+
+    try {
+      const patient = patients.find((patient) => String(patient.id) === prescriptionForm.patientId);
+      const patientName = patient?.name ?? 'Unknown Patient';
+      const createdPrescription = await api<Prescription>('/prescriptions', {
+        method: 'POST',
+        auth: true,
+        body: {
+          patientId: Number(prescriptionForm.patientId),
+          patientName,
+          medication: prescriptionForm.medication.trim(),
+          dosage: prescriptionForm.dosage.trim(),
+          instructions: prescriptionForm.instructions.trim() || 'Follow doctor instructions.',
+          notes: prescriptionForm.notes.trim(),
+          date: new Date().toISOString().split('T')[0],
+        },
+      });
+
+      setPrescriptions((prev) => [createdPrescription, ...prev]);
+      setPrescriptionForm({ patientId: '', medication: '', dosage: '', instructions: '', notes: '' });
+      setShowPrescriptionForm(false);
+      setMessage(`Prescription for ${patientName} saved.`);
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setPrescriptionSaving(false);
     }
   }
 
@@ -3852,32 +3911,97 @@ function DoctorDashboard({
             <div>
               <h3 style={{ marginBottom: '16px' }}>Recent Prescriptions</h3>
               <div className="list-stack">
-                <article className="list-card">
-                  <div>
-                    <h3>Amoxicillin 500mg</h3>
-                    <p>Patient: Maria Santos</p>
-                    <p className="muted-copy">May 15, 2024 • 1 capsule every 8 hours</p>
-                  </div>
-                  <button className="secondary-button compact-button" onClick={() => setMessage('Prescription details view coming soon.')}>View Details</button>
-                </article>
-                <article className="list-card">
-                  <div>
-                    <h3>Cetirizine 10mg</h3>
-                    <p>Patient: Juan Reyes</p>
-                    <p className="muted-copy">April 28, 2024 • 1 tablet daily</p>
-                  </div>
-                  <button className="secondary-button compact-button" onClick={() => setMessage('Prescription details view coming soon.')}>View Details</button>
-                </article>
+                {prescriptions.length === 0 ? (
+                  <EmptyState text="No prescriptions created yet." />
+                ) : (
+                  prescriptions.map((prescription) => (
+                    <article className="list-card" key={prescription.id}>
+                      <div>
+                        <h3>{prescription.medication}</h3>
+                        <p>Patient: {prescription.patientName}</p>
+                        <p className="muted-copy">
+                          {new Date(prescription.date).toLocaleDateString()} • {prescription.dosage}
+                        </p>
+                      </div>
+                      <button className="secondary-button compact-button" onClick={() => setMessage('Prescription details view coming soon.')}>View Details</button>
+                    </article>
+                  ))
+                )}
               </div>
             </div>
             <div>
               <h3 style={{ marginBottom: '16px' }}>Quick Actions</h3>
               <div className="quick-actions-grid">
-                <button className="secondary-button" onClick={() => setMessage('New prescription form coming soon.')}>New Prescription</button>
-                <button className="secondary-button" onClick={() => setMessage('Refill request management coming soon.')}>Refill Request</button>
-                <button className="secondary-button" onClick={() => setMessage('Medication history view coming soon.')}>Medication History</button>
-                <button className="secondary-button" onClick={() => setMessage('Drug interaction checker coming soon.')}>Drug Interactions</button>
+                <button className="secondary-button" type="button" onClick={() => setShowPrescriptionForm((prev) => !prev)}>
+                  {showPrescriptionForm ? 'Close prescription form' : 'New Prescription'}
+                </button>
+                <button className="secondary-button" type="button" onClick={() => setMessage('Refill request management coming soon.')}>Refill Request</button>
+                <button className="secondary-button" type="button" onClick={() => setMessage('Medication history view coming soon.')}>Medication History</button>
+                <button className="secondary-button" type="button" onClick={() => setMessage('Drug interaction checker coming soon.')}>Drug Interactions</button>
               </div>
+
+              {showPrescriptionForm ? (
+                <form className="stack-form" onSubmit={handleAddPrescription}>
+                  <label>
+                    <span>Patient</span>
+                    <select
+                      value={prescriptionForm.patientId}
+                      onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, patientId: event.target.value }))}
+                      required
+                    >
+                      <option value="">Select a patient</option>
+                      {patients.map((patient) => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Medication</span>
+                    <input
+                      type="text"
+                      value={prescriptionForm.medication}
+                      onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, medication: event.target.value }))}
+                      placeholder="e.g. Amoxicillin 500mg"
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>Dosage</span>
+                    <input
+                      type="text"
+                      value={prescriptionForm.dosage}
+                      onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, dosage: event.target.value }))}
+                      placeholder="e.g. 1 capsule every 8 hours"
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>Instructions</span>
+                    <textarea
+                      value={prescriptionForm.instructions}
+                      onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, instructions: event.target.value }))}
+                      placeholder="e.g. Take after meals for 7 days"
+                      rows={4}
+                    />
+                  </label>
+                  <label>
+                    <span>Notes</span>
+                    <textarea
+                      value={prescriptionForm.notes}
+                      onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, notes: event.target.value }))}
+                      placeholder="Optional notes for the pharmacy or patient"
+                      rows={3}
+                    />
+                  </label>
+                  <div className="form-actions">
+                    <button className="primary-button" type="submit" disabled={prescriptionSaving}>
+                      {prescriptionSaving ? 'Saving...' : 'Save Prescription'}
+                    </button>
+                  </div>
+                </form>
+              ) : null}
             </div>
           </div>
         </section>
