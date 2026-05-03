@@ -50,12 +50,12 @@ describe('AuthService', () => {
         email: 'john@example.com',
         password: 'password',
       };
-      const createdUser = { 
-        id: 1, 
-        ...userData, 
+      const createdUser = {
+        id: 1,
+        ...userData,
         role: 'user',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const token = 'jwt-token';
 
@@ -109,8 +109,8 @@ describe('AuthService', () => {
         password: 'password',
         specialization: 'Cardiology',
       };
-      const createdDoctor = { 
-        id: 1, 
+      const createdDoctor = {
+        id: 1,
         name: doctorData.name,
         email: doctorData.email,
         password: doctorData.password,
@@ -118,7 +118,7 @@ describe('AuthService', () => {
         availableTime: undefined,
         address: undefined,
         phone: undefined,
-        photo: undefined
+        photo: undefined,
       };
       const token = 'jwt-token';
 
@@ -167,14 +167,14 @@ describe('AuthService', () => {
       const email = 'john@example.com';
       const password = 'password';
       const hashedPassword = '$2b$10$hashedpassword';
-      const user = { 
-        id: 1, 
-        name: 'John', 
-        email, 
+      const user = {
+        id: 1,
+        name: 'John',
+        email,
         password: hashedPassword,
         role: 'user',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const token = 'jwt-token';
 
@@ -211,14 +211,14 @@ describe('AuthService', () => {
     });
 
     it('should throw error for invalid password', async () => {
-      const user = { 
-        id: 1, 
+      const user = {
+        id: 1,
         password: 'hashed',
         name: 'John',
         email: 'john@example.com',
         role: 'user',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       usersService.findByEmail.mockResolvedValue(user);
       jest.spyOn(require('bcrypt'), 'compare').mockResolvedValue(false);
