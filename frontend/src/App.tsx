@@ -93,7 +93,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage currentUser={currentUser} />} />
-      <Route path="/login" element={<LoginPage currentUser={currentUser} onLogin={handleLogin} />} />
+      <Route path="/login" element={<LoginPage currentUser={currentUser} onLogin={handleLogin} onLogout={handleLogout} />} />
       <Route path="/dashboard" element={currentUser ? <Navigate to={getDashboardPath(currentUser.role)} replace /> : <Navigate to="/login" replace />} />
       <Route path="/register/patient" element={<RegisterPatientPage />} />
       <Route path="/register/doctor" element={<RegisterDoctorPage />} />
@@ -368,9 +368,11 @@ function HomePage({ currentUser }: { currentUser: AuthUser | null }) {
 function LoginPage({
   currentUser,
   onLogin,
+  onLogout,
 }: {
   currentUser: AuthUser | null;
   onLogin: (token: string, user: AuthUser) => void;
+  onLogout: () => void;
 }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -381,12 +383,25 @@ function LoginPage({
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
   useEffect(() => {
-    if (currentUser) {
-      navigate(getDashboardPath(currentUser.role), { replace: true });
+    if (currentUser && !isSwitchingAccount) {
+      setMessage(`You are currently signed in as ${currentUser.email}. Use the switch button below to login with another account.`);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, isSwitchingAccount]);
+
+  function handleSwitchAccount() {
+    onLogout();
+    setIsSwitchingAccount(true);
+    setEmail('');
+    setPassword('');
+    setRole('user');
+    setMessage('You can now login with another email.');
+    setError(null);
+    setEmailError(null);
+    setPasswordError(null);
+  }
 
   const validateForm = () => {
     let isValid = true;
@@ -480,6 +495,16 @@ function LoginPage({
 
         <div className="login-form-panel">
           <form className="auth-form" onSubmit={handleSubmit}>
+            {currentUser ? (
+              <div className="switch-account-banner">
+                <p>
+                  Signed in as <strong>{currentUser.email}</strong>. Click below to switch accounts and use a different email.
+                </p>
+                <button type="button" className="secondary-button compact-button" onClick={handleSwitchAccount}>
+                  Switch account
+                </button>
+              </div>
+            ) : null}
             <div className="form-group">
               <label htmlFor="email">
                 <span className="label-icon">📧</span>
@@ -487,6 +512,8 @@ function LoginPage({
               </label>
               <input
                 id="email"
+                name="email"
+                autoComplete="username email"
                 value={email}
                 onChange={(event) => {
                   setEmail(event.target.value);
@@ -506,6 +533,8 @@ function LoginPage({
               </label>
               <input
                 id="password"
+                name="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(event) => {
                   setPassword(event.target.value);
@@ -955,6 +984,39 @@ function PatientDashboard({
           : msg,
       ),
     );
+  }
+
+  function openDoctorConversation(doctorId: number) {
+    const doctor = doctorById[doctorId];
+    setActiveView('messages');
+    setSelectedConversation(doctorId);
+
+    if (!doctor) {
+      return;
+    }
+
+    setMessages((prevMessages) => {
+      const hasConversation = prevMessages.some((msg) => msg.conversationId === doctorId);
+      if (hasConversation) {
+        return prevMessages;
+      }
+
+      return [
+        ...prevMessages,
+        {
+          id: Date.now(),
+          senderId: doctorId,
+          senderName: doctor.name,
+          senderRole: 'doctor',
+          recipientId: currentUser?.id ?? 0,
+          recipientName: currentUser?.name ?? 'You',
+          content: `You can message Dr. ${doctor.name} here about your appointment.`,
+          timestamp: new Date().toISOString(),
+          read: true,
+          conversationId: doctorId,
+        },
+      ];
+    });
   }
 
   function openNotifications() {
@@ -1538,6 +1600,15 @@ function PatientDashboard({
                             }
                           >
                             Reschedule
+                          </button>
+                        ) : null}
+                        {appointment.status !== 'cancelled' ? (
+                          <button
+                            className="secondary-button compact-button"
+                            type="button"
+                            onClick={() => openDoctorConversation(appointment.doctorId)}
+                          >
+                            Message doctor
                           </button>
                         ) : null}
                         {appointment.status !== 'cancelled' && appointment.status !== 'completed' ? (
