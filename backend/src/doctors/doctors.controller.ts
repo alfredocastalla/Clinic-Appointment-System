@@ -44,14 +44,12 @@ export class DoctorsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   async findAll() {
     const doctors = await this.doctorsService.findAll();
     return doctors.map((doctor) => this.sanitizeDoctor(doctor));
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {
     const doctor = await this.doctorsService.findOne(+id);
     return this.sanitizeDoctor(doctor);
