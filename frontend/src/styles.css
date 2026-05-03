@@ -51,10 +51,6 @@ button {
   transition: grid-template-columns 0.3s ease;
 }
 
-.workspace-shell.sidebar-collapsed {
-  grid-template-columns: 92px minmax(0, 1fr);
-}
-
 .sidebar {
   border-radius: 0 32px 32px 0;
   padding: 30px 24px 24px;
@@ -67,70 +63,6 @@ button {
   background: linear-gradient(180deg, rgba(99, 102, 241, 0.16), rgba(124, 58, 237, 0.12) 55%, rgba(236, 72, 153, 0.08));
   border-color: rgba(99, 102, 241, 0.18);
   transition: all 0.3s ease;
-}
-
-.sidebar.collapsed {
-  padding: 20px 12px;
-  align-items: center;
-}
-
-.sidebar.collapsed .sidebar-header {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  padding: 0;
-}
-
-.sidebar.collapsed .sidebar-brand,
-.sidebar.collapsed .sidebar-brand p,
-.sidebar.collapsed .sidebar-brand span.eyebrow {
-  display: none;
-}
-
-.sidebar.collapsed .sidebar-link-text {
-  display: none;
-}
-
-.sidebar.collapsed .sidebar-nav {
-  gap: 10px;
-  width: 100%;
-}
-
-.sidebar.collapsed .sidebar-link {
-  padding: 14px;
-  border-radius: 18px;
-  width: 56px;
-  min-height: 56px;
-  display: grid;
-  grid-template-columns: 1fr;
-  place-items: center;
-}
-
-.sidebar.collapsed .sidebar-icon {
-  width: 36px;
-  height: 36px;
-  font-size: 1.2rem;
-}
-
-.sidebar.collapsed .sidebar-logout {
-  width: 56px;
-  height: 56px;
-  padding: 0;
-  font-size: 1.2rem;
-}
-
-.sidebar.collapsed .sidebar-footer {
-  flex-direction: column;
-  align-items: center;
-}
-
-.sidebar.collapsed .role-badge {
-  width: 56px;
-  font-size: 0.6rem;
-  text-align: center;
-  padding: 6px 4px;
 }
 
 .sidebar-header {
@@ -165,45 +97,6 @@ button {
 .sidebar-brand p {
   margin: 0;
   color: rgba(255, 255, 255, 0.76);
-}
-
-.sidebar-toggle {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.32);
-  color: #fff;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: all 0.25s ease;
-  z-index: 10;
-  padding: 0;
-  font-weight: 600;
-  user-select: none;
-  flex-shrink: 0;
-}
-
-.sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.42);
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-toggle:active {
-  transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.sidebar-toggle:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
 }
 
 .sidebar-nav {
@@ -241,10 +134,6 @@ button {
 .sidebar-link.active .sidebar-badge {
   background: rgba(255, 255, 255, 0.22);
   color: #fff;
-}
-
-.sidebar.collapsed .sidebar-badge {
-  display: none;
 }
 
 .sidebar-link:hover {
@@ -397,10 +286,6 @@ button {
   }
 
   .sidebar-brand {
-    display: none;
-  }
-
-  .sidebar-toggle {
     display: none;
   }
 
@@ -1383,65 +1268,6 @@ button {
   letter-spacing: 0.08em;
 }
 
-.sidebar.collapsed {
-  width: 80px;
-  padding: 20px 12px;
-}
-
-.sidebar.collapsed .sidebar-brand {
-  text-align: center;
-}
-
-.sidebar-brand-collapsed {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.sidebar-brand-collapsed .sidebar-icon {
-  font-size: 2rem;
-}
-
-.sidebar-toggle {
-  width: 100%;
-  padding: 8px;
-  border: none;
-  background: rgba(37, 99, 235, 0.1);
-  border-radius: 12px;
-  color: #2563eb;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 10px;
-}
-
-.sidebar-toggle:hover {
-  background: rgba(37, 99, 235, 0.2);
-}
-
-.sidebar.collapsed .sidebar-link {
-  justify-content: center;
-  padding: 12px;
-}
-
-.sidebar.collapsed .sidebar-link-text {
-  display: none;
-}
-
-.sidebar.collapsed .role-badge {
-  display: none;
-}
-
-.sidebar.collapsed .sidebar-logout {
-  padding: 8px;
-  font-size: 1.2rem;
-}
-
-.dashboard-shell.sidebar-collapsed {
-  margin-left: 80px;
-}
-
 .workspace-header {
   display: flex;
   justify-content: space-between;
@@ -1522,17 +1348,6 @@ button {
 .user-chip span {
   font-size: 0.8rem;
   color: #2563eb;
-}
-
-.sidebar-toggle {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background: rgba(37, 99, 235, 0.08);
-  border: 1px solid rgba(37, 99, 235, 0.16);
-  color: #1d4ed8;
-  font-size: 1.2rem;
-  cursor: pointer;
 }
 
 .notification-card {
