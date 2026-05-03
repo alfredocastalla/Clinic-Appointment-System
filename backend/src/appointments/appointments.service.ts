@@ -9,6 +9,7 @@ import { Appointment } from './entities/appointment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Doctor } from '../doctors/entities/doctor.entity';
 import { User } from '../users/entities/user.entity';
+import { AuthenticatedUser } from '../auth/types';
 
 @Injectable()
 export class AppointmentsService {
@@ -26,7 +27,7 @@ export class AppointmentsService {
     return this.repo.save({ ...appointment, status: 'pending' });
   }
 
-  findAll(user?: any) {
+  findAll(user?: AuthenticatedUser) {
     if (!user) {
       return this.repo.find();
     }
@@ -46,54 +47,66 @@ export class AppointmentsService {
     return this.repo.findOne({ where: { id } });
   }
 
-  async confirm(id: number, user: any) {
+  async confirm(id: number, user: AuthenticatedUser) {
     const appointment = await this.findOne(id);
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
 
     if (user.role !== 'doctor' || appointment.doctorId !== user.id) {
-      throw new UnauthorizedException('Only the assigned doctor can confirm this appointment');
+      throw new UnauthorizedException(
+        'Only the assigned doctor can confirm this appointment',
+      );
     }
 
     if (appointment.status !== 'pending') {
-      throw new BadRequestException('Only pending appointments can be confirmed');
+      throw new BadRequestException(
+        'Only pending appointments can be confirmed',
+      );
     }
 
     await this.repo.update(id, { status: 'confirmed' });
     return this.findOne(id);
   }
 
-  async complete(id: number, user: any) {
+  async complete(id: number, user: AuthenticatedUser) {
     const appointment = await this.findOne(id);
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
 
     if (user.role !== 'doctor' || appointment.doctorId !== user.id) {
-      throw new UnauthorizedException('Only the assigned doctor can complete this appointment');
+      throw new UnauthorizedException(
+        'Only the assigned doctor can complete this appointment',
+      );
     }
 
     if (appointment.status !== 'confirmed') {
-      throw new BadRequestException('Only confirmed appointments can be completed');
+      throw new BadRequestException(
+        'Only confirmed appointments can be completed',
+      );
     }
 
     await this.repo.update(id, { status: 'completed' });
     return this.findOne(id);
   }
 
-  async update(id: number, data: any, user: any) {
+  async update(id: number, data: any, user: AuthenticatedUser) {
     const appointment = await this.findOne(id);
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
 
     if (user.role !== 'user' || appointment.patientId !== user.id) {
-      throw new UnauthorizedException('Only the appointment owner can update this appointment');
+      throw new UnauthorizedException(
+        'Only the appointment owner can update this appointment',
+      );
     }
 
     if (appointment.status !== 'pending') {
-      throw new BadRequestException('Only pending appointments can be rescheduled');
+      throw new BadRequestException(
+        'Only pending appointments can be rescheduled',
+      );
     }
 
     const updatedFields: any = {};
@@ -116,22 +129,28 @@ export class AppointmentsService {
     return this.findOne(id);
   }
 
-  async cancel(id: number, user: any) {
+  async cancel(id: number, user: AuthenticatedUser) {
     const appointment = await this.findOne(id);
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
 
     if (user.role === 'user' && appointment.patientId !== user.id) {
-      throw new UnauthorizedException('Not authorized to cancel this appointment');
+      throw new UnauthorizedException(
+        'Not authorized to cancel this appointment',
+      );
     }
 
     if (user.role === 'doctor' && appointment.doctorId !== user.id) {
-      throw new UnauthorizedException('Not authorized to cancel this appointment');
+      throw new UnauthorizedException(
+        'Not authorized to cancel this appointment',
+      );
     }
 
     if (appointment.status === 'completed') {
-      throw new BadRequestException('Completed appointments cannot be cancelled');
+      throw new BadRequestException(
+        'Completed appointments cannot be cancelled',
+      );
     }
 
     await this.repo.update(id, { status: 'cancelled' });
@@ -152,7 +171,9 @@ export class AppointmentsService {
     }
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      throw new BadRequestException('Appointment date must use YYYY-MM-DD format');
+      throw new BadRequestException(
+        'Appointment date must use YYYY-MM-DD format',
+      );
     }
 
     const today = new Date();
@@ -182,7 +203,9 @@ export class AppointmentsService {
         existing.status !== 'cancelled' &&
         existing.status !== 'completed'
       ) {
-        throw new BadRequestException('This doctor already has an appointment at that time');
+        throw new BadRequestException(
+          'This doctor already has an appointment at that time',
+        );
       }
     }
 
@@ -191,7 +214,10 @@ export class AppointmentsService {
       doctorId,
       date,
       time: time || null,
-      symptoms: typeof data.symptoms === 'string' ? data.symptoms.trim() : data.symptoms,
+      symptoms:
+        typeof data.symptoms === 'string'
+          ? data.symptoms.trim()
+          : data.symptoms,
     };
   }
 }

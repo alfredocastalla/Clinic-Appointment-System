@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
+import { AuthenticatedUser } from './types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -17,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: any): Promise<AuthenticatedUser | null> {
     const { sub: id, role } = payload;
     if (role === 'user' || role === 'admin') {
       const user = await this.usersService.findOne(id);

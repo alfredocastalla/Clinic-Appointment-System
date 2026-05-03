@@ -12,7 +12,12 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async registerUser(data: { name: string; email: string; password: string; location?: string }) {
+  async registerUser(data: {
+    name: string;
+    email: string;
+    password: string;
+    location?: string;
+  }) {
     const existingUser = await this.usersService.findByEmail(data.email);
     const existingDoctor = await this.doctorsService.findByEmail(data.email);
     if (existingUser || existingDoctor) {
@@ -22,11 +27,23 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email, role: 'user' };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: user.id, name: user.name, email: user.email, role: 'user', location: user.location },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: 'user',
+        location: user.location,
+      },
     };
   }
 
-  async registerDoctor(data: { name: string; email: string; password: string; specialization: string; address?: string }) {
+  async registerDoctor(data: {
+    name: string;
+    email: string;
+    password: string;
+    specialization: string;
+    address?: string;
+  }) {
     const existingDoctor = await this.doctorsService.findByEmail(data.email);
     const existingUser = await this.usersService.findByEmail(data.email);
     if (existingDoctor || existingUser) {
@@ -36,11 +53,22 @@ export class AuthService {
     const payload = { sub: doctor.id, email: doctor.email, role: 'doctor' };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: doctor.id, name: doctor.name, email: doctor.email, specialization: doctor.specialization, address: doctor.address, role: 'doctor' },
+      user: {
+        id: doctor.id,
+        name: doctor.name,
+        email: doctor.email,
+        specialization: doctor.specialization,
+        address: doctor.address,
+        role: 'doctor',
+      },
     };
   }
 
-  async login(email: string, password: string, role: 'user' | 'doctor' | 'admin') {
+  async login(
+    email: string,
+    password: string,
+    role: 'user' | 'doctor' | 'admin',
+  ) {
     let entity;
     if (role === 'doctor') {
       entity = await this.doctorsService.findByEmail(email);
@@ -68,11 +96,31 @@ export class AuthService {
     const payload = { sub: entity.id, email: entity.email, role };
     return {
       access_token: this.jwtService.sign(payload),
-      user: role === 'doctor'
-        ? { id: entity.id, name: entity.name, email: entity.email, specialization: entity.specialization, address: entity.address, role }
-        : role === 'admin'
-          ? { id: entity.id, name: entity.name, email: entity.email, role: 'admin', location: entity.location }
-          : { id: entity.id, name: entity.name, email: entity.email, role: 'user', location: entity.location },
+      user:
+        role === 'doctor'
+          ? {
+              id: entity.id,
+              name: entity.name,
+              email: entity.email,
+              specialization: entity.specialization,
+              address: entity.address,
+              role,
+            }
+          : role === 'admin'
+            ? {
+                id: entity.id,
+                name: entity.name,
+                email: entity.email,
+                role: 'admin',
+                location: entity.location,
+              }
+            : {
+                id: entity.id,
+                name: entity.name,
+                email: entity.email,
+                role: 'user',
+                location: entity.location,
+              },
     };
   }
 }

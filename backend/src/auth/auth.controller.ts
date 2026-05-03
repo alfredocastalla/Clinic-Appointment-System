@@ -18,13 +18,29 @@ export class AuthController {
   }
 
   @Post('register/doctor')
-  async registerDoctor(@Body() body: { name: string; email: string; password: string; specialization: string; address?: string }) {
+  async registerDoctor(
+    @Body()
+    body: {
+      name: string;
+      email: string;
+      password: string;
+      specialization: string;
+      address?: string;
+    },
+  ) {
     return this.authService.registerDoctor(body);
   }
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() body: { email: string; password: string; role: 'user' | 'doctor' | 'admin' }) {
+  async login(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+      role: 'user' | 'doctor' | 'admin';
+    },
+  ) {
     return this.authService.login(body.email, body.password, body.role);
   }
 }

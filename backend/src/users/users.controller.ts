@@ -1,6 +1,18 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  Request,
+  UseGuards,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RequestWithUser } from '../auth/types';
 
 type CreateUserDto = {
   name: string;
@@ -21,6 +33,7 @@ export class UsersController {
       return user;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user;
     return safeUser;
   }
@@ -33,9 +46,11 @@ export class UsersController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findAll(@Request() req: any) {
+  async findAll(@Request() req: RequestWithUser) {
     if (!['admin', 'doctor'].includes(req.user.role)) {
-      throw new UnauthorizedException('Only admin and doctors can access user records');
+      throw new UnauthorizedException(
+        'Only admin and doctors can access user records',
+      );
     }
 
     const users = await this.usersService.findAll();

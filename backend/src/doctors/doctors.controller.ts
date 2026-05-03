@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -11,12 +20,25 @@ export class DoctorsController {
       return doctor;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeDoctor } = doctor;
     return safeDoctor;
   }
 
   @Post()
-  async create(@Body() createDoctorDto: { name: string; email: string; password: string; specialization: string; availableTime?: string; address?: string; phone?: string; photo?: string }) {
+  async create(
+    @Body()
+    createDoctorDto: {
+      name: string;
+      email: string;
+      password: string;
+      specialization: string;
+      availableTime?: string;
+      address?: string;
+      phone?: string;
+      photo?: string;
+    },
+  ) {
     const doctor = await this.doctorsService.create(createDoctorDto);
     return this.sanitizeDoctor(doctor);
   }
