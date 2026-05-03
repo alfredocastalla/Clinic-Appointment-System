@@ -9,6 +9,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { AuthModule } from './auth/auth.module';
 import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PrescriptionsModule } from './prescriptions/prescriptions.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -33,6 +34,7 @@ import { AppService } from './app.service';
     AuthModule,
     PaymentsModule,
     NotificationsModule,
+    PrescriptionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
