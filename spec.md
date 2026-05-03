@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Clinic Appointment System is a web-based application built with NestJS (Node.js framework) that allows patients to book appointments with doctors and doctors to manage their appointments. The system includes user authentication, role-based access control, and a modern web interface with responsive design.
+The Clinic Appointment System is a full-stack web application built with NestJS backend and React + TypeScript frontend that allows patients to book appointments with doctors, manage payments, and receive notifications. The system includes comprehensive user authentication, role-based access control, appointment management, payment processing, and notification systems.
 
 ## Architecture
 
@@ -11,15 +11,18 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 - **Database**: SQLite with TypeORM ORM
 - **Authentication**: JWT (JSON Web Tokens) with Passport.js
 - **Password Hashing**: bcrypt
-- **Static File Serving**: NestJS ServeStaticModule
+- **Validation**: Class-validator for input validation
 - **CORS**: Enabled for frontend-backend communication
+- **Testing**: Jest for unit, integration, and e2e tests
 
 ### Frontend
-- **Technology**: Vanilla HTML, CSS, JavaScript
-- **Architecture**: Single Page Application (SPA) with client-side routing
-- **Storage**: LocalStorage for authentication tokens and user data
-- **UI Framework**: Custom CSS with Font Awesome icons
-- **Responsive Design**: Mobile-friendly with CSS Grid and Flexbox
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite for fast development and optimized production builds
+- **Routing**: React Router for client-side navigation
+- **State Management**: React hooks and context
+- **Styling**: CSS modules with responsive design
+- **API Communication**: Fetch API with custom hooks
+- **Authentication**: JWT token management with localStorage
 
 ## Database Schema
 
@@ -28,9 +31,12 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 {
   id: number (Primary Key, Auto-generated)
   name: string
-  email: string
+  email: string (Unique)
   password: string (Hashed)
+  location?: string (Optional)
   role: string ('user' | 'doctor' | 'admin')
+  createdAt: Date (Auto-generated)
+  updatedAt: Date (Auto-generated)
 }
 ```
 
@@ -39,10 +45,13 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 {
   id: number (Primary Key, Auto-generated)
   name: string
-  email: string
+  email: string (Unique)
   password: string (Hashed)
   specialization: string
-  availableTime: string (Optional)
+  availableTime?: string (Optional)
+  address?: string (Optional)
+  phone?: string (Optional)
+  photo?: string (Optional, Text)
 }
 ```
 
@@ -50,60 +59,143 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 ```typescript
 {
   id: number (Primary Key, Auto-generated)
+  patientId?: number (Optional, Foreign Key to User)
   patientName: string
   doctorId: number (Foreign Key to Doctor)
-  date: string (Date format)
-  status: string ('pending' | 'confirmed' | 'cancelled' | 'completed')
+  date: string
+  time?: string (Optional)
+  symptoms?: string (Optional)
+  status: string ('pending' | 'confirmed' | 'completed' | 'cancelled')
+}
+```
+
+### Notification Entity
+```typescript
+{
+  id: number (Primary Key, Auto-generated)
+  title: string
+  message: string
+  type: NotificationType ('appointment_booked' | 'appointment_cancelled' | 'payment_received' | 'payment_failed' | 'general')
+  isRead: boolean (Default: false)
+  user: User (Many-to-One relationship)
+  createdAt: Date (Auto-generated)
+}
+```
+
+### Payment Entity
+```typescript
+{
+  id: number (Primary Key, Auto-generated)
+  patientId: number (Foreign Key to User)
+  appointmentId?: number (Optional, Foreign Key to Appointment)
+  amount: number (Float)
+  currency: string
+  status: string ('pending' | 'completed' | 'failed' | 'refunded')
+  method: string ('credit_card' | 'debit_card' | 'bank_transfer' | 'cash' | 'insurance')
+  description: string
+  transactionId?: string (Optional)
+  createdAt: Date (Auto-generated)
+  paidAt?: Date (Optional)
+  receiptUrl?: string (Optional)
+}
+```
+
+### PaymentMethod Entity
+```typescript
+{
+  id: number (Primary Key, Auto-generated)
+  patientId: number (Foreign Key to User)
+  type: string ('credit_card' | 'debit_card')
+  last4: string (Last 4 digits)
+  brand: string (Card brand: 'visa', 'mastercard', etc.)
+  expiryMonth: number
+  expiryYear: number
+  isDefault: boolean
 }
 ```
 
 ## API Endpoints
 
-### Authentication (`/auth`)
-- `POST /auth/register/user` - Register a new user
-- `POST /auth/register/doctor` - Register a new doctor
-- `POST /auth/login` - Login for users and doctors (returns user object with role)
+### Health Check
+- `GET /api/health` - System health check
 
-### Users (`/users`)
-- `POST /users` - Create user
-- `GET /users` - Get all users
+### Authentication (`/auth`)
+- `POST /auth/register/user` - Register a new user/patient
+  - Body: `{ name: string, email: string, password: string, location?: string }`
+- `POST /auth/register/doctor` - Register a new doctor
+  - Body: `{ name: string, email: string, password: string, specialization: string, address?: string }`
+- `POST /auth/login` - Login for users, doctors, and admins
+  - Body: `{ email: string, password: string, role: 'user' | 'doctor' | 'admin' }`
+  - Returns: `{ access_token: string, user: AuthUser }`
+
+### Users (`/users`) - Admin/Doctor Only
+- `GET /users` - Get all users (admin/doctor access only)
 - `GET /users/:id` - Get user by ID
 - `PATCH /users/:id` - Update user
 - `DELETE /users/:id` - Delete user
 
-### Doctors (`/doctors`)
-- `POST /doctors` - Create doctor
+### Doctors (`/doctors`) - Public Access
 - `GET /doctors` - Get all doctors (public endpoint for booking)
 - `GET /doctors/:id` - Get doctor by ID
+- `POST /doctors` - Create doctor (admin access)
 - `PATCH /doctors/:id` - Update doctor profile
+- `DELETE /doctors/:id` - Delete doctor (admin access)
 
-### Appointments (`/appointments`)
-- `POST /appointments` - Create appointment
-- `GET /appointments` - Get all appointments (filtered by user role)
-- `PATCH /appointments/:id/cancel` - Cancel appointment
-- `PATCH /appointments/:id/confirm` - Confirm appointment (doctor only)
+### Appointments (`/appointments`) - Authenticated Users
+- `GET /appointments` - Get appointments (filtered by user role)
+  - Users see their appointments, Doctors see their assigned appointments
+- `POST /appointments` - Create appointment (users only)
+  - Body: `{ doctorId: number, date: string, time?: string, symptoms?: string }`
+- `PATCH /appointments/:id/confirm` - Confirm appointment (doctors only)
+- `PATCH /appointments/:id/complete` - Complete appointment (doctors only)
+- `PATCH /appointments/:id/cancel` - Cancel appointment (users/doctors)
+- `PATCH /appointments/:id` - Update appointment details
+
+### Notifications (`/notifications`) - Authenticated Users
+- `GET /notifications` - Get user notifications
+- `PATCH /notifications/:id/read` - Mark specific notification as read
+- `PATCH /notifications/read-all` - Mark all user notifications as read
+
+### Payments (`/payments`) - Authenticated Users
+- `GET /payments` - Get payments (filtered by user role)
+- `POST /payments` - Create payment
+  - Body: `{ appointmentId?: number, amount: number, currency: string, method: string, description: string }`
+
+### Payment Methods (`/payment-methods`) - Users Only
+- `GET /payment-methods` - Get user's payment methods
+- `POST /payment-methods` - Add payment method
+  - Body: `{ type: string, last4: string, brand: string, expiryMonth: number, expiryYear: number, isDefault: boolean }`
 
 ## User Roles and Permissions
 
 ### User (Patient)
-- Register and login with role-based redirect to user dashboard
-- View available doctors in a card-based layout
-- Book appointments through a modal interface
-- View and manage their own appointments (pending, confirmed, cancelled)
-- Cancel appointments
-- Responsive dashboard with sidebar navigation
+- Register and login with role-based dashboard access
+- View available doctors with detailed profiles (specialization, contact info, photos)
+- Book appointments with date, time, and symptom descriptions
+- View and manage personal appointments (pending, confirmed, completed, cancelled)
+- Cancel or reschedule appointments
+- Manage payment methods (credit/debit cards)
+- View payment history and receipts
+- Receive notifications for appointment status changes
+- Responsive dashboard with appointment calendar view
 
 ### Doctor
-- Register and login with role-based redirect to doctor dashboard
-- View and manage their appointments (confirm/cancel)
-- Update profile and availability
-- View appointment statistics
-- Responsive dashboard with sidebar navigation
+- Register and login with enhanced profile management
+- Complete profile with specialization, contact details, and photos
+- View and manage assigned appointments (confirm, complete, cancel)
+- Update availability and schedule preferences
+- View patient information for assigned appointments
+- Access to appointment history and statistics
+- Receive notifications for new appointment bookings
+- Responsive dashboard with appointment management tools
 
 ### Admin (Future Enhancement)
-- View all users
-- View all doctors
-- System administration features
+- Full system administration capabilities
+- User and doctor account management
+- System-wide appointment oversight
+- Payment and financial reporting
+- Notification system management
+- Analytics and reporting dashboard
 
 ## Recent Updates (April 2026)
 
@@ -157,13 +249,19 @@ The Clinic Appointment System is a web-based application built with NestJS (Node
 ## Frontend Pages
 
 ### Public Pages
-- **Home** (`index.html`) - Landing page with navigation to login/register
-- **User Registration** (`register-user.html`) - Form to register as a patient
-- **Doctor Registration** (`register-doctor.html`) - Form to register as a doctor
-- **Login** (`login.html`) - Authentication form for both users and doctors
+- **Home** (`/`) - Landing page with navigation to login/register
+- **User Registration** (`/register/user`) - Form to register as a patient
+- **Doctor Registration** (`/register/doctor`) - Form to register as a doctor
+- **Login** (`/login`) - Authentication form for both users and doctors
 
 ### Protected Pages
-- **Dashboard** (`dashboard.html`) - Main application interface with role-based content
+- **Dashboard** (`/dashboard`) - Main application interface with role-based content
+- **Doctors List** (`/doctors`) - Browse available doctors (public access)
+- **Doctor Profile** (`/doctors/:id`) - View doctor details and book appointments
+- **Appointments** (`/appointments`) - View and manage appointments
+- **Notifications** (`/notifications`) - View system notifications
+- **Payments** (`/payments`) - View payment history and manage payment methods
+- **Profile** (`/profile`) - User profile management
 
 ## Authentication Flow
 

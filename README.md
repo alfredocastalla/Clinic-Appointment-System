@@ -7,15 +7,24 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 ### Backend (NestJS + TypeORM + SQLite)
 - **Authentication System**: JWT-based login with bcrypt password hashing
 - **User Management**: Full CRUD operations for users and doctors
-- **Appointment System**: Book, view, and cancel appointments
-- **Role-based Access**: Separate registration for patients and doctors
+- **Appointment System**: Book, view, confirm, complete, and cancel appointments
+- **Notification System**: Real-time notifications for appointment status changes
+- **Payment Processing**: Payment creation and history tracking
+- **Payment Methods**: Credit/debit card management for users
+- **Role-based Access**: Separate registration for patients and doctors with admin capabilities
 - **Database**: SQLite with TypeORM entities and relationships
+- **API Validation**: Class-validator for input validation
+- **CORS Support**: Cross-origin resource sharing for frontend integration
 
 ### Frontend (React + TypeScript)
-- **Routing**: Dedicated routes for home, login, registration, and dashboards
-- **Patient Dashboard**: Browse doctors, book appointments, and cancel appointments
-- **Doctor Dashboard**: Confirm or cancel appointments and update doctor profile details
-- **Type-safe UI**: Shared TypeScript models for API data and cleaner component structure
+- **Routing**: React Router for client-side navigation
+- **Patient Dashboard**: Browse doctors, book appointments, manage payments, view notifications
+- **Doctor Dashboard**: Confirm/complete appointments, update profile, manage schedule
+- **Authentication**: JWT token management with automatic logout on expiration
+- **Responsive Design**: Mobile-friendly interface with modern UI
+- **Type-safe UI**: Shared TypeScript interfaces for API data
+- **Real-time Updates**: Notification system with unread indicators
+- **Payment Management**: Secure payment method storage and transaction history
 
 ## Tech Stack
 
@@ -67,32 +76,123 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 
 ## API Endpoints
 
+### Authentication
 - `POST /auth/register/user` - Register new patient
 - `POST /auth/register/doctor` - Register new doctor
 - `POST /auth/login` - Login with email/password
+
+### Users (Admin/Doctor access)
 - `GET /users` - Get all users
+- `GET /users/:id` - Get user by ID
+- `PATCH /users/:id` - Update user
+- `DELETE /users/:id` - Delete user
+
+### Doctors (Public access)
 - `GET /doctors` - Get all doctors
+- `GET /doctors/:id` - Get doctor by ID
+- `POST /doctors` - Create doctor (admin)
+- `PATCH /doctors/:id` - Update doctor
+- `DELETE /doctors/:id` - Delete doctor (admin)
+
+### Appointments (Authenticated users)
+- `GET /appointments` - Get appointments (filtered by role)
 - `POST /appointments` - Book appointment
-- `GET /appointments` - Get all appointments
+- `PATCH /appointments/:id/confirm` - Confirm appointment (doctor)
+- `PATCH /appointments/:id/complete` - Complete appointment (doctor)
 - `PATCH /appointments/:id/cancel` - Cancel appointment
+- `PATCH /appointments/:id` - Update appointment
+
+### Notifications (Authenticated users)
+- `GET /notifications` - Get user notifications
+- `PATCH /notifications/:id/read` - Mark notification as read
+- `PATCH /notifications/read-all` - Mark all notifications as read
+
+### Payments (Authenticated users)
+- `GET /payments` - Get payment history
+- `POST /payments` - Create payment
+
+### Payment Methods (Users only)
+- `GET /payment-methods` - Get user's payment methods
+- `POST /payment-methods` - Add payment method
+
+### Health Check
+- `GET /api/health` - System health check
 
 ## Project Structure
 
 ```
 clinic-appointment-system/
-├── backend/
+├── backend/                          # NestJS API server
 │   ├── src/
-│   ├── test/
+│   │   ├── app.controller.ts        # Main app controller
+│   │   ├── app.module.ts            # Root application module
+│   │   ├── app.service.ts           # Main app service
+│   │   ├── main.ts                  # Application entry point
+│   │   ├── auth/                    # Authentication module
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.module.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   ├── jwt.strategy.ts
+│   │   │   └── entities/
+│   │   ├── users/                   # User management module
+│   │   │   ├── users.controller.ts
+│   │   │   ├── users.module.ts
+│   │   │   ├── users.service.ts
+│   │   │   └── entities/
+│   │   ├── doctors/                 # Doctor management module
+│   │   │   ├── doctors.controller.ts
+│   │   │   ├── doctors.module.ts
+│   │   │   ├── doctors.service.ts
+│   │   │   └── entities/
+│   │   ├── appointments/            # Appointment management module
+│   │   │   ├── appointments.controller.ts
+│   │   │   ├── appointments.module.ts
+│   │   │   ├── appointments.service.ts
+│   │   │   └── entities/
+│   │   ├── notifications/           # Notification system module
+│   │   │   ├── notifications.controller.ts
+│   │   │   ├── notifications.module.ts
+│   │   │   ├── notifications.service.ts
+│   │   │   └── entities/
+│   │   ├── payments/                # Payment processing module
+│   │   │   ├── payments.controller.ts
+│   │   │   ├── payments.module.ts
+│   │   │   ├── payments.service.ts
+│   │   │   └── entities/
+│   │   └── payment-methods/         # Payment methods module
+│   │       ├── payment-methods.controller.ts
+│   │       ├── payment-methods.module.ts
+│   │       ├── payment-methods.service.ts
+│   │       └── entities/
+│   ├── test/                        # Test files
+│   │   ├── app.e2e-spec.ts
+│   │   ├── jest-e2e.json
+│   │   ├── jest-integration.json
+│   │   └── e2e/
+│   │       ├── appointments.e2e-spec.ts
+│   │       └── cypress/
 │   ├── package.json
-│   └── database.sqlite
-├── frontend/
+│   ├── tsconfig.json
+│   └── nest-cli.json
+├── frontend/                         # React + TypeScript client
 │   ├── src/
+│   │   ├── App.tsx                  # Main React component
+│   │   ├── main.tsx                 # React entry point
+│   │   ├── types.ts                 # Shared TypeScript types
+│   │   ├── styles.css               # Global styles
+│   │   └── lib/                     # Utility functions
+│   │       └── api.ts               # API client functions
 │   ├── package.json
-│   └── vite.config.ts
-└── package.json
+│   ├── tsconfig.json
+│   ├── vite.config.ts
+│   └── index.html
+├── student-min-specs/               # Project specifications
+├── package.json                     # Root package.json with scripts
+├── spec.md                          # Technical specification
+├── README.md                        # This file
+└── QUICKSTART.md                    # Quick start guide
 ```
-
-`backend/` contains the Nest API, and `frontend/` contains the React + TypeScript app.
 
 ## Contributing
 
@@ -105,18 +205,6 @@ clinic-appointment-system/
 ## License
 
 This project is licensed under the MIT License.
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
-```
 
 ## Compile and run the project
 
