@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from './entities/payment.entity';
 import { PaymentMethod } from './entities/payment-method.entity';
+import { AuthenticatedUser } from '../auth/types';
 
 @Injectable()
 export class PaymentsService {
@@ -17,7 +18,7 @@ export class PaymentsService {
     return this.paymentRepo.save(this.paymentRepo.create(data));
   }
 
-  async findPayments(user: any) {
+  async findPayments(user: AuthenticatedUser) {
     if (!user) {
       return this.paymentRepo.find();
     }
@@ -27,7 +28,9 @@ export class PaymentsService {
     if (user.role === 'doctor' || user.role === 'admin') {
       return this.paymentRepo.find();
     }
-    throw new UnauthorizedException('Only patients, doctors, or admins can view payments');
+    throw new UnauthorizedException(
+      'Only patients, doctors, or admins can view payments',
+    );
   }
 
   async createPaymentMethod(data: Partial<PaymentMethod>) {
@@ -35,12 +38,15 @@ export class PaymentsService {
       throw new UnauthorizedException('Patient must be specified');
     }
     if (data.isDefault) {
-      await this.paymentMethodRepo.update({ patientId: data.patientId }, { isDefault: false });
+      await this.paymentMethodRepo.update(
+        { patientId: data.patientId },
+        { isDefault: false },
+      );
     }
     return this.paymentMethodRepo.save(this.paymentMethodRepo.create(data));
   }
 
-  async findPaymentMethods(user: any) {
+  async findPaymentMethods(user: AuthenticatedUser) {
     if (!user) {
       return this.paymentMethodRepo.find();
     }
