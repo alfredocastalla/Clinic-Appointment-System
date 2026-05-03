@@ -432,6 +432,14 @@ function LoginPage({
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
   useEffect(() => {
+    if (!currentUser || isSwitchingAccount) {
+      setEmail('');
+    } else if (currentUser) {
+      setEmail(currentUser.email);
+    }
+  }, [currentUser, isSwitchingAccount]);
+
+  useEffect(() => {
     if (currentUser && !isSwitchingAccount) {
       setMessage(`You are currently signed in as ${currentUser.email}. Use the switch button below to login with another account.`);
     }
