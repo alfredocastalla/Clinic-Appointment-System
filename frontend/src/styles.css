@@ -296,9 +296,8 @@ button {
 }
 
 .sidebar-footer {
-  margin-top: auto;
   display: grid;
-  gap: 16px;
+  gap: 14px;
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
   transition: all 0.3s ease;
@@ -2158,9 +2157,8 @@ button {
 .workspace-shell.patient-dashboard .sidebar-footer,
 .workspace-shell.doctor-dashboard .sidebar-footer,
 .workspace-shell.admin-dashboard .sidebar-footer {
-  margin-top: auto;
   display: grid;
-  gap: 16px;
+  gap: 14px;
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
   width: 100%;
