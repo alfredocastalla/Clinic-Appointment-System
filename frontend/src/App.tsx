@@ -72,6 +72,28 @@ type PaymentFormState = {
   description: string;
 };
 
+const MESSAGE_STORE_KEY = 'clinic-appointment-system-messages';
+
+function loadStoredMessages(): Message[] {
+  try {
+    const raw = localStorage.getItem(MESSAGE_STORE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as Message[];
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredMessages(messages: Message[]) {
+  try {
+    const existing = loadStoredMessages();
+    const merged = [...existing.filter((item) => !messages.some((msg) => msg.id === item.id)), ...messages];
+    localStorage.setItem(MESSAGE_STORE_KEY, JSON.stringify(merged));
+  } catch {
+    // ignore storage failures in demo mode
+  }
+}
+
 function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getStoredUser());
 
@@ -857,6 +879,12 @@ function PatientDashboard({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [booking, setBooking] = useState(false);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveStoredMessages(messages);
+    }
+  }, [messages]);
   const [doctorId, setDoctorId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -879,7 +907,21 @@ function PatientDashboard({
   }, [currentUser]);
 
   useEffect(() => {
-    if (!currentUser || messages.length > 0 || appointments.length === 0) {
+    if (!currentUser || appointments.length === 0) {
+      return;
+    }
+
+    if (messages.length === 0) {
+      const stored = loadStoredMessages().filter(
+        (msg) => msg.senderId === currentUser.id || msg.recipientId === currentUser.id,
+      );
+      if (stored.length > 0) {
+        setMessages(stored);
+        return;
+      }
+    }
+
+    if (messages.length > 0) {
       return;
     }
 
@@ -892,7 +934,6 @@ function PatientDashboard({
       const doctor = doctorById[doctorId];
       if (!doctor) return;
 
-      // Create a confirmation message for each doctor
       seededMessages.push({
         id: messageId++,
         senderId: doctorId,
@@ -901,12 +942,11 @@ function PatientDashboard({
         recipientId: currentUser.id,
         recipientName: currentUser.name,
         content: `Your appointment with ${doctor.name} is confirmed.`,
-        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(), // Random recent date
+        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
         read: false,
         conversationId: doctorId,
       });
 
-      // Add a follow-up message for some doctors
       if (Math.random() > 0.5) {
         seededMessages.push({
           id: messageId++,
@@ -1326,6 +1366,53 @@ function PatientDashboard({
 
   const upcomingAppointments = appointments.filter((appointment) => appointment.status !== 'cancelled');
 
+  const appointmentNotifications = useMemo(() => {
+    if (!currentUser) return [];
+
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const tomorrowDate = new Date(now);
+    tomorrowDate.setDate(now.getDate() + 1);
+    const tomorrow = tomorrowDate.toISOString().slice(0, 10);
+
+    const notifications: { id: number; title: string; description: string; type: 'info' | 'warning' | 'success'; }[] = [];
+
+    appointments.forEach((appointment) => {
+      const doctor = doctorById[appointment.doctorId];
+      const doctorName = doctor ? `Dr. ${doctor.name}` : `Doctor #${appointment.doctorId}`;
+      const paid = payments.some((payment) => payment.appointmentId === appointment.id && payment.status === 'completed');
+
+      if (appointment.status === 'pending') {
+        notifications.push({
+          id: appointment.id,
+          title: 'Appointment pending confirmation',
+          description: `${doctorName} has not yet confirmed your ${appointment.date}${appointment.time ? ` at ${appointment.time}` : ''}.`,
+          type: 'warning',
+        });
+      }
+
+      if (appointment.status === 'confirmed' && (appointment.date === today || appointment.date === tomorrow)) {
+        notifications.push({
+          id: appointment.id + 10000,
+          title: appointment.date === today ? 'Appointment today' : 'Appointment tomorrow',
+          description: `${doctorName} is expecting you ${appointment.date === today ? 'today' : 'tomorrow'}${appointment.time ? ` at ${appointment.time}` : ''}.`,
+          type: 'info',
+        });
+      }
+
+      if (!paid && appointment.status !== 'cancelled') {
+        notifications.push({
+          id: appointment.id + 20000,
+          title: 'Payment reminder',
+          description: `Pay for your appointment with ${doctorName} scheduled on ${appointment.date}.`,
+          type: 'warning',
+        });
+      }
+    });
+
+    return notifications.slice(0, 5);
+  }, [appointments, currentUser, doctorById, payments]);
+
   return (
     <>
       <SidebarDashboard
@@ -1360,6 +1447,26 @@ function PatientDashboard({
               </div>
             </div>
           </section>
+
+          <div className="content-grid">
+            <section className="panel">
+              <SectionHeader title="Appointment Notifications" />
+              <div className="list-stack">
+                {appointmentNotifications.length === 0 ? (
+                  <EmptyState text="No new appointment alerts right now." />
+                ) : (
+                  appointmentNotifications.map((notification) => (
+                    <article className={`list-card notification-card notification-${notification.type}`} key={notification.id}>
+                      <div>
+                        <h3>{notification.title}</h3>
+                        <p>{notification.description}</p>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+          </div>
 
           <div className="content-grid">
             <section className="panel">
@@ -2393,6 +2500,12 @@ function DoctorDashboard({
   const [messageContent, setMessageContent] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveStoredMessages(messages);
+    }
+  }, [messages]);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -2410,7 +2523,21 @@ function DoctorDashboard({
   }, [currentUser?.id]);
 
   useEffect(() => {
-    if (!currentUser || messages.length > 0 || appointments.length === 0) {
+    if (!currentUser || appointments.length === 0) {
+      return;
+    }
+
+    if (messages.length === 0) {
+      const stored = loadStoredMessages().filter(
+        (msg) => msg.senderId === currentUser.id || msg.recipientId === currentUser.id,
+      );
+      if (stored.length > 0) {
+        setMessages(stored);
+        return;
+      }
+    }
+
+    if (messages.length > 0) {
       return;
     }
 
@@ -2439,7 +2566,6 @@ function DoctorDashboard({
         conversationId: patientId,
       });
 
-      // Add follow-up messages for some patients
       if (Math.random() > 0.5) {
         seededMessages.push({
           id: messageId++,
