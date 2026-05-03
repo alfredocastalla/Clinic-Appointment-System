@@ -4547,9 +4547,6 @@ function SidebarDashboard({
         </nav>
         <div className="sidebar-footer">
           <span className="role-badge">{currentUser?.role ?? 'guest'}</span>
-          <button className="secondary-button sidebar-logout" onClick={handleLogout}>
-            {sidebarCollapsed ? '🚪' : '🚪 Logout'}
-          </button>
         </div>
       </aside>
 
