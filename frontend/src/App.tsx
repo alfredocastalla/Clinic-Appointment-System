@@ -4486,7 +4486,6 @@ function SidebarDashboard({
   notificationCount?: number;
   onNotificationClick?: () => void;
 }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -4495,8 +4494,8 @@ function SidebarDashboard({
   };
 
   return (
-    <div className={`workspace-shell ${pageClassName ?? ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+    <div className={`workspace-shell ${pageClassName ?? ''}`}>
+      <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <span className="eyebrow">CareWell Clinic</span>
@@ -4504,14 +4503,6 @@ function SidebarDashboard({
             <p>{currentUser?.name ?? 'Guest'}</p>
             <button type="button" className="sidebar-home-link" onClick={() => navigate('/')}>Home</button>
           </div>
-          <button 
-            type="button" 
-            className="sidebar-toggle" 
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {sidebarCollapsed ? '▶' : '◀'}
-          </button>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -4520,15 +4511,12 @@ function SidebarDashboard({
               type="button"
               className={`sidebar-link ${activeView === item.key ? 'active' : ''}`}
               onClick={() => onSelectView(item.key)}
-              title={sidebarCollapsed ? item.label : undefined}
             >
               {item.icon && <span className="sidebar-icon">{item.icon}</span>}
-              {!sidebarCollapsed && (
-                <div className="sidebar-link-text">
-                  <strong>{item.label}</strong>
-                  <span>{item.caption}</span>
-                </div>
-              )}
+              <div className="sidebar-link-text">
+                <strong>{item.label}</strong>
+                <span>{item.caption}</span>
+              </div>
               {item.badge !== undefined ? (
                 <span className="sidebar-badge">{item.badge}</span>
               ) : null}
@@ -4538,21 +4526,14 @@ function SidebarDashboard({
         <div className="sidebar-footer">
           <span className="role-badge">{currentUser?.role ?? 'guest'}</span>
           <button className="secondary-button sidebar-logout" onClick={handleLogout}>
-            {sidebarCollapsed ? '🚪' : '🚪 Logout'}
+            🚪 Logout
           </button>
         </div>
       </aside>
 
-      <main className={`dashboard-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <main className="dashboard-shell">
         <div className="workspace-header">
           <div className="topbar-left">
-            <button
-              type="button"
-              className="sidebar-toggle"
-              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
-            >
-              ☰
-            </button>
             <div className="topbar-title">
               <strong>CLINIC APPOINTMENT SYSTEM</strong>
               <p>{title}</p>
