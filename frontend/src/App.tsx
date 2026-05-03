@@ -856,6 +856,7 @@ function PatientDashboard({
     language: 'en',
     timezone: 'Asia/Manila',
   });
+  const [activeSettingsPanel, setActiveSettingsPanel] = useState<'notifications' | 'privacy' | 'password' | 'language' | null>(null);
   const [showFAQ, setShowFAQ] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactForm, setContactForm] = useState({
@@ -2195,24 +2196,200 @@ function PatientDashboard({
             <article className="summary-card">
               <strong>Notifications (Email/SMS)</strong>
               <p>Manage how you receive notifications about appointments, prescriptions, and messages.</p>
-              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Notification settings will be available soon.')}>Configure</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setActiveSettingsPanel('notifications')}>Configure</button>
             </article>
             <article className="summary-card">
               <strong>Privacy & Security</strong>
               <p>Control your privacy settings and manage two-factor authentication.</p>
-              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Privacy customization is coming soon.')}>Manage</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setActiveSettingsPanel('privacy')}>Manage</button>
             </article>
             <article className="summary-card">
               <strong>Change Password</strong>
               <p>Update your account password to keep your account secure.</p>
-              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Password change will be added soon.')}>Change</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setActiveSettingsPanel('password')}>Change</button>
             </article>
             <article className="summary-card">
               <strong>Language & Timezone</strong>
               <p>Set your preferred language and timezone for the platform.</p>
-              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setMessage('Language settings are coming soon.')}>Configure</button>
+              <button className="secondary-button" type="button" style={{ marginTop: '12px' }} onClick={() => setActiveSettingsPanel('language')}>Configure</button>
             </article>
           </div>
+
+          {activeSettingsPanel ? (
+            <section className="panel" style={{ marginTop: '24px' }}>
+              <SectionHeader title={
+                activeSettingsPanel === 'notifications' ? 'Notification Settings' :
+                activeSettingsPanel === 'privacy' ? 'Privacy & Security' :
+                activeSettingsPanel === 'password' ? 'Change Password' :
+                'Language & Timezone'
+              } />
+              <div className="settings-grid">
+                {activeSettingsPanel === 'notifications' ? (
+                  <article className="summary-card">
+                    <div className="form-group">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.emailReminders}
+                          onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailReminders: e.target.checked }))}
+                        />
+                        Email reminders
+                      </label>
+                    </div>
+                    <div className="form-group">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.smsReminders}
+                          onChange={(e) => setNotificationSettings((prev) => ({ ...prev, smsReminders: e.target.checked }))}
+                        />
+                        SMS reminders
+                      </label>
+                    </div>
+                    <div className="form-group">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.prescriptionAlerts}
+                          onChange={(e) => setNotificationSettings((prev) => ({ ...prev, prescriptionAlerts: e.target.checked }))}
+                        />
+                        Prescription alerts
+                      </label>
+                    </div>
+                    <div className="form-group">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings.appointmentConfirmations}
+                          onChange={(e) => setNotificationSettings((prev) => ({ ...prev, appointmentConfirmations: e.target.checked }))}
+                        />
+                        Appointment confirmations
+                      </label>
+                    </div>
+                    <div className="list-actions">
+                      <button className="primary-button" type="button" onClick={() => { setMessage('Notification settings saved.'); setActiveSettingsPanel(null); }}>Save</button>
+                      <button className="secondary-button" type="button" onClick={() => setActiveSettingsPanel(null)}>Close</button>
+                    </div>
+                  </article>
+                ) : null}
+
+                {activeSettingsPanel === 'privacy' ? (
+                  <article className="summary-card">
+                    <div className="form-group">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={privacySettings.shareMedicalHistory}
+                          onChange={(e) => setPrivacySettings((prev) => ({ ...prev, shareMedicalHistory: e.target.checked }))}
+                        />
+                        Share medical history with specialists
+                      </label>
+                    </div>
+                    <div className="form-group">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={privacySettings.allowDoctorCommunication}
+                          onChange={(e) => setPrivacySettings((prev) => ({ ...prev, allowDoctorCommunication: e.target.checked }))}
+                        />
+                        Allow doctor communication
+                      </label>
+                    </div>
+                    <div className="form-group">
+                      <label>Data retention</label>
+                      <select
+                        value={privacySettings.dataRetention}
+                        onChange={(e) => setPrivacySettings((prev) => ({ ...prev, dataRetention: e.target.value }))}
+                      >
+                        <option value="6months">6 months</option>
+                        <option value="1year">1 year</option>
+                        <option value="3years">3 years</option>
+                      </select>
+                    </div>
+                    <div className="list-actions">
+                      <button className="primary-button" type="button" onClick={() => { setMessage('Privacy settings updated.'); setActiveSettingsPanel(null); }}>Save</button>
+                      <button className="secondary-button" type="button" onClick={() => setActiveSettingsPanel(null)}>Close</button>
+                    </div>
+                  </article>
+                ) : null}
+
+                {activeSettingsPanel === 'password' ? (
+                  <article className="summary-card">
+                    <div className="form-group">
+                      <label>Current password</label>
+                      <input
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>New password</label>
+                      <input
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Confirm new password</label>
+                      <input
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                      />
+                    </div>
+                    <div className="list-actions">
+                      <button
+                        className="primary-button"
+                        type="button"
+                        onClick={() => {
+                          if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+                            setError('Please complete all password fields.');
+                            return;
+                          }
+                          if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                            setError('New passwords do not match.');
+                            return;
+                          }
+                          setError(null);
+                          setMessage('Password updated successfully.');
+                          setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                          setActiveSettingsPanel(null);
+                        }}
+                      >Save</button>
+                      <button className="secondary-button" type="button" onClick={() => setActiveSettingsPanel(null)}>Close</button>
+                    </div>
+                  </article>
+                ) : null}
+
+                {activeSettingsPanel === 'language' ? (
+                  <article className="summary-card">
+                    <div className="form-group">
+                      <label>Language</label>
+                      <select value={languageSettings.language} onChange={(e) => setLanguageSettings((prev) => ({ ...prev, language: e.target.value }))}>
+                        <option value="en">English</option>
+                        <option value="fil">Filipino</option>
+                        <option value="es">Spanish</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Timezone</label>
+                      <select value={languageSettings.timezone} onChange={(e) => setLanguageSettings((prev) => ({ ...prev, timezone: e.target.value }))}>
+                        <option value="Asia/Manila">Asia/Manila</option>
+                        <option value="UTC">UTC</option>
+                        <option value="America/New_York">America/New_York</option>
+                      </select>
+                    </div>
+                    <div className="list-actions">
+                      <button className="primary-button" type="button" onClick={() => { setMessage('Language and timezone updated.'); setActiveSettingsPanel(null); }}>Save</button>
+                      <button className="secondary-button" type="button" onClick={() => setActiveSettingsPanel(null)}>Close</button>
+                    </div>
+                  </article>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
         </section>
       ) : null}
 
