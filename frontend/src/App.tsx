@@ -1261,7 +1261,6 @@ function PatientDashboard({
     { key: 'documents', label: 'Documents', caption: 'Store documents', icon: '📄' },
     { key: 'settings', label: 'Settings', caption: 'Account preferences', icon: '⚙️' },
     { key: 'support', label: 'Support & Session', caption: 'Get help', icon: '❓' },
-    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '🚪' },
   ];
 
   async function loadData() {
@@ -3206,7 +3205,6 @@ function DoctorDashboard({
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'profile', label: 'Profile', caption: 'Doctor account details', icon: '👨‍⚕️' },
     { key: 'settings', label: 'Settings', caption: 'Preferences', icon: '⚙️' },
-    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '🚪' },
   ];
 
   async function loadDoctorData() {
@@ -4121,7 +4119,6 @@ function AdminDashboard({
     { key: 'services', label: 'Services', caption: 'Clinic offerings', icon: '🏥' },
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'settings', label: 'Settings', caption: 'System configuration', icon: '⚙️' },
-    { key: 'logout', label: 'Logout', caption: 'Sign out', icon: '🚪' },
   ];
 
   useEffect(() => {
@@ -4522,14 +4519,7 @@ function SidebarDashboard({
               key={item.key}
               type="button"
               className={`sidebar-link ${activeView === item.key ? 'active' : ''}`}
-              onClick={() => {
-                if (item.key === 'logout') {
-                  handleLogout();
-                  return;
-                }
-
-                onSelectView(item.key);
-              }}
+              onClick={() => onSelectView(item.key)}
               title={sidebarCollapsed ? item.label : undefined}
             >
               {item.icon && <span className="sidebar-icon">{item.icon}</span>}
@@ -4547,6 +4537,9 @@ function SidebarDashboard({
         </nav>
         <div className="sidebar-footer">
           <span className="role-badge">{currentUser?.role ?? 'guest'}</span>
+          <button className="secondary-button sidebar-logout" onClick={handleLogout}>
+            {sidebarCollapsed ? '🚪' : '🚪 Logout'}
+          </button>
         </div>
       </aside>
 
