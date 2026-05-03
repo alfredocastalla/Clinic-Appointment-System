@@ -48,6 +48,15 @@ export type Payment = {
   receiptUrl?: string;
 };
 
+export type Notification = {
+  id: number;
+  title: string;
+  message: string;
+  type: 'appointment_booked' | 'appointment_cancelled' | 'payment_received' | 'payment_failed' | 'general';
+  isRead: boolean;
+  createdAt: string;
+};
+
 export type PaymentMethod = {
   id: number;
   type: 'credit_card' | 'debit_card';

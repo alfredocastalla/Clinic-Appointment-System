@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Doctor } from '../doctors/entities/doctor.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AppointmentsService {
@@ -16,6 +17,8 @@ export class AppointmentsService {
     private repo: Repository<Appointment>,
     @InjectRepository(Doctor)
     private doctorsRepo: Repository<Doctor>,
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
   ) {}
 
   async create(data: any) {

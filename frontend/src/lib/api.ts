@@ -41,3 +41,23 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
 
   return payload as T;
 }
+
+export async function getNotifications(): Promise<import('../types').Notification[]> {
+  return api('/notifications', { auth: true });
+}
+
+export async function getUnreadNotificationCount(): Promise<{ count: number }> {
+  return api('/notifications/unread-count', { auth: true });
+}
+
+export async function markNotificationAsRead(id: number): Promise<void> {
+  return api(`/notifications/${id}/read`, { method: 'POST', auth: true });
+}
+
+export async function markAllNotificationsAsRead(): Promise<void> {
+  return api('/notifications/mark-all-read', { method: 'POST', auth: true });
+}
+
+export async function deleteNotification(id: number): Promise<void> {
+  return api(`/notifications/${id}`, { method: 'DELETE', auth: true });
+}

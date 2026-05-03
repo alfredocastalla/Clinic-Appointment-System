@@ -1,6 +1,6 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { api } from './lib/api';
+import { api, getNotifications, getUnreadNotificationCount, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from './lib/api';
 import {
   AuthUser,
   Role,
@@ -9,7 +9,7 @@ import {
   setSession,
   updateStoredUser,
 } from './lib/auth';
-import { Appointment, Doctor, Message, Payment, PaymentMethod } from './types';
+import { Appointment, Doctor, Message, Payment, PaymentMethod, Notification } from './types';
 
 type RegisterUserPayload = {
   name: string;
@@ -948,6 +948,10 @@ function PatientDashboard({
   });
   const [activeSettingsPanel, setActiveSettingsPanel] = useState<'notifications' | 'privacy' | 'password' | 'language' | null>(null);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeMessageTab, setActiveMessageTab] = useState<'messages' | 'notifications'>('messages');
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactForm, setContactForm] = useState({
     subject: '',
@@ -1056,6 +1060,25 @@ function PatientDashboard({
 
     setMessages(seededMessages);
   }, [currentUser, messages.length, appointments, doctorById]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const loadNotifications = async () => {
+      try {
+        const [notifs, count] = await Promise.all([
+          getNotifications(),
+          getUnreadNotificationCount(),
+        ]);
+        setNotifications(notifs);
+        setUnreadCount(count.count);
+      } catch (error) {
+        console.error('Failed to load notifications:', error);
+      }
+    };
+
+    loadNotifications();
+  }, [currentUser]);
 
   const conversationSummaries = useMemo(() => {
     if (!currentUser) {
@@ -1193,6 +1216,36 @@ function PatientDashboard({
     }
   }
 
+  async function handleMarkNotificationAsRead(id: number) {
+    try {
+      await markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  }
+
+  async function handleMarkAllNotificationsAsRead() {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  }
+
+  async function handleDeleteNotification(id: number) {
+    try {
+      await deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => prev - (notifications.find(n => n.id === id)?.isRead ? 0 : 1));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  }
+
   useEffect(() => {
     void loadData();
   }, []);
@@ -1202,7 +1255,7 @@ function PatientDashboard({
     { key: 'appointments', label: 'My Appointments', caption: 'View and manage bookings', icon: '📅' },
     { key: 'medical', label: 'Medical Records', caption: 'Health history', icon: '📋' },
     { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication list', icon: '💊' },
-    { key: 'messages', label: 'Messages', caption: 'Inbox and updates', icon: '💬', badge: unreadNotificationCount },
+    { key: 'messages', label: 'Messages', caption: 'Inbox and updates', icon: '💬', badge: unreadCount },
     { key: 'profile', label: 'Profile Settings', caption: 'Account details', icon: '👤' },
     { key: 'payments', label: 'Payments', caption: 'Payment history', icon: '💳' },
     { key: 'documents', label: 'Documents', caption: 'Store documents', icon: '📄' },
@@ -1957,17 +2010,39 @@ function PatientDashboard({
       {activeView === 'messages' ? (
         <section className="panel">
           <SectionHeader
-            title={selectedConversation ? `Conversation with ${activeConversation?.doctorName ?? 'Doctor'}` : 'Messages'}
+            title={selectedConversation ? `Conversation with ${activeConversation?.doctorName ?? 'Doctor'}` : 'Messages & Notifications'}
             action={
               <div className="toolbar-actions">
                 {selectedConversation ? (
                   <button className="ghost-button compact-button" type="button" onClick={closeConversation}>
                     ← Back
                   </button>
-                ) : null}
-                <button className="ghost-button compact-button" type="button" onClick={markAllRead}>
-                  Mark all read
-                </button>
+                ) : (
+                  <div className="tab-buttons">
+                    <button
+                      className={`tab-button ${activeMessageTab === 'messages' ? 'active' : ''}`}
+                      onClick={() => setActiveMessageTab('messages')}
+                    >
+                      Messages {conversationSummaries.filter(c => c.unreadCount > 0).length > 0 && `(${conversationSummaries.filter(c => c.unreadCount > 0).length})`}
+                    </button>
+                    <button
+                      className={`tab-button ${activeMessageTab === 'notifications' ? 'active' : ''}`}
+                      onClick={() => setActiveMessageTab('notifications')}
+                    >
+                      Notifications {unreadCount > 0 && `(${unreadCount})`}
+                    </button>
+                  </div>
+                )}
+                {!selectedConversation && activeMessageTab === 'messages' && (
+                  <button className="ghost-button compact-button" type="button" onClick={markAllRead}>
+                    Mark all read
+                  </button>
+                )}
+                {!selectedConversation && activeMessageTab === 'notifications' && unreadCount > 0 && (
+                  <button className="ghost-button compact-button" type="button" onClick={handleMarkAllNotificationsAsRead}>
+                    Mark all read
+                  </button>
+                )}
               </div>
             }
           />
@@ -2013,31 +2088,59 @@ function PatientDashboard({
               </form>
             </div>
           ) : (
-            <div className="list-stack">
-              {conversationSummaries.length === 0 ? (
-                <EmptyState text="No conversations yet. Start by opening a thread." />
-              ) : (
-                conversationSummaries.map((conversation) => (
-                  <article className="list-card" key={conversation.conversationId}>
-                    <div>
-                      <h3>{conversation.doctorName}</h3>
-                      <p>{conversation.lastMessage.content}</p>
-                      <p className="muted-copy">{new Date(conversation.lastMessage.timestamp).toLocaleString()}</p>
-                    </div>
-                    <div className="list-actions">
-                      {conversation.unreadCount ? (
-                        <span className="status-pill status-confirmed">{conversation.unreadCount} New</span>
-                      ) : (
-                        <span className="status-pill status-completed">Read</span>
-                      )}
-                      <button className="secondary-button compact-button" type="button" onClick={() => openConversation(conversation.conversationId)}>
-                        Open
-                      </button>
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
+            activeMessageTab === 'messages' ? (
+              <div className="list-stack">
+                {conversationSummaries.length === 0 ? (
+                  <EmptyState text="No conversations yet. Start by opening a thread." />
+                ) : (
+                  conversationSummaries.map((conversation) => (
+                    <article className="list-card" key={conversation.conversationId}>
+                      <div>
+                        <h3>{conversation.doctorName}</h3>
+                        <p>{conversation.lastMessage.content}</p>
+                        <p className="muted-copy">{new Date(conversation.lastMessage.timestamp).toLocaleString()}</p>
+                      </div>
+                      <div className="list-actions">
+                        {conversation.unreadCount ? (
+                          <span className="status-pill status-confirmed">{conversation.unreadCount} New</span>
+                        ) : (
+                          <span className="status-pill status-completed">Read</span>
+                        )}
+                        <button className="secondary-button compact-button" type="button" onClick={() => openConversation(conversation.conversationId)}>
+                          Open
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="list-stack">
+                {notifications.length === 0 ? (
+                  <EmptyState text="No notifications yet." />
+                ) : (
+                  notifications.map((notification) => (
+                    <article className={`list-card ${!notification.isRead ? 'unread' : ''}`} key={notification.id}>
+                      <div>
+                        <h3>{notification.title}</h3>
+                        <p>{notification.message}</p>
+                        <p className="muted-copy">{new Date(notification.createdAt).toLocaleString()}</p>
+                      </div>
+                      <div className="list-actions">
+                        {!notification.isRead && (
+                          <button className="secondary-button compact-button" type="button" onClick={() => handleMarkNotificationAsRead(notification.id)}>
+                            Mark as read
+                          </button>
+                        )}
+                        <button className="danger-button compact-button" type="button" onClick={() => handleDeleteNotification(notification.id)}>
+                          Delete
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            )
           )}
         </section>
       ) : null}
@@ -2842,6 +2945,9 @@ function DoctorDashboard({
     description: '',
   });
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [activeMessageTab, setActiveMessageTab] = useState<'messages' | 'notifications'>('messages');
 
   useEffect(() => {
     void loadDoctorData();
@@ -3095,7 +3201,7 @@ function DoctorDashboard({
     { key: 'patients', label: 'My Patients', caption: 'Patient records', icon: '👥' },
     { key: 'schedule', label: 'Schedule', caption: 'Calendar and availability', icon: '🗓️' },
     { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication management', icon: '💊' },
-    { key: 'messages', label: 'Messages', caption: 'Patient communication', icon: '💬', badge: unreadNotificationCount },
+    { key: 'messages', label: 'Messages', caption: 'Patient communication', icon: '💬', badge: unreadCount },
     { key: 'payments', label: 'Payments', caption: 'Billing & receipts', icon: '💳' },
     { key: 'reports', label: 'Reports', caption: 'Performance insights', icon: '📈' },
     { key: 'profile', label: 'Profile', caption: 'Doctor account details', icon: '👨‍⚕️' },
@@ -3111,11 +3217,13 @@ function DoctorDashboard({
     setError(null);
 
     try {
-      const [doctor, appointmentData, patientData, paymentData] = await Promise.all([
+      const [doctor, appointmentData, patientData, paymentData, notifs, count] = await Promise.all([
         api<Doctor>(`/doctors/${currentUser.id}`, { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
         api<UserRecord[]>('/users', { auth: true }),
         api<Payment[]>('/payments', { auth: true }),
+        getNotifications(),
+        getUnreadNotificationCount(),
       ]);
       const doctorAppointments = appointmentData.filter((appointment) => appointment.doctorId === currentUser.id);
       const patientIds = new Set(doctorAppointments.map((appointment) => appointment.patientId));
@@ -3125,6 +3233,8 @@ function DoctorDashboard({
       setAppointments(doctorAppointments);
       setPatients(activePatients);
       setPayments(paymentData);
+      setNotifications(notifs);
+      setUnreadCount(count.count);
     } catch (loadError) {
       setError((loadError as Error).message);
     }
@@ -3198,6 +3308,36 @@ function DoctorDashboard({
       await loadDoctorData();
     } catch (completeError) {
       setError((completeError as Error).message);
+    }
+  }
+
+  async function handleMarkNotificationAsRead(id: number) {
+    try {
+      await markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  }
+
+  async function handleMarkAllNotificationsAsRead() {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  }
+
+  async function handleDeleteNotification(id: number) {
+    try {
+      await deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => prev - (notifications.find(n => n.id === id)?.isRead ? 0 : 1));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
     }
   }
 
@@ -3748,13 +3888,35 @@ function DoctorDashboard({
       {activeView === 'messages' ? (
         <section className="panel">
           <SectionHeader
-            title={selectedConversation ? `Conversation with ${activeConversation?.patientName ?? 'Patient'}` : 'Patient Messages'}
+            title={selectedConversation ? `Conversation with ${activeConversation?.patientName ?? 'Patient'}` : 'Messages & Notifications'}
             action={
-              selectedConversation ? (
-                <button className="ghost-button compact-button" type="button" onClick={closeConversation}>
-                  ← Back
-                </button>
-              ) : null
+              <div className="toolbar-actions">
+                {selectedConversation ? (
+                  <button className="ghost-button compact-button" type="button" onClick={closeConversation}>
+                    ← Back
+                  </button>
+                ) : (
+                  <div className="tab-buttons">
+                    <button
+                      className={`tab-button ${activeMessageTab === 'messages' ? 'active' : ''}`}
+                      onClick={() => setActiveMessageTab('messages')}
+                    >
+                      Messages {conversationSummaries.filter(c => c.unreadCount > 0).length > 0 && `(${conversationSummaries.filter(c => c.unreadCount > 0).length})`}
+                    </button>
+                    <button
+                      className={`tab-button ${activeMessageTab === 'notifications' ? 'active' : ''}`}
+                      onClick={() => setActiveMessageTab('notifications')}
+                    >
+                      Notifications {unreadCount > 0 && `(${unreadCount})`}
+                    </button>
+                  </div>
+                )}
+                {!selectedConversation && activeMessageTab === 'notifications' && unreadCount > 0 && (
+                  <button className="ghost-button compact-button" type="button" onClick={handleMarkAllNotificationsAsRead}>
+                    Mark all read
+                  </button>
+                )}
+              </div>
             }
           />
 
@@ -3798,31 +3960,59 @@ function DoctorDashboard({
               </form>
             </div>
           ) : (
-            <div className="list-stack">
-              {conversationSummaries.length === 0 ? (
-                <EmptyState text="No patient conversations yet." />
-              ) : (
-                conversationSummaries.map((conversation) => (
-                  <article className="list-card" key={conversation.conversationId}>
-                    <div>
-                      <h3>{conversation.patientName}</h3>
-                      <p>{conversation.lastMessage.content}</p>
-                      <p className="muted-copy">{new Date(conversation.lastMessage.timestamp).toLocaleString()}</p>
-                    </div>
-                    <div className="list-actions">
-                      {conversation.unreadCount ? (
-                        <span className="status-pill status-pending">{conversation.unreadCount} Unread</span>
-                      ) : (
-                        <span className="status-pill status-confirmed">Read</span>
-                      )}
-                      <button className="secondary-button compact-button" type="button" onClick={() => openConversation(conversation.conversationId)}>
-                        Open
-                      </button>
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
+            activeMessageTab === 'messages' ? (
+              <div className="list-stack">
+                {conversationSummaries.length === 0 ? (
+                  <EmptyState text="No patient conversations yet." />
+                ) : (
+                  conversationSummaries.map((conversation) => (
+                    <article className="list-card" key={conversation.conversationId}>
+                      <div>
+                        <h3>{conversation.patientName}</h3>
+                        <p>{conversation.lastMessage.content}</p>
+                        <p className="muted-copy">{new Date(conversation.lastMessage.timestamp).toLocaleString()}</p>
+                      </div>
+                      <div className="list-actions">
+                        {conversation.unreadCount ? (
+                          <span className="status-pill status-pending">{conversation.unreadCount} Unread</span>
+                        ) : (
+                          <span className="status-pill status-confirmed">Read</span>
+                        )}
+                        <button className="secondary-button compact-button" type="button" onClick={() => openConversation(conversation.conversationId)}>
+                          Open
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="list-stack">
+                {notifications.length === 0 ? (
+                  <EmptyState text="No notifications yet." />
+                ) : (
+                  notifications.map((notification) => (
+                    <article className={`list-card ${!notification.isRead ? 'unread' : ''}`} key={notification.id}>
+                      <div>
+                        <h3>{notification.title}</h3>
+                        <p>{notification.message}</p>
+                        <p className="muted-copy">{new Date(notification.createdAt).toLocaleString()}</p>
+                      </div>
+                      <div className="list-actions">
+                        {!notification.isRead && (
+                          <button className="secondary-button compact-button" type="button" onClick={() => handleMarkNotificationAsRead(notification.id)}>
+                            Mark as read
+                          </button>
+                        )}
+                        <button className="danger-button compact-button" type="button" onClick={() => handleDeleteNotification(notification.id)}>
+                          Delete
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            )
           )}
         </section>
       ) : null}
@@ -3920,6 +4110,8 @@ function AdminDashboard({
   const [doctorSearch, setDoctorSearch] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const navItems: NavItem[] = [
     { key: 'dashboard', label: 'Dashboard', caption: 'Overview', icon: '📊' },
@@ -3941,10 +4133,12 @@ function AdminDashboard({
     setError(null);
 
     try {
-      const [userData, doctorData, appointmentData] = await Promise.all([
+      const [userData, doctorData, appointmentData, notifs, count] = await Promise.all([
         api<UserRecord[]>('/users', { auth: true }),
         api<Doctor[]>('/doctors', { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
+        getNotifications(),
+        getUnreadNotificationCount(),
       ]);
       const registeredPatients = userData.filter(
         (user) => user.role === 'user' && user.name && user.email,
@@ -3956,8 +4150,40 @@ function AdminDashboard({
       setUsers(userData);
       setDoctors(registeredDoctors);
       setAppointments(appointmentData);
+      setNotifications(notifs);
+      setUnreadCount(count.count);
     } catch (loadError) {
       setError((loadError as Error).message);
+    }
+  }
+
+  async function handleMarkNotificationAsRead(id: number) {
+    try {
+      await markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  }
+
+  async function handleMarkAllNotificationsAsRead() {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  }
+
+  async function handleDeleteNotification(id: number) {
+    try {
+      await deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => prev - (notifications.find(n => n.id === id)?.isRead ? 0 : 1));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
     }
   }
 
