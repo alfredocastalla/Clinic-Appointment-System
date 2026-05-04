@@ -13,7 +13,7 @@ import { PrescriptionsModule } from './prescriptions/prescriptions.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-const dbType = (process.env.DB_TYPE || 'mysql').toLowerCase();
+const dbType = (process.env.DB_TYPE || 'sqlite').toLowerCase();
 
 const typeOrmConfig: TypeOrmModuleOptions =
   dbType === 'sqlite'
