@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -13,21 +13,33 @@ import { PrescriptionsModule } from './prescriptions/prescriptions.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+const dbType = (process.env.DB_TYPE || 'mysql').toLowerCase();
+
+const typeOrmConfig: TypeOrmModuleOptions =
+  dbType === 'sqlite'
+    ? {
+        type: 'sqlite',
+        database: process.env.DB_NAME || 'database.sqlite',
+        autoLoadEntities: true,
+        synchronize: true,
+      }
+    : {
+        type: 'mysql',
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306'),
+        username: process.env.DB_USERNAME || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'clinic_appointment',
+        autoLoadEntities: true,
+        synchronize: true,
+      };
+
 @Module({
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'frontend', 'dist'),
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '3306'),
-      username: process.env.DB_USERNAME || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'clinic_appointment',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
+    TypeOrmModule.forRoot(typeOrmConfig),
     UsersModule,
     DoctorsModule,
     AppointmentsModule,
