@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
@@ -6,6 +6,8 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private doctorsService: DoctorsService,
@@ -18,12 +20,15 @@ export class AuthService {
     password: string;
     location?: string;
   }) {
+    this.logger.log(`🔄 Registering user: ${data.email}`);
     const existingUser = await this.usersService.findByEmail(data.email);
     const existingDoctor = await this.doctorsService.findByEmail(data.email);
     if (existingUser || existingDoctor) {
+      this.logger.warn(`⚠️  Email already registered: ${data.email}`);
       throw new UnauthorizedException('Email already registered');
     }
     const user = await this.usersService.create({ ...data, role: 'user' });
+    this.logger.log(`✅ User saved to database - ID: ${user.id}, Email: ${data.email}`);
     const payload = { sub: user.id, email: user.email, role: 'user' };
     return {
       access_token: this.jwtService.sign(payload),
@@ -44,12 +49,15 @@ export class AuthService {
     specialization: string;
     address?: string;
   }) {
+    this.logger.log(`🔄 Registering doctor: ${data.email}`);
     const existingDoctor = await this.doctorsService.findByEmail(data.email);
     const existingUser = await this.usersService.findByEmail(data.email);
     if (existingDoctor || existingUser) {
+      this.logger.warn(`⚠️  Email already registered: ${data.email}`);
       throw new UnauthorizedException('Email already registered');
     }
     const doctor = await this.doctorsService.create(data);
+    this.logger.log(`✅ Doctor saved to database - ID: ${doctor.id}, Email: ${data.email}`);
     const payload = { sub: doctor.id, email: doctor.email, role: 'doctor' };
     return {
       access_token: this.jwtService.sign(payload),

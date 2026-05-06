@@ -4,9 +4,9 @@ export interface AuthenticatedUser {
   role: 'user' | 'admin' | 'doctor';
   name: string;
   location?: string; // For users
+  phone?: string; // For users
   specialization?: string; // For doctors
   address?: string; // For doctors
-  phone?: string; // For doctors
   photo?: string; // For doctors
   availableTime?: string; // For doctors
 }
