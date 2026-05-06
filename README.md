@@ -33,6 +33,31 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 - **Database**: MySQL with automatic schema generation
 - **Authentication**: JWT with role-based access control
 
+## Database Setup
+
+This project uses MySQL for the backend database. The backend reads database connection settings from `backend/.env`.
+
+Default database configuration:
+
+```env
+DB_TYPE=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=
+DB_NAME=clinic_appointment
+```
+
+Steps to prepare the database:
+
+1. Start your WAMP/MySQL server.
+2. Open phpMyAdmin at `http://localhost/phpmyadmin` (default WAMP path), or use your preferred MySQL client.
+3. Create a database named `clinic_appointment`.
+4. Make sure `backend/.env` matches your MySQL credentials.
+5. Start the backend and the tables will be created automatically using TypeORM.
+
+> If you use a different MySQL user or password, update `backend/.env` accordingly.
+
 ## Installation
 
 1. **Clone the repository**:
@@ -125,7 +150,7 @@ A full-stack clinic appointment management system with a NestJS backend and a Re
 - `POST /payment-methods` - Add payment method
 
 ### Health Check
-- `GET /api/health` - System health check
+- `GET /api/health` - System health check. The backend now validates the database connection and returns `dbConnected: true` when connected.
 
 ## Project Structure
 

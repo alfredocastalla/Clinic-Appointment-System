@@ -15,14 +15,29 @@ The Clinic Appointment System is a full-stack web application built with NestJS 
 - **CORS**: Enabled for frontend-backend communication
 - **Testing**: Jest for unit, integration, and e2e tests
 
-### Frontend
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized production builds
-- **Routing**: React Router for client-side navigation
-- **State Management**: React hooks and context
-- **Styling**: CSS modules with responsive design
-- **API Communication**: Fetch API with custom hooks
-- **Authentication**: JWT token management with localStorage
+## Database Setup
+
+The backend uses MySQL and reads connection values from `backend/.env`.
+
+The repository includes `backend/.env.example` as a starting template. Copy it to `backend/.env` and update `DB_TYPE`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and `DB_NAME` for your local MySQL setup.
+
+Default configuration:
+
+```env
+DB_TYPE=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=
+DB_NAME=clinic_appointment
+```
+
+To initialize:
+
+1. Start your WAMP or local MySQL server.
+2. Create the `clinic_appointment` database.
+3. Update `backend/.env` with your MySQL settings.
+4. Run the backend; TypeORM will create the schema automatically.
 
 ## Database Schema
 
@@ -34,6 +49,7 @@ The Clinic Appointment System is a full-stack web application built with NestJS 
   email: string (Unique)
   password: string (Hashed)
   location?: string (Optional)
+  phone?: string (Optional)
   role: string ('user' | 'doctor' | 'admin')
   createdAt: Date (Auto-generated)
   updatedAt: Date (Auto-generated)
@@ -132,6 +148,7 @@ The Clinic Appointment System is a full-stack web application built with NestJS 
 - `GET /users` - Get all users (admin/doctor access only)
 - `GET /users/:id` - Get user by ID
 - `PATCH /users/:id` - Update user
+- `PATCH /users/profile/:id` - Update profile (patient or user self-update)
 - `DELETE /users/:id` - Delete user
 
 ### Doctors (`/doctors`) - Public Access
