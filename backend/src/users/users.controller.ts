@@ -22,7 +22,7 @@ type CreateUserDto = {
   location?: string;
 };
 
-type UpdateUserDto = Partial<CreateUserDto>;
+type UpdateUserDto = Partial<CreateUserDto> & { phone?: string };
 
 @Controller('users')
 export class UsersController {
@@ -66,7 +66,32 @@ export class UsersController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    if (req.user.id !== +id && req.user.role !== 'admin') {
+      throw new UnauthorizedException(
+        'You can only update your own profile',
+      );
+    }
+    const user = await this.usersService.update(+id, updateUserDto);
+    return this.sanitizeUser(user);
+  }
+
+  @Patch('profile/:id')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() updateUserDto: { name?: string; location?: string; phone?: string },
+  ) {
+    if (req.user.id !== +id && req.user.role !== 'admin') {
+      throw new UnauthorizedException(
+        'You can only update your own profile',
+      );
+    }
     const user = await this.usersService.update(+id, updateUserDto);
     return this.sanitizeUser(user);
   }

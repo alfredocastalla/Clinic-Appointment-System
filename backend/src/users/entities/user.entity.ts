@@ -23,6 +23,9 @@ export class User {
   @Column({ nullable: true })
   location?: string;
 
+  @Column({ nullable: true })
+  phone?: string;
+
   @Column()
   role: string;
 
