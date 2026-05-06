@@ -1564,6 +1564,18 @@ function PatientDashboard({
     return notifications.slice(0, 5);
   }, [appointments, currentUser, doctorById, payments]);
 
+  const nextAppointment = useMemo(() => {
+    const sortedAppointments = upcomingAppointments
+      .filter((appointment) => appointment.status === 'confirmed' || appointment.status === 'pending')
+      .slice()
+      .sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return (a.time ?? '').localeCompare(b.time ?? '');
+      });
+    return sortedAppointments[0] ?? null;
+  }, [upcomingAppointments]);
+
   return (
     <>
       <SidebarDashboard
@@ -1582,22 +1594,47 @@ function PatientDashboard({
       >
         {activeView === 'dashboard' ? (
         <>
+          <section className="panel hero-dashboard-panel">
+            <div className="overview-hero">
+              <div>
+                <span className="eyebrow">Welcome back</span>
+                <h2>{currentUser.name}</h2>
+                <p>See your upcoming visits, review your profile, and stay on top of your health at a glance.</p>
+              </div>
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <strong>Next appointment</strong>
+                  <p>
+                    {nextAppointment ? (
+                      <>
+                        {doctorById[nextAppointment.doctorId]
+                          ? `Dr. ${doctorById[nextAppointment.doctorId].name}`
+                          : `Doctor #${nextAppointment.doctorId}`}
+                        <br />
+                        {nextAppointment.date}{nextAppointment.time ? ` • ${nextAppointment.time}` : ''}
+                      </>
+                    ) : 'No upcoming appointment scheduled.'}
+                  </p>
+                </article>
+                <article className="summary-card">
+                  <strong>Appointment status</strong>
+                  <p>{`${appointments.filter((appt) => appt.status === 'confirmed').length} confirmed • ${appointments.filter((appt) => appt.status === 'pending').length} pending`}</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Profile snapshot</strong>
+                  <p>{currentUser.phone ? currentUser.phone : 'Phone not saved yet'}</p>
+                  <p>{currentUser.location ? currentUser.location : 'Location not set'}</p>
+                </article>
+              </div>
+            </div>
+          </section>
+
           <div className="metrics-grid">
             <MetricCard label="Upcoming visits" value={String(upcomingAppointments.length)} />
             <MetricCard label="Doctors available" value={String(doctors.length)} />
             <MetricCard label="Confirmed" value={String(appointments.filter((appt) => appt.status === 'confirmed').length)} />
             <MetricCard label="Pending" value={String(appointments.filter((appt) => appt.status === 'pending').length)} />
           </div>
-
-          <section className="panel hero-dashboard-panel">
-            <div className="overview-hero">
-              <div>
-                <span className="eyebrow">Welcome back</span>
-                <h2>{currentUser?.name || 'Patient'}</h2>
-                <p>Manage your appointments and health information in one place.</p>
-              </div>
-            </div>
-          </section>
 
           <div className="content-grid">
             <section className="panel">
@@ -1651,19 +1688,19 @@ function PatientDashboard({
               <div className="summary-grid">
                 <article className="summary-card">
                   <strong>Medical Records</strong>
-                  <p>View and download your health records.</p>
+                  <p>{medicalSummary.recentLabResults.length} records available</p>
                 </article>
                 <article className="summary-card">
                   <strong>Prescriptions</strong>
-                  <p>View your prescription history.</p>
+                  <p>{medicalSummary.recentLabResults.length > 0 ? 'Latest medication details ready' : 'No active prescriptions yet'}</p>
                 </article>
                 <article className="summary-card">
                   <strong>Allergies</strong>
-                  <p>No known allergies.</p>
+                  <p>{medicalSummary.allergies[0] || 'Not recorded'}</p>
                 </article>
                 <article className="summary-card">
-                  <strong>Blood Type</strong>
-                  <p>O+</p>
+                  <strong>Immunizations</strong>
+                  <p>{medicalSummary.immunizations.length} records stored</p>
                 </article>
               </div>
             </section>
@@ -1693,10 +1730,10 @@ function PatientDashboard({
             <section className="panel">
               <SectionHeader title="My Profile" />
               <div className="profile-summary">
-                <InfoPair label="Email" value={currentUser?.email || '—'} />
-                <InfoPair label="Phone" value={currentUser?.phone || '0917 123 4567'} />
-                <InfoPair label="Date of Birth" value="April 12, 1992 (32 yrs)" />
-                <InfoPair label="Location" value="123 Health St., Quezon City, Metro Manila" />
+                <InfoPair label="Name" value={currentUser.name} />
+                <InfoPair label="Email" value={currentUser.email} />
+                <InfoPair label="Phone" value={currentUser.phone || 'Not set'} />
+                <InfoPair label="Location" value={currentUser.location || 'Not set'} />
               </div>
             </section>
           </div>
