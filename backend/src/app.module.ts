@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: join(__dirname, '..', '.env') });
 
 import { UsersModule } from './users/users.module';
 import { DoctorsModule } from './doctors/doctors.module';
