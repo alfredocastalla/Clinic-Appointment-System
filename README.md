@@ -1,43 +1,68 @@
 # Clinic Appointment System
 
-A full-stack clinic appointment management system with a NestJS backend and a React + TypeScript frontend.
+A full-stack clinic appointment system with a NestJS backend and a React + TypeScript frontend.
 
-## Features
+## Quick Start
 
-### Backend (NestJS + TypeORM + MySQL)
-- **Authentication System**: JWT-based login with bcrypt password hashing
-- **User Management**: Full CRUD operations for users and doctors
-- **Appointment System**: Book, view, confirm, complete, and cancel appointments
-- **Notification System**: Real-time notifications for appointment status changes
-- **Payment Processing**: Payment creation and history tracking
-- **Payment Methods**: Credit/debit card management for users
-- **Role-based Access**: Separate registration for patients and doctors with admin capabilities
-- **Database**: MySQL with TypeORM entities and relationships
-- **API Validation**: Class-validator for input validation
-- **CORS Support**: Cross-origin resource sharing for frontend integration
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/alfredocastalla/Clinic-Appointment-System.git
+   cd Clinic-Appointment-System
+   ```
 
-### Frontend (React + TypeScript)
-- **Routing**: React Router for client-side navigation
-- **Patient Dashboard**: Browse doctors, book appointments, manage payments, view notifications
-- **Doctor Dashboard**: Confirm/complete appointments, update profile, manage schedule
-- **Authentication**: JWT token management with automatic logout on expiration
-- **Responsive Design**: Mobile-friendly interface with modern UI
-- **Type-safe UI**: Shared TypeScript interfaces for API data
-- **Real-time Updates**: Notification system with unread indicators
-- **Payment Management**: Secure payment method storage and transaction history
+2. Install dependencies:
+   ```bash
+   npm run install:all
+   ```
 
-## Tech Stack
+3. Create the backend environment file:
+   ```bash
+   cd backend
+   copy .env.example .env
+   ```
+   Update backend/.env with your MySQL credentials.
 
-- **Backend**: NestJS, TypeORM, MySQL, JWT, bcrypt, Passport
-- **Frontend**: React, TypeScript, Vite, Fetch API
-- **Database**: MySQL with automatic schema generation
-- **Authentication**: JWT with role-based access control
+4. Start both services together:
+   ```bash
+   npm run start
+   ```
 
-## Database Setup
+   This launches:
+   - Frontend: http://localhost:5173
+   - Backend: http://localhost:3001
 
-This project uses MySQL for the backend database. The backend reads database connection settings from `backend/.env`.
+## Development commands
 
-Default database configuration:
+From the repository root:
+
+- npm run start — start frontend and backend together
+- npm run backend:dev — start backend in watch mode
+- npm run frontend:dev — start frontend dev server
+- npm run backend:build — compile backend TypeScript
+- npm run frontend:build — build frontend production assets
+- npm run install:all — install backend and frontend dependencies
+
+## Project overview
+
+### Backend
+- NestJS API server
+- TypeORM data access and MySQL support
+- JWT authentication and role-based authorization
+- Users, doctors, appointments, notifications, payments, and payment methods
+- API validation with class-validator
+
+### Frontend
+- React + TypeScript + Vite
+- Role-based dashboard experience
+- Appointment booking and management
+- Payment method management
+- Notification display and user messaging
+
+## Database setup
+
+The backend reads from backend/.env.
+
+Default values:
 
 ```env
 DB_TYPE=mysql
@@ -48,260 +73,71 @@ DB_PASSWORD=
 DB_NAME=clinic_appointment
 ```
 
-Steps to prepare the database:
+If you use a different MySQL setup, update backend/.env accordingly.
 
-1. Start your WAMP/MySQL server.
-2. Open phpMyAdmin at `http://localhost/phpmyadmin` (default WAMP path), or use your preferred MySQL client.
-3. Create a database named `clinic_appointment`.
-4. Make sure `backend/.env` matches your MySQL credentials.
-5. Start the backend and the tables will be created automatically using TypeORM.
-
-> If you use a different MySQL user or password, update `backend/.env` accordingly.
-
-## Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/alfredocastalla/Clinic-Appointment-System.git
-   cd clinic-appointment-system
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm run install:all
-   ```
-
-3. **Configure backend environment**:
-   ```bash
-   cd backend
-   copy .env.example .env
-   ```
-   Then update `.env` with your MySQL settings if needed.
-
-4. **Start the backend**:
-   ```bash
-   npm run backend:dev
-   ```
-
-   The API server will run on `http://localhost:3001`
-
-5. **Start the frontend** in a separate terminal from the repository root:
-   ```bash
-   cd ..
-   npm run frontend:dev
-   ```
-
-   The frontend will run on `http://localhost:5173`
-
-## Usage
-
-1. **Access the application**:
-   Open `http://localhost:5173` in your browser during development, or `http://localhost:3001` for the backend-served production build.
-
-2. **Register**:
-   - Register as a patient or doctor
-   - Login with your credentials
-
-3. **Manage Appointments**:
-   - Patients can book appointments with doctors
-   - Doctors can view their scheduled appointments
-   - Appointments can be cancelled
-
-## API Endpoints
+## API endpoints
 
 ### Authentication
-- `POST /auth/register/user` - Register new patient
-- `POST /auth/register/doctor` - Register new doctor
-- `POST /auth/login` - Login with email/password and role
-  - Body: `{ email, password, role }`
+- POST /auth/register/user — register a patient
+- POST /auth/register/doctor — register a doctor
+- POST /auth/login — login and receive JWT
 
-### Users (Admin/Doctor access)
-- `GET /users` - Get all users
-- `GET /users/:id` - Get user by ID
-- `PATCH /users/:id` - Update user
-- `DELETE /users/:id` - Delete user
+### Users
+- GET /users
+- GET /users/:id
+- PATCH /users/:id
+- DELETE /users/:id
 
-### Doctors (Public access)
-- `GET /doctors` - Get all doctors
-- `GET /doctors/:id` - Get doctor by ID
-- `POST /doctors` - Create doctor (admin)
-- `PATCH /doctors/:id` - Update doctor
-- `DELETE /doctors/:id` - Delete doctor (admin)
+### Doctors
+- GET /doctors
+- GET /doctors/:id
+- POST /doctors
+- PATCH /doctors/:id
+- DELETE /doctors/:id
 
-### Appointments (Authenticated users)
-- `GET /appointments` - Get appointments (filtered by role)
-- `POST /appointments` - Book appointment
-- `PATCH /appointments/:id/confirm` - Confirm appointment (doctor)
-- `PATCH /appointments/:id/complete` - Complete appointment (doctor)
-- `PATCH /appointments/:id/cancel` - Cancel appointment
-- `PATCH /appointments/:id` - Update appointment
+### Appointments
+- GET /appointments
+- POST /appointments
+- PATCH /appointments/:id/confirm
+- PATCH /appointments/:id/complete
+- PATCH /appointments/:id/cancel
+- PATCH /appointments/:id
 
-### Notifications (Authenticated users)
-- `GET /notifications` - Get user notifications
-- `PATCH /notifications/:id/read` - Mark notification as read
-- `PATCH /notifications/read-all` - Mark all notifications as read
+### Notifications
+- GET /notifications
+- PATCH /notifications/:id/read
+- PATCH /notifications/read-all
 
-### Payments (Authenticated users)
-- `GET /payments` - Get payment history
-- `POST /payments` - Create payment
+### Payments
+- GET /payments
+- POST /payments
 
-### Payment Methods (Users only)
-- `GET /payment-methods` - Get user's payment methods
-- `POST /payment-methods` - Add payment method
+### Payment methods
+- GET /payment-methods
+- POST /payment-methods
 
-### Health Check
-- `GET /api/health` - System health check. The backend now validates the database connection and returns `dbConnected: true` when connected.
+### Health check
+- GET /api/health
 
-## Project Structure
+## VS Code tasks
 
-```
+The repository includes tasks for VS Code:
+- Start Backend Dev
+- Start Frontend Dev
+- Start Full App
+
+## Project structure
+
+``
 clinic-appointment-system/
-├── backend/                          # NestJS API server
-│   ├── src/
-│   │   ├── app.controller.ts        # Main app controller
-│   │   ├── app.module.ts            # Root application module
-│   │   ├── app.service.ts           # Main app service
-│   │   ├── main.ts                  # Application entry point
-│   │   ├── auth/                    # Authentication module
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.module.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── jwt-auth.guard.ts
-│   │   │   ├── jwt.strategy.ts
-│   │   │   └── entities/
-│   │   ├── users/                   # User management module
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.module.ts
-│   │   │   ├── users.service.ts
-│   │   │   └── entities/
-│   │   ├── doctors/                 # Doctor management module
-│   │   │   ├── doctors.controller.ts
-│   │   │   ├── doctors.module.ts
-│   │   │   ├── doctors.service.ts
-│   │   │   └── entities/
-│   │   ├── appointments/            # Appointment management module
-│   │   │   ├── appointments.controller.ts
-│   │   │   ├── appointments.module.ts
-│   │   │   ├── appointments.service.ts
-│   │   │   └── entities/
-│   │   ├── notifications/           # Notification system module
-│   │   │   ├── notifications.controller.ts
-│   │   │   ├── notifications.module.ts
-│   │   │   ├── notifications.service.ts
-│   │   │   └── entities/
-│   │   ├── payments/                # Payment processing module
-│   │   │   ├── payments.controller.ts
-│   │   │   ├── payments.module.ts
-│   │   │   ├── payments.service.ts
-│   │   │   └── entities/
-│   │   └── payment-methods/         # Payment methods module
-│   │       ├── payment-methods.controller.ts
-│   │       ├── payment-methods.module.ts
-│   │       ├── payment-methods.service.ts
-│   │       └── entities/
-│   ├── test/                        # Test files
-│   │   ├── app.e2e-spec.ts
-│   │   ├── jest-e2e.json
-│   │   ├── jest-integration.json
-│   │   └── e2e/
-│   │       ├── appointments.e2e-spec.ts
-│   │       └── cypress/
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── nest-cli.json
-├── frontend/                         # React + TypeScript client
-│   ├── src/
-│   │   ├── App.tsx                  # Main React component
-│   │   ├── main.tsx                 # React entry point
-│   │   ├── types.ts                 # Shared TypeScript types
-│   │   ├── styles.css               # Global styles
-│   │   └── lib/                     # Utility functions
-│   │       └── api.ts               # API client functions
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   └── index.html
-├── student-min-specs/               # Project specifications
-├── package.json                     # Root package.json with scripts
-├── spec.md                          # Technical specification
-├── README.md                        # This file
-└── QUICKSTART.md                    # Quick start guide
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+├── backend/
+├── frontend/
+├── package.json
+├── README.md
+├── spec.md
+└── .vscode/
+``
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT
