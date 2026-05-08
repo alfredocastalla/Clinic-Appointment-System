@@ -30,6 +30,14 @@ textarea {
   font: inherit;
 }
 
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
 button {
   cursor: pointer;
 }
@@ -97,6 +105,75 @@ button {
 .sidebar-brand p {
   margin: 0;
   color: rgba(255, 255, 255, 0.76);
+}
+
+.sidebar-doctor-card {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.06);
+}
+
+.doctor-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(34, 197, 94, 0.95));
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.doctor-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doctor-card-content {
+  display: grid;
+  gap: 8px;
+}
+
+.doctor-card-content strong {
+  font-size: 1rem;
+  display: block;
+  color: #f8fafc;
+}
+
+.doctor-card-content span {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.doctor-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.doctor-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doctor-meta span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.doctor-meta strong {
+  color: #fff;
+  font-size: 0.92rem;
 }
 
 .sidebar-nav {
@@ -606,16 +683,65 @@ button {
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.stack-form input:focus {
+.stack-form select,
+.stack-form textarea,
+.stack-form input {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 14px 16px;
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stack-form select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #334155 50%), linear-gradient(135deg, #334155 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 5px), calc(100% - 12px) calc(50% - 5px);
+  background-size: 8px 8px;
+  background-repeat: no-repeat;
+}
+
+.stack-form textarea {
+  min-height: 145px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.stack-form input:focus,
+.stack-form select:focus,
+.stack-form textarea:focus {
   outline: none;
   border-color: #2563eb;
   transform: translateY(-1px);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
+.stack-form .field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stack-form label span {
+  display: inline-block;
+  color: #334155;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
 .primary-button {
   width: 100%;
   justify-content: center;
+  min-height: 54px;
+}
+
+@media (max-width: 720px) {
+  .stack-form .field-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes float {
@@ -1550,50 +1676,47 @@ button {
 }
 
 .workspace-shell.patient-dashboard .sidebar {
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.14), rgba(59, 130, 246, 0.08), rgba(236, 72, 153, 0.06));
-  border-color: rgba(99, 102, 241, 0.18);
-  box-shadow: inset 0 0 60px rgba(79, 70, 229, 0.06);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.16), rgba(59, 130, 246, 0.08), rgba(236, 72, 153, 0.08));
+  border-color: rgba(99, 102, 241, 0.20);
+  box-shadow: inset 0 0 80px rgba(79, 70, 229, 0.08);
 }
 
 .workspace-shell.patient-dashboard .dashboard-shell {
   background:
-    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.08), transparent 35%),
-    radial-gradient(circle at 80% 15%, rgba(236, 72, 153, 0.08), transparent 32%),
-    linear-gradient(180deg, rgba(248, 250, 255, 0.98), rgba(255, 255, 255, 1));
+    radial-gradient(circle at 14% 14%, rgba(99, 102, 241, 0.08), transparent 36%),
+    radial-gradient(circle at 88% 22%, rgba(236, 72, 153, 0.07), transparent 30%),
+    linear-gradient(180deg, rgba(247, 250, 255, 0.99), rgba(255, 255, 255, 1));
   position: relative;
 }
 
 .workspace-shell.patient-dashboard .dashboard-shell::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background:
-    radial-gradient(circle at 25% 80%, rgba(99, 102, 241, 0.04), transparent 35%),
-    radial-gradient(circle at 75% 40%, rgba(236, 72, 153, 0.04), transparent 35%);
+    radial-gradient(circle at 26% 82%, rgba(99, 102, 241, 0.04), transparent 38%),
+    radial-gradient(circle at 72% 40%, rgba(236, 72, 153, 0.045), transparent 38%);
   pointer-events: none;
 }
 
 .workspace-shell.patient-dashboard .sidebar-link {
   background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(99, 102, 241, 0.12);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.14);
+  box-shadow: 0 6px 22px rgba(99, 102, 241, 0.10);
   transition: all 0.28s ease;
 }
 
 .workspace-shell.patient-dashboard .sidebar-link:hover {
   background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.24);
+  border-color: rgba(99, 102, 241, 0.28);
   transform: translateX(2px);
-  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.14);
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.14);
 }
 
 .workspace-shell.patient-dashboard .sidebar-link.active {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
   color: #fff;
-  box-shadow: 0 14px 38px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 14px 38px rgba(99, 102, 241, 0.22);
   transform: translateX(6px);
   border-color: rgba(99, 102, 241, 0.4);
 }
@@ -1618,7 +1741,7 @@ button {
   height: 40px;
   min-width: 40px;
   border-radius: 14px;
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(99, 102, 241, 0.14);
   color: #4338ca;
 }
 
@@ -1638,6 +1761,555 @@ button {
   width: 100%;
 }
 
+.profile-panel {
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  box-shadow: 0 18px 45px rgba(59, 130, 246, 0.08);
+}
+
+.profile-settings-panel {
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
+}
+
+.profile-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.profile-header-bar > div:first-child {
+  flex: 1;
+}
+
+.profile-header-bar h2 {
+  color: #0f172a;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 8px;
+  line-height: 1.3;
+}
+
+.profile-header-bar .eyebrow {
+  margin: 0;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.profile-form-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.08);
+}
+
+.profile-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.profile-field {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-field span {
+  color: #64748b;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.profile-field input {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: all 0.25s ease;
+}
+
+.profile-field input:hover {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(248, 250, 252, 1);
+}
+
+.profile-field input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 0.99);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), inset 0 0 0 1px rgba(59, 130, 246, 0.15);
+}
+
+.profile-field input[readonly] {
+  background: rgba(241, 245, 249, 0.8);
+  color: #475569;
+  cursor: default;
+}
+
+.profile-form-actions {
+  justify-content: flex-end;
+  width: 100%;
+  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  padding-top: 24px;
+}
+
+.profile-form-actions button {
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.doctor-profile-page {
+  display: grid;
+  gap: 20px;
+}
+
+.patient-profile-page {
+  display: grid;
+  gap: 20px;
+}
+
+.doctor-profile-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(14, 165, 233, 0.07) 48%, rgba(20, 184, 166, 0.1)),
+    rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  box-shadow: 0 20px 48px rgba(37, 99, 235, 0.1);
+}
+
+.patient-profile-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.08) 48%, rgba(236, 72, 153, 0.08)),
+    rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  box-shadow: 0 20px 48px rgba(99, 102, 241, 0.1);
+}
+
+.doctor-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-width: 0;
+}
+
+.patient-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-width: 0;
+}
+
+.doctor-profile-avatar {
+  width: 104px;
+  height: 104px;
+  border-radius: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: linear-gradient(135deg, #2563eb, #0f766e);
+  color: #fff;
+  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.22);
+}
+
+.patient-profile-avatar {
+  width: 104px;
+  height: 104px;
+  border-radius: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  color: #fff;
+  box-shadow: 0 18px 34px rgba(99, 102, 241, 0.2);
+}
+
+.doctor-profile-avatar span {
+  font-size: 2.7rem;
+  font-weight: 800;
+}
+
+.patient-profile-avatar span {
+  font-size: 2.7rem;
+  font-weight: 800;
+}
+
+.doctor-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-status-pill,
+.edit-state-pill,
+.doctor-profile-tags span,
+.patient-profile-tags span {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.profile-status-pill {
+  padding: 8px 12px;
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f766e;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.doctor-profile-identity h2 {
+  margin: 12px 0 6px;
+  color: #0f172a;
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  line-height: 1.05;
+}
+
+.patient-profile-identity h2 {
+  margin: 12px 0 6px;
+  color: #0f172a;
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  line-height: 1.05;
+}
+
+.doctor-profile-identity p {
+  margin: 0;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.patient-profile-identity p {
+  margin: 0;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.doctor-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.patient-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.doctor-profile-tags span {
+  max-width: 100%;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #1e40af;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  font-size: 0.9rem;
+}
+
+.patient-profile-tags span {
+  max-width: 100%;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #4338ca;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  font-size: 0.9rem;
+}
+
+.doctor-profile-actions {
+  flex: 0 0 auto;
+}
+
+.doctor-profile-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.patient-profile-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.doctor-profile-stat {
+  display: grid;
+  gap: 8px;
+  min-height: 126px;
+  padding: 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.patient-profile-stat {
+  display: grid;
+  gap: 8px;
+  min-height: 126px;
+  padding: 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.doctor-profile-stat span {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.patient-profile-stat span {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.doctor-profile-stat strong {
+  color: #0f172a;
+  font-size: 1.8rem;
+  line-height: 1.15;
+}
+
+.patient-profile-stat strong {
+  color: #0f172a;
+  font-size: 1.8rem;
+  line-height: 1.15;
+}
+
+.doctor-profile-stat p {
+  margin: 0;
+  color: #55708d;
+}
+
+.patient-profile-stat p {
+  margin: 0;
+  color: #55708d;
+}
+
+.profile-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.profile-progress-track div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #0f766e);
+}
+
+.doctor-profile-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.patient-profile-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.doctor-profile-side.panel {
+  min-height: auto;
+  padding: 24px;
+}
+
+.patient-profile-side.panel {
+  min-height: auto;
+  padding: 24px;
+}
+
+.doctor-profile-form {
+  padding: 28px;
+}
+
+.patient-profile-form {
+  padding: 28px;
+}
+
+.profile-form-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.profile-form-heading h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.35rem;
+}
+
+.profile-form-heading .eyebrow {
+  margin-bottom: 8px;
+}
+
+.edit-state-pill {
+  padding: 8px 12px;
+  background: rgba(100, 116, 139, 0.1);
+  color: #475569;
+  font-size: 0.82rem;
+}
+
+.edit-state-pill.is-editing {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.doctor-profile-form .profile-field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+}
+
+.patient-profile-form .profile-field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+}
+
+.doctor-profile-form .profile-field-wide {
+  grid-column: span 2;
+}
+
+.patient-profile-form .profile-field-wide {
+  grid-column: span 2;
+}
+
+.doctor-profile-form .profile-field input {
+  min-height: 54px;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.patient-profile-form .profile-field input {
+  min-height: 54px;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.doctor-profile-form .profile-field input[readonly] {
+  background: rgba(248, 250, 252, 0.94);
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+.patient-profile-form .profile-field input[readonly] {
+  background: rgba(248, 250, 252, 0.94);
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+.doctor-profile-form .profile-form-actions {
+  margin-top: 2px;
+}
+
+.patient-profile-form .profile-form-actions {
+  margin-top: 2px;
+}
+
+@media (max-width: 980px) {
+  .doctor-profile-layout,
+  .doctor-profile-overview,
+  .patient-profile-layout,
+  .patient-profile-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-profile-hero,
+  .patient-profile-hero {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .doctor-profile-hero,
+  .doctor-profile-form,
+  .doctor-profile-side.panel,
+  .patient-profile-hero,
+  .patient-profile-form,
+  .patient-profile-side.panel {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .doctor-profile-identity,
+  .patient-profile-identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .doctor-profile-avatar,
+  .patient-profile-avatar {
+    width: 82px;
+    height: 82px;
+    border-radius: 22px;
+  }
+
+  .doctor-profile-avatar span,
+  .patient-profile-avatar span {
+    font-size: 2.1rem;
+  }
+
+  .doctor-profile-form .profile-field-grid,
+  .doctor-profile-form .profile-field-wide,
+  .patient-profile-form .profile-field-grid,
+  .patient-profile-form .profile-field-wide {
+    grid-template-columns: 1fr;
+    grid-column: auto;
+  }
+
+  .profile-form-heading,
+  .profile-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .workspace-shell.patient-dashboard .profile-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1648,8 +2320,8 @@ button {
 .workspace-shell.patient-dashboard .profile-summary article {
   background: rgba(247, 249, 255, 0.96);
   border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: 18px;
-  padding: 18px;
+  border-radius: 22px;
+  padding: 20px;
 }
 
 .workspace-shell.patient-dashboard .profile-summary strong {
@@ -1661,93 +2333,379 @@ button {
 }
 
 .workspace-shell.patient-dashboard .panel {
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(99, 102, 241, 0.14);
-  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.08), 0 3px 10px rgba(236, 72, 153, 0.04);
-  transition: all 0.3s ease;
-}
-
-.workspace-shell.patient-dashboard .metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 44px rgba(99, 102, 241, 0.12), 0 6px 18px rgba(236, 72, 153, 0.06);
-  border-color: rgba(99, 102, 241, 0.2);
-}
-
-.workspace-shell.patient-dashboard .metric-card:nth-child(1) {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(99, 102, 241, 0.04));
-}
-
-.workspace-shell.patient-dashboard .metric-card:nth-child(2) {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(244, 63, 94, 0.04));
-}
-
-.workspace-shell.patient-dashboard .metric-card:nth-child(3) {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(20, 184, 166, 0.04));
-}
-
-.workspace-shell.patient-dashboard .metric-card:nth-child(4) {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(129, 140, 248, 0.04));
-}
-
-.workspace-shell.patient-dashboard .secondary-button {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #4338ca;
-  transition: all 0.3s ease;
-}
-
-.workspace-shell.patient-dashboard .secondary-button:hover {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.4);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.15);
-}
-
-.workspace-shell.patient-dashboard .primary-button {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-  transition: all 0.3s ease;
-}
-
-.workspace-shell.patient-dashboard .primary-button:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-}
-
-.workspace-shell.patient-dashboard .panel {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 20px;
+  min-height: 320px;
   background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: 0 14px 40px rgba(99, 102, 241, 0.08), 0 4px 14px rgba(236, 72, 153, 0.04);
   transition: all 0.3s ease;
 }
 
 .workspace-shell.patient-dashboard .panel:hover {
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.12);
-  border-color: rgba(99, 102, 241, 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 18px 48px rgba(99, 102, 241, 0.12), 0 6px 18px rgba(236, 72, 153, 0.06);
 }
 
-.workspace-shell.patient-dashboard .quick-actions-panel {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(236, 72, 153, 0.05));
-  border: 1px solid rgba(99, 102, 241, 0.1);
+.workspace-shell.patient-dashboard .hero-dashboard-panel {
+  padding: 36px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(235, 242, 255, 0.98));
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  border-radius: 32px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 22px 58px rgba(99, 102, 241, 0.10);
+}
+
+.workspace-shell.patient-dashboard .hero-dashboard-panel .eyebrow {
+  display: inline-flex;
+  margin-bottom: 14px;
+  color: #4f46e5;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.workspace-shell.patient-dashboard .overview-hero {
+  display: grid;
+  grid-template-columns: minmax(380px, 1.8fr) minmax(320px, 1fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.workspace-shell.patient-dashboard .overview-hero h2 {
+  font-size: clamp(2rem, 2.3vw, 2.6rem);
+  margin: 0.4rem 0 1rem;
+  line-height: 1.05;
+}
+
+.workspace-shell.patient-dashboard .hero-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.workspace-shell.patient-dashboard .hero-stat-grid .summary-card {
+  min-height: 150px;
+}
+
+.workspace-shell.patient-dashboard .summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.workspace-shell.patient-dashboard .summary-card {
+  border-radius: 24px;
+  padding: 22px 24px;
+  display: grid;
+  gap: 12px;
+  min-height: 150px;
+  align-content: start;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.workspace-shell.patient-dashboard .summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 48px rgba(99, 102, 241, 0.12);
+}
+
+.workspace-shell.patient-dashboard .summary-card strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #1f2d7b;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.workspace-shell.patient-dashboard .summary-card p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.workspace-shell.patient-dashboard .summary-card p + p {
+  margin-top: 10px;
+}
+
+.workspace-shell.patient-dashboard .summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.workspace-shell.patient-dashboard .appointment-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.workspace-shell.patient-dashboard .appointment-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.workspace-shell.patient-dashboard .appointment-card-head h3 {
+  margin: 0 0 8px;
+}
+
+.workspace-shell.patient-dashboard .appointment-card-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.workspace-shell.patient-dashboard .appointment-card-meta p {
+  margin: 0;
+}
+
+.workspace-shell.patient-dashboard .appointment-empty-state {
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  text-align: center;
+  padding: 28px;
+}
+
+.workspace-shell.patient-dashboard .appointment-empty-state p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.workspace-shell.patient-dashboard .appointment-empty-state button {
+  width: min(240px, 100%);
+}
+
+.workspace-shell.patient-dashboard .list-actions {
+  justify-content: flex-end;
+}
+
+.workspace-shell.patient-dashboard .metrics-grid {
+  margin: 0 0 30px;
+}
+
+.workspace-shell.patient-dashboard .panel {
+  overflow: hidden;
+  position: relative;
+  z-index: 0;
+}
+
+.workspace-shell.patient-dashboard .list-stack {
+  display: grid;
+  gap: 16px;
 }
 
 .workspace-shell.patient-dashboard .list-card {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(99, 102, 241, 0.08);
-  transition: all 0.3s ease;
+  padding: 24px;
+}
+
+.workspace-shell.patient-dashboard .list-card h3 {
+  font-size: 1.05rem;
+}
+
+.workspace-shell.patient-dashboard .list-card p {
+  color: #55607a;
+  margin: 0;
+}
+
+.workspace-shell.patient-dashboard .status-pill {
+  min-width: 110px;
+  text-align: center;
+  padding: 10px 14px;
+}
+
+.workspace-shell.patient-dashboard .metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.workspace-shell.patient-dashboard .metric-card {
+  border-radius: 24px;
+  padding: 26px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  box-shadow: 0 18px 40px rgba(99, 102, 241, 0.08);
+}
+
+.workspace-shell.patient-dashboard .metric-card strong {
+  font-size: 1.9rem;
+  color: #1f2937;
+}
+
+.workspace-shell.patient-dashboard .metric-content span {
+  color: #6b7280;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.workspace-shell.patient-dashboard .list-card {
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 150px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(99, 102, 241, 0.10);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .workspace-shell.patient-dashboard .list-card:hover {
-  background: rgba(99, 102, 241, 0.04);
-  border-color: rgba(99, 102, 241, 0.14);
-  transform: translateX(2px);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 38px rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.16);
 }
 
-.workspace-shell.patient-dashboard .secondary-button {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #4338ca;
-  transition: all 0.3s ease;
+.workspace-shell.patient-dashboard .medical-records-panel {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border-radius: 28px;
+  background: rgba(248, 250, 254, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.workspace-shell.patient-dashboard .medical-records-panel .panel-header {
+  margin-bottom: 12px;
+}
+
+.workspace-shell.patient-dashboard .record-card {
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+  min-height: 150px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.06);
+}
+
+.workspace-shell.patient-dashboard .record-card h3 {
+  margin-bottom: 4px;
+}
+
+.workspace-shell.patient-dashboard .record-card p {
+  color: #475569;
+}
+
+.workspace-shell.patient-dashboard .record-actions {
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+
+.workspace-shell.patient-dashboard .medical-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.workspace-shell.patient-dashboard .medical-record-grid .list-card {
+  min-height: 140px;
+}
+
+.workspace-shell.patient-dashboard .panel .summary-card button,
+.workspace-shell.patient-dashboard .medical-records-panel .secondary-button {
+  margin-top: auto;
+}
+
+.workspace-shell.patient-dashboard .content-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-auto-rows: minmax(320px, auto);
+  gap: 24px;
+  align-items: start;
+}
+
+.workspace-shell.patient-dashboard .content-grid > section {
+  display: grid;
+  gap: 22px;
+}
+
+.workspace-shell.patient-dashboard .content-grid .list-stack {
+  gap: 18px;
+}
+
+.workspace-shell.patient-dashboard .medical-records-panel h3,
+.workspace-shell.patient-dashboard .medical-records-panel .panel-header h2 {
+  margin: 0;
+}
+
+.workspace-shell.patient-dashboard .panel-header {
+  margin-bottom: 18px;
+}
+
+.workspace-shell.patient-dashboard .panel-header h2,
+.workspace-shell.patient-dashboard .list-card h3 {
+  margin: 0;
+}
+
+.workspace-shell.patient-dashboard .muted-copy {
+  color: #64748b;
+}
+
+.workspace-shell.patient-dashboard .panel-header {
+  margin-bottom: 18px;
+}
+
+.workspace-shell.patient-dashboard .panel-header h2,
+.workspace-shell.patient-dashboard .list-card h3 {
+  margin: 0;
+}
+
+.workspace-shell.patient-dashboard .content-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  grid-auto-rows: minmax(320px, auto);
+  gap: 24px;
+  align-items: start;
+}
+
+.workspace-shell.patient-dashboard .content-grid > section {
+  display: grid;
+  gap: 22px;
+}
+
+@media (max-width: 1100px) {
+  .workspace-shell.patient-dashboard .overview-hero,
+  .workspace-shell.patient-dashboard .content-grid,
+  .workspace-shell.patient-dashboard .summary-grid,
+  .workspace-shell.patient-dashboard .metrics-grid,
+  .workspace-shell.patient-dashboard .profile-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-shell.patient-dashboard .overview-hero {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 700px) {
+  .workspace-shell.patient-dashboard .sidebar-link,
+  .workspace-shell.patient-dashboard .sidebar-footer .sidebar-logout {
+    min-height: auto;
+  }
+
+  .workspace-shell.patient-dashboard .dashboard-shell {
+    padding: 0;
+  }
 }
 
 .workspace-shell.admin-dashboard .sidebar {
@@ -2890,6 +3848,8 @@ button {
 }
 
 .modal-content {
+  position: relative;
+  z-index: 1;
   background: white;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -2897,6 +3857,47 @@ button {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 40px));
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  border-radius: 24px;
+  background: #ffffff;
+  color: #16324f;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+}
+
+.modal-card h2 {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 1.6rem;
+}
+
+.modal-card p {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.95);
+  color: #334155;
+  line-height: 1.55;
+}
+
+.modal-card p strong {
+  color: #16324f;
+}
+
+.modal-card .secondary-button {
+  width: fit-content;
+  margin-top: 8px;
+  justify-self: start;
 }
 
 .modal-header {
@@ -2973,16 +3974,72 @@ button {
   gap: 12px;
 }
 
+.messages-panel {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.messages-panel .panel-header {
+  align-items: center;
+  gap: 18px;
+}
+
+.tab-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.tab-button {
+  min-height: 38px;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: transparent;
+  color: #475569;
+  font-weight: 700;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tab-button.active {
+  background: #fff;
+  color: #1d4ed8;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+}
+
+.conversation-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  border-color: rgba(99, 102, 241, 0.12);
+}
+
+.conversation-card h3 {
+  margin-bottom: 8px;
+}
+
+.conversation-card p {
+  max-width: 720px;
+}
+
 .chat-thread {
   display: grid;
   gap: 18px;
+  padding: 20px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
+  padding: 0 0 16px;
   border-bottom: 1px solid rgba(22, 50, 79, 0.08);
 }
 
@@ -2995,7 +4052,7 @@ button {
   gap: 14px;
   max-height: 420px;
   overflow-y: auto;
-  padding: 10px 0;
+  padding: 10px 6px;
 }
 
 .message-bubble {
@@ -3006,6 +4063,7 @@ button {
   border-radius: 18px;
   background: rgba(248, 250, 252, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .message-bubble.sent {
@@ -3029,6 +4087,30 @@ button {
 
 .message-time {
   white-space: nowrap;
+}
+
+.chat-thread form {
+  padding-top: 4px;
+}
+
+.chat-thread textarea {
+  min-height: 110px;
+}
+
+@media (max-width: 720px) {
+  .conversation-card {
+    grid-template-columns: 1fr;
+  }
+
+  .tab-buttons,
+  .tab-button,
+  .message-bubble {
+    width: 100%;
+  }
+
+  .message-bubble {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 640px) {

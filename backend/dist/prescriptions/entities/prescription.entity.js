@@ -51,6 +51,22 @@ __decorate([
     __metadata("design:type", String)
 ], Prescription.prototype, "notes", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Prescription.prototype, "refillRequested", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], Prescription.prototype, "refillRequestNote", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    __metadata("design:type", Date)
+], Prescription.prototype, "refillRequestedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 'pending' }),
+    __metadata("design:type", String)
+], Prescription.prototype, "refillStatus", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'date' }),
     __metadata("design:type", String)
 ], Prescription.prototype, "date", void 0);

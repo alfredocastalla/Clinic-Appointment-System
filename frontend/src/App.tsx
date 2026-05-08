@@ -104,7 +104,107 @@ type HealthNote = {
   details: string;
 };
 
+type MedicalRecordSet = {
+  labResults: LabResult[];
+  allergies: string[];
+  immunizations: ImmunizationRecord[];
+  healthNotes: HealthNote[];
+};
+
+type MedicalRecordStore = Record<number, MedicalRecordSet>;
+
 const MESSAGE_STORE_KEY = 'clinic-appointment-system-messages';
+const MEDICAL_RECORD_STORE_KEY = 'clinic-appointment-system-medical-records';
+
+function emptyMedicalRecordSet(): MedicalRecordSet {
+  return {
+    labResults: [],
+    allergies: [],
+    immunizations: [],
+    healthNotes: [],
+  };
+}
+
+function loadStoredMedicalRecords(): MedicalRecordStore {
+  try {
+    const raw = localStorage.getItem(MEDICAL_RECORD_STORE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as MedicalRecordStore;
+  } catch {
+    return {};
+  }
+}
+
+function saveStoredMedicalRecords(records: MedicalRecordStore) {
+  try {
+    localStorage.setItem(MEDICAL_RECORD_STORE_KEY, JSON.stringify(records));
+  } catch {
+    // ignore storage failures in demo mode
+  }
+}
+
+function mergeMedicalRecordSet(base: MedicalRecordSet, additions?: Partial<MedicalRecordSet>): MedicalRecordSet {
+  return {
+    labResults: [...base.labResults, ...(additions?.labResults ?? [])],
+    allergies: additions?.allergies?.length ? additions.allergies : base.allergies,
+    immunizations: [...base.immunizations, ...(additions?.immunizations ?? [])],
+    healthNotes: [...base.healthNotes, ...(additions?.healthNotes ?? [])],
+  };
+}
+
+function defaultPatientMedicalSummary(): MedicalRecordSet {
+  return {
+    labResults: [
+      {
+        id: 1,
+        title: 'Complete Blood Count',
+        date: '2025-05-15',
+        doctor: 'Dr. Anna Lim',
+        summary: 'Normal hemoglobin, white blood cells slightly elevated. No anemia detected.',
+        fileName: 'CBC_Report_May_2025.pdf',
+      },
+      {
+        id: 2,
+        title: 'Chest X-ray',
+        date: '2025-04-28',
+        doctor: 'Dr. John Reyes',
+        summary: 'No acute findings. Lungs are clear and heart size is normal.',
+        fileName: 'Chest_Xray_April_2025.pdf',
+      },
+    ],
+    allergies: ['No known drug allergies.'],
+    immunizations: [
+      {
+        id: 1,
+        vaccine: 'COVID-19 Booster',
+        date: '2024-12-10',
+        provider: 'City Health Clinic',
+        notes: 'Completed booster dose as recommended.',
+      },
+      {
+        id: 2,
+        vaccine: 'Influenza',
+        date: '2024-09-22',
+        provider: 'CareWell Clinic',
+        notes: 'Annual flu vaccine administered.',
+      },
+    ],
+    healthNotes: [
+      {
+        id: 1,
+        title: 'Annual wellness summary',
+        date: '2025-03-10',
+        details: 'Overall good health. Recommended regular exercise and balanced diet. Follow-up in 12 months.',
+      },
+      {
+        id: 2,
+        title: 'Medication review note',
+        date: '2025-04-28',
+        details: 'Reviewed current medication. No issues with the prescribed treatment plan.',
+      },
+    ],
+  };
+}
 
 function loadStoredMessages(): Message[] {
   try {
@@ -860,6 +960,9 @@ function PatientDashboard({
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [showPrescriptionDetails, setShowPrescriptionDetails] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [showAddPaymentMethod, setShowAddPaymentMethod] = useState(false);
@@ -876,62 +979,7 @@ function PatientDashboard({
     name: '',
   });
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [medicalSummary, setMedicalSummary] = useState<{
-    recentLabResults: LabResult[];
-    allergies: string[];
-    immunizations: ImmunizationRecord[];
-    healthNotes: HealthNote[];
-  }>({
-    recentLabResults: [
-      {
-        id: 1,
-        title: 'Complete Blood Count',
-        date: '2025-05-15',
-        doctor: 'Dr. Anna Lim',
-        summary: 'Normal hemoglobin, white blood cells slightly elevated. No anemia detected.',
-        fileName: 'CBC_Report_May_2025.pdf',
-      },
-      {
-        id: 2,
-        title: 'Chest X-ray',
-        date: '2025-04-28',
-        doctor: 'Dr. John Reyes',
-        summary: 'No acute findings. Lungs are clear and heart size is normal.',
-        fileName: 'Chest_Xray_April_2025.pdf',
-      },
-    ],
-    allergies: ['No known drug allergies.'],
-    immunizations: [
-      {
-        id: 1,
-        vaccine: 'COVID-19 Booster',
-        date: '2024-12-10',
-        provider: 'City Health Clinic',
-        notes: 'Completed booster dose as recommended.',
-      },
-      {
-        id: 2,
-        vaccine: 'Influenza',
-        date: '2024-09-22',
-        provider: 'CareWell Clinic',
-        notes: 'Annual flu vaccine administered.',
-      },
-    ],
-    healthNotes: [
-      {
-        id: 1,
-        title: 'Annual wellness summary',
-        date: '2025-03-10',
-        details: 'Overall good health. Recommended regular exercise and balanced diet. Follow-up in 12 months.',
-      },
-      {
-        id: 2,
-        title: 'Medication review note',
-        date: '2025-04-28',
-        details: 'Reviewed current medication. No issues with the prescribed treatment plan.',
-      },
-    ],
-  });
+  const [medicalSummary, setMedicalSummary] = useState<MedicalRecordSet>(() => defaultPatientMedicalSummary());
   const [selectedMedicalRecord, setSelectedMedicalRecord] = useState<LabResult | ImmunizationRecord | HealthNote | null>(null);
   const [selectedMedicalCategory, setSelectedMedicalCategory] = useState<'lab' | 'immunization' | 'note' | null>(null);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -1044,6 +1092,8 @@ function PatientDashboard({
         senderRole: 'doctor',
         recipientId: currentUser.id,
         recipientName: currentUser.name,
+        doctorId,
+        patientId: currentUser.id,
         content: `Your appointment with ${doctor.name} is confirmed.`,
         timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
         read: false,
@@ -1058,6 +1108,8 @@ function PatientDashboard({
           senderRole: 'doctor',
           recipientId: currentUser.id,
           recipientName: currentUser.name,
+          doctorId,
+          patientId: currentUser.id,
           content: 'Please remember to bring your medical records to the appointment.',
           timestamp: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
           read: false,
@@ -1102,8 +1154,13 @@ function PatientDashboard({
     }>();
 
     messages.forEach((msg) => {
-      const conversationId = msg.conversationId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
-      const doctorId = conversationId; // Since we set conversationId to doctorId
+      const doctorId = msg.doctorId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+      const patientId = msg.patientId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+      if (patientId !== currentUser.id) {
+        return;
+      }
+
+      const conversationId = doctorId;
       const doctor = doctorById[doctorId];
       const doctorName = doctor ? doctor.name : (msg.senderRole === 'doctor' ? msg.senderName : msg.recipientName);
       const existing = conversations.get(conversationId);
@@ -1128,7 +1185,11 @@ function PatientDashboard({
 
   const conversationMessages = selectedConversation !== null
     ? messages
-        .filter((msg) => msg.conversationId === selectedConversation)
+        .filter((msg) => {
+          const doctorId = msg.doctorId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+          const patientId = msg.patientId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+          return doctorId === selectedConversation && patientId === currentUser?.id;
+        })
         .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     : [];
 
@@ -1140,11 +1201,13 @@ function PatientDashboard({
   function openConversation(conversationId: number) {
     setSelectedConversation(conversationId);
     setMessages((prevMessages) =>
-      prevMessages.map((msg) =>
-        msg.conversationId === conversationId && msg.senderRole === 'doctor'
+      prevMessages.map((msg) => {
+        const doctorId = msg.doctorId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+        const patientId = msg.patientId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+        return doctorId === conversationId && patientId === currentUser?.id && msg.senderRole === 'doctor'
           ? { ...msg, read: true }
-          : msg,
-      ),
+          : msg;
+      }),
     );
   }
 
@@ -1172,13 +1235,45 @@ function PatientDashboard({
           senderRole: 'doctor',
           recipientId: currentUser?.id ?? 0,
           recipientName: currentUser?.name ?? 'You',
-          content: `You can message Dr. ${doctor.name} here about your appointment.`,
+          doctorId,
+          patientId: currentUser?.id ?? 0,
+          content: `This conversation is now open with Dr. ${doctor.name}. Send a message below to begin.`,
           timestamp: new Date().toISOString(),
           read: true,
           conversationId: doctorId,
         },
       ];
     });
+  }
+
+  function openPrescriptionDetails(prescription: Prescription) {
+    setSelectedPrescription(prescription);
+    setShowPrescriptionDetails(true);
+  }
+
+  async function requestPrescriptionRefill(prescription: Prescription) {
+    try {
+      const updatedPrescription = await api<Prescription>(
+        `/prescriptions/${prescription.id}/refill`,
+        {
+          method: 'POST',
+          auth: true,
+          body: {
+            note: 'Patient requested a refill from the portal.',
+          },
+        },
+      );
+
+      setPrescriptions((prev) => prev.map((item) => (item.id === updatedPrescription.id ? updatedPrescription : item)));
+      setMessage(`Refill request submitted for ${updatedPrescription.medication}.`);
+    } catch (error) {
+      setError((error as Error).message);
+    }
+  }
+
+  function closePrescriptionDetails() {
+    setSelectedPrescription(null);
+    setShowPrescriptionDetails(false);
   }
 
   function openNotifications() {
@@ -1254,6 +1349,22 @@ function PatientDashboard({
     }
   }
 
+  function refreshPatientMedicalRecords(showNotice = false) {
+    if (!currentUser) {
+      return;
+    }
+
+    const storedRecords = loadStoredMedicalRecords()[currentUser.id];
+    setMedicalSummary(mergeMedicalRecordSet(defaultPatientMedicalSummary(), storedRecords));
+    if (showNotice) {
+      setMessage('Medical records refreshed.');
+    }
+  }
+
+  useEffect(() => {
+    refreshPatientMedicalRecords();
+  }, [currentUser.id]);
+
   useEffect(() => {
     void loadData();
   }, []);
@@ -1275,16 +1386,21 @@ function PatientDashboard({
     setError(null);
 
     try {
-      const [doctorData, appointmentData, paymentData, paymentMethodData] = await Promise.all([
+      const [doctorData, appointmentData, paymentData, paymentMethodData, prescriptionData] = await Promise.all([
         api<Doctor[]>('/doctors', { auth: true }),
         api<Appointment[]>('/appointments', { auth: true }),
         api<Payment[]>('/payments', { auth: true }),
         api<PaymentMethod[]>('/payment-methods', { auth: true }),
+        api<Prescription[]>('/prescriptions', { auth: true }),
       ]);
-      setDoctors(doctorData);
+      const registeredDoctors = doctorData.filter(
+        (doctor) => doctor.name && doctor.email && doctor.specialization,
+      );
+      setDoctors(registeredDoctors);
       setAppointments(appointmentData);
       setPayments(paymentData);
       setPaymentMethods(paymentMethodData);
+      setPrescriptions(prescriptionData);
     } catch (loadError) {
       setError((loadError as Error).message);
     }
@@ -1381,31 +1497,17 @@ function PatientDashboard({
         senderRole: 'user',
         recipientId: conversation.doctorId,
         recipientName: conversation.doctorName,
+        doctorId: conversation.doctorId,
+        patientId: currentUser.id,
         content: messageContent.trim(),
         timestamp: new Date().toISOString(),
-        read: true,
+        read: false,
         conversationId: selectedConversation,
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       setMessageContent('');
-      setMessage('Message sent successfully.');
-
-      setTimeout(() => {
-        const reply: Message = {
-          id: Date.now() + 1,
-          senderId: conversation.doctorId,
-          senderName: conversation.doctorName,
-          senderRole: 'doctor',
-          recipientId: currentUser.id,
-          recipientName: currentUser.name,
-          content: 'Thanks for your message. I will review this and get back to you shortly.',
-          timestamp: new Date().toISOString(),
-          read: false,
-          conversationId: selectedConversation,
-        };
-        setMessages((prevMessages) => [...prevMessages, reply]);
-      }, 1200);
+      setMessage(`Your message was sent. Dr. ${conversation.doctorName} will reply soon.`);
     } catch (sendError) {
       setError((sendError as Error).message);
     } finally {
@@ -1517,6 +1619,11 @@ function PatientDashboard({
 
   const upcomingAppointments = appointments.filter((appointment) => appointment.status !== 'cancelled');
 
+  const patientPrescriptions = useMemo(
+    () => prescriptions.filter((prescription) => prescription.patientId === currentUser.id),
+    [prescriptions, currentUser?.id],
+  );
+
   const appointmentNotifications = useMemo(() => {
     if (!currentUser) return [];
 
@@ -1576,6 +1683,62 @@ function PatientDashboard({
     return sortedAppointments[0] ?? null;
   }, [upcomingAppointments]);
 
+  const patientInitial = profileForm.name?.trim().charAt(0).toUpperCase() || currentUser?.name?.trim().charAt(0).toUpperCase() || 'P';
+  const patientCompletedProfileFields = [
+    profileForm.name,
+    profileForm.email,
+    profileForm.phone,
+    profileForm.location,
+    profileForm.dob,
+  ].filter((value) => Boolean(value && String(value).trim())).length;
+  const patientProfileCompletion = Math.round((patientCompletedProfileFields / 5) * 100);
+  const activeAppointmentCount = appointments.filter((appointment) => appointment.status !== 'cancelled' && appointment.status !== 'completed').length;
+  const latestPrescription = patientPrescriptions[0];
+
+  const pageTitle = activeView === 'dashboard'
+    ? 'My Dashboard'
+    : activeView === 'appointments'
+    ? 'My Appointments'
+    : activeView === 'medical'
+    ? 'Medical Records'
+    : activeView === 'prescriptions'
+    ? 'Prescriptions'
+    : activeView === 'messages'
+    ? 'Messages'
+    : activeView === 'profile'
+    ? 'Profile Settings'
+    : activeView === 'payments'
+    ? 'Payments'
+    : activeView === 'documents'
+    ? 'Documents'
+    : activeView === 'settings'
+    ? 'Settings'
+    : activeView === 'support'
+    ? 'Support & Session'
+    : 'My Dashboard';
+
+  const pageSubtitle = activeView === 'dashboard'
+    ? 'Manage your appointments and health information in one place.'
+    : activeView === 'appointments'
+    ? 'View and manage your bookings.'
+    : activeView === 'medical'
+    ? 'Review your health records and history.'
+    : activeView === 'prescriptions'
+    ? 'See your medication list and prescription details.'
+    : activeView === 'messages'
+    ? 'Check messages from your care team.'
+    : activeView === 'profile'
+    ? 'Update your account and contact details.'
+    : activeView === 'payments'
+    ? 'View payment history and billing details.'
+    : activeView === 'documents'
+    ? 'Access your saved documents and reports.'
+    : activeView === 'settings'
+    ? 'Change your preferences and account settings.'
+    : activeView === 'support'
+    ? 'Get help with appointments and account issues.'
+    : 'Manage your appointments and health information in one place.';
+
   return (
     <>
       <SidebarDashboard
@@ -1583,8 +1746,8 @@ function PatientDashboard({
         navItems={navItems}
         activeView={activeView}
         onSelectView={setActiveView}
-        title="My Dashboard"
-        subtitle="Manage your appointments and health information in one place."
+        title={pageTitle}
+        subtitle={pageSubtitle}
         onLogout={onLogout}
         message={message}
         error={error}
@@ -1601,7 +1764,7 @@ function PatientDashboard({
                 <h2>{currentUser.name}</h2>
                 <p>See your upcoming visits, review your profile, and stay on top of your health at a glance.</p>
               </div>
-              <div className="summary-grid">
+              <div className="hero-stat-grid">
                 <article className="summary-card">
                   <strong>Next appointment</strong>
                   <p>
@@ -1654,6 +1817,16 @@ function PatientDashboard({
                 )}
               </div>
             </section>
+
+            <section className="panel">
+              <SectionHeader title="My Profile" />
+              <div className="profile-summary">
+                <InfoPair label="Name" value={currentUser.name} />
+                <InfoPair label="Email" value={currentUser.email} />
+                <InfoPair label="Phone" value={currentUser.phone || 'Not set'} />
+                <InfoPair label="Location" value={currentUser.location || 'Not set'} />
+              </div>
+            </section>
           </div>
 
           <div className="content-grid">
@@ -1680,33 +1853,7 @@ function PatientDashboard({
                 )}
               </div>
             </section>
-          </div>
 
-          <div className="content-grid">
-            <section className="panel">
-              <SectionHeader title="Medical Summary" />
-              <div className="summary-grid">
-                <article className="summary-card">
-                  <strong>Medical Records</strong>
-                  <p>{medicalSummary.recentLabResults.length} records available</p>
-                </article>
-                <article className="summary-card">
-                  <strong>Prescriptions</strong>
-                  <p>{medicalSummary.recentLabResults.length > 0 ? 'Latest medication details ready' : 'No active prescriptions yet'}</p>
-                </article>
-                <article className="summary-card">
-                  <strong>Allergies</strong>
-                  <p>{medicalSummary.allergies[0] || 'Not recorded'}</p>
-                </article>
-                <article className="summary-card">
-                  <strong>Immunizations</strong>
-                  <p>{medicalSummary.immunizations.length} records stored</p>
-                </article>
-              </div>
-            </section>
-          </div>
-
-          <div className="content-grid">
             <section className="panel">
               <SectionHeader title="Recent Prescriptions" />
               <div className="list-stack">
@@ -1726,14 +1873,28 @@ function PatientDashboard({
                 </article>
               </div>
             </section>
+          </div>
 
+          <div className="content-grid">
             <section className="panel">
-              <SectionHeader title="My Profile" />
-              <div className="profile-summary">
-                <InfoPair label="Name" value={currentUser.name} />
-                <InfoPair label="Email" value={currentUser.email} />
-                <InfoPair label="Phone" value={currentUser.phone || 'Not set'} />
-                <InfoPair label="Location" value={currentUser.location || 'Not set'} />
+              <SectionHeader title="Medical Summary" />
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <strong>Medical Records</strong>
+                  <p>{medicalSummary.labResults.length} records available</p>
+                </article>
+                        <article className="summary-card">
+                  <strong>Prescriptions</strong>
+                  <p>{patientPrescriptions.length > 0 ? `${patientPrescriptions.length} active prescription${patientPrescriptions.length !== 1 ? 's' : ''}` : 'No active prescriptions yet'}</p>
+                </article>
+                      <article className="summary-card">
+                  <strong>Allergies</strong>
+                  <p>{medicalSummary.allergies[0] || 'Not recorded'}</p>
+                </article>
+                <article className="summary-card">
+                  <strong>Immunizations</strong>
+                  <p>{medicalSummary.immunizations.length} records stored</p>
+                </article>
               </div>
             </section>
           </div>
@@ -1749,10 +1910,17 @@ function PatientDashboard({
                 action={<button className="ghost-button" onClick={() => setIsBookingMode(false)}>Back</button>}
               />
               <form className="stack-form" onSubmit={handleBook}>
-                <label>
+                <label className="profile-field">
                   <span>Doctor</span>
-                  <select value={doctorId} onChange={(event) => setDoctorId(event.target.value)} required>
-                    <option value="">Select a doctor</option>
+                  <select
+                    value={doctorId}
+                    onChange={(event) => setDoctorId(event.target.value)}
+                    required
+                    disabled={doctors.length === 0}
+                  >
+                    <option value="">
+                      {doctors.length > 0 ? 'Select a doctor' : 'No registered doctors available'}
+                    </option>
                     {doctors.map((doctor) => (
                       <option key={doctor.id} value={doctor.id}>
                         Dr. {doctor.name} - {doctor.specialization}
@@ -1760,20 +1928,28 @@ function PatientDashboard({
                     ))}
                   </select>
                 </label>
-                <label>
-                  <span>Date</span>
-                  <input
-                    value={date}
-                    onChange={(event) => setDate(event.target.value)}
-                    type="date"
-                    min={getTodayInputValue()}
-                    required
-                  />
-                </label>
-                <label>
-                  <span>Time</span>
-                  <input value={time} onChange={(event) => setTime(event.target.value)} type="time" />
-                </label>
+                {doctors.length === 0 ? (
+                  <div className="empty-state appointment-empty-state">
+                    <p>No registered doctors are available right now.</p>
+                    <p>Please check back later or contact support for assistance.</p>
+                  </div>
+                ) : null}
+                <div className="field-grid">
+                  <label>
+                    <span>Date</span>
+                    <input
+                      value={date}
+                      onChange={(event) => setDate(event.target.value)}
+                      type="date"
+                      min={getTodayInputValue()}
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>Time</span>
+                    <input value={time} onChange={(event) => setTime(event.target.value)} type="time" />
+                  </label>
+                </div>
                 <label>
                   <span>Symptoms or notes</span>
                   <textarea
@@ -1783,7 +1959,7 @@ function PatientDashboard({
                     placeholder="Optional notes for the doctor"
                   />
                 </label>
-                <button className="primary-button" type="submit" disabled={booking}>
+                <button className="primary-button" type="submit" disabled={booking || doctors.length === 0}>
                   {booking ? 'Booking...' : 'Confirm appointment'}
                 </button>
               </form>
@@ -1791,7 +1967,7 @@ function PatientDashboard({
           ) : (
             <section className="panel">
               <SectionHeader
-                title="Your appointments"
+                title="My Appointments"
                 action={
                   <div className="toolbar-actions">
                     <button className="primary-button compact-button" onClick={() => setIsBookingMode(true)}>
@@ -1801,12 +1977,51 @@ function PatientDashboard({
                   </div>
                 }
               />
+              <div className="appointment-summary-grid">
+                <article className="summary-card">
+                  <strong>Next appointment</strong>
+                  <p>
+                    {nextAppointment ? (
+                      <>
+                        {doctorById[nextAppointment.doctorId]
+                          ? `Dr. ${doctorById[nextAppointment.doctorId].name}`
+                          : `Doctor #${nextAppointment.doctorId}`}
+                        <br />
+                        {nextAppointment.date}{nextAppointment.time ? ` • ${nextAppointment.time}` : ''}
+                        <br />
+                        {doctorById[nextAppointment.doctorId]?.specialization || 'General practice'}
+                      </>
+                    ) : (
+                      'No upcoming appointment scheduled yet.'
+                    )}
+                  </p>
+                </article>
+                <article className="summary-card">
+                  <strong>Appointment snapshot</strong>
+                  <p>
+                    {appointments.length > 0 ? (
+                      <>
+                        {appointments.filter((appt) => appt.status !== 'cancelled').length} upcoming visit{appointments.filter((appt) => appt.status !== 'cancelled').length !== 1 ? 's' : ''}
+                        <br />
+                        {appointments.filter((appt) => appt.status === 'confirmed').length} confirmed · {appointments.filter((appt) => appt.status === 'pending').length} pending · {appointments.filter((appt) => appt.status === 'cancelled').length} cancelled
+                      </>
+                    ) : (
+                      'Start by booking your first appointment.'
+                    )}
+                  </p>
+                </article>
+              </div>
               <div className="list-stack">
                 {appointments.length === 0 ? (
-                  <EmptyState text="You have not booked any appointments yet." />
+                  <div className="empty-state appointment-empty-state">
+                    <p>You have not booked any appointments yet.</p>
+                    <button className="primary-button compact-button" type="button" onClick={() => setIsBookingMode(true)}>
+                      Book your first appointment
+                    </button>
+                  </div>
                 ) : (
                   appointments.map((appointment) => (
-                    <article className="list-card" key={appointment.id}>
+                    <article className="list-card appointment-card" key={appointment.id}>
                   {rescheduleForm?.id === appointment.id ? (
                     <form className="inline-edit-form" onSubmit={handleReschedule}>
                       <div className="inline-edit-grid">
@@ -1858,12 +2073,20 @@ function PatientDashboard({
                     </form>
                   ) : (
                     <>
-                      <div>
-                        <h3>
-                          {doctorById[appointment.doctorId]
-                            ? `Dr. ${doctorById[appointment.doctorId].name}`
-                            : `Doctor #${appointment.doctorId}`}
-                        </h3>
+                      <div className="appointment-card-head">
+                        <div>
+                          <h3>
+                            {doctorById[appointment.doctorId]
+                              ? `Dr. ${doctorById[appointment.doctorId].name}`
+                              : `Doctor #${appointment.doctorId}`}
+                          </h3>
+                          <p className="muted-copy">
+                            {doctorById[appointment.doctorId]?.specialization || 'General practice'}
+                          </p>
+                        </div>
+                        <span className={`status-pill status-${appointment.status}`}>{appointment.status}</span>
+                      </div>
+                      <div className="appointment-card-meta">
                         <p>
                           {appointment.date}
                           {appointment.time ? ` at ${appointment.time}` : ''}
@@ -1871,7 +2094,6 @@ function PatientDashboard({
                         <p className="muted-copy">{appointment.symptoms || 'No notes added.'}</p>
                       </div>
                       <div className="list-actions">
-                        <span className={`status-pill status-${appointment.status}`}>{appointment.status}</span>
                         {appointment.status !== 'cancelled' && appointment.status !== 'completed' ? (
                           <button
                             className="secondary-button compact-button"
@@ -1929,46 +2151,70 @@ function PatientDashboard({
 
       {activeView === 'prescriptions' ? (
         <section className="panel">
-          <SectionHeader title="Prescriptions" action={<button className="ghost-button" type="button" onClick={() => setMessage('Prescription list refreshed.')}>Refresh</button>} />
+          <SectionHeader title="Prescriptions" action={<button className="ghost-button" type="button" onClick={() => void loadData()}>Refresh</button>} />
+          <p className="muted-copy" style={{ margin: '0 0 16px' }}>
+            Prescriptions assigned to you by your doctor.
+          </p>
           <div className="list-stack">
-            <article className="list-card">
-              <div>
-                <h3>Amoxicillin 500mg</h3>
-                <p>1 capsule every 8 hours</p>
-                <p className="muted-copy">May 10, 2024 · Dr. John Reyes</p>
-              </div>
-              <div className="list-actions">
-                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Viewing prescription details soon.')}>View</button>
-                <button className="primary-button compact-button" type="button" onClick={() => setMessage('Refill request sent.')}>Refill</button>
-              </div>
-            </article>
-            <article className="list-card">
-              <div>
-                <h3>Cetirizine 10mg</h3>
-                <p>1 tablet once daily</p>
-                <p className="muted-copy">April 18, 2024 · Dr. Anna Lim</p>
-              </div>
-              <div className="list-actions">
-                <button className="secondary-button compact-button" type="button" onClick={() => setMessage('Viewing prescription details soon.')}>View</button>
-                <button className="primary-button compact-button" type="button" onClick={() => setMessage('Refill request sent.')}>Refill</button>
-              </div>
-            </article>
+            {patientPrescriptions.length === 0 ? (
+              <EmptyState text="No prescriptions available yet. Your doctor can create and assign a prescription to you." />
+            ) : (
+              patientPrescriptions.map((prescription) => (
+                <article className="list-card" key={prescription.id}>
+                  <div>
+                    <h3>{prescription.medication}</h3>
+                    <p>{prescription.dosage}</p>
+                    <p className="muted-copy">
+                      {new Date(prescription.date).toLocaleDateString()} · {prescription.doctorName ?? 'Prescribed by your doctor'}
+                    </p>
+                    {prescription.refillRequested ? (
+                      <p className="status-pill status-pending">Refill requested</p>
+                    ) : null}
+                  </div>
+                  <div className="list-actions">
+                    <button className="secondary-button compact-button" type="button" onClick={() => openPrescriptionDetails(prescription)}>View</button>
+                    <button className="primary-button compact-button" type="button" onClick={() => requestPrescriptionRefill(prescription)}>Refill</button>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
       ) : null}
 
+      {showPrescriptionDetails && selectedPrescription ? (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h2>Prescription Details</h2>
+            <p><strong>Medication:</strong> {selectedPrescription.medication}</p>
+            <p><strong>Dosage:</strong> {selectedPrescription.dosage}</p>
+            <p><strong>Instructions:</strong> {selectedPrescription.instructions || 'No additional instructions.'}</p>
+            <p><strong>Doctor:</strong> {selectedPrescription.doctorName ?? 'Your doctor'}</p>
+            <p><strong>Date:</strong> {new Date(selectedPrescription.date).toLocaleDateString()}</p>
+            {selectedPrescription.notes ? <p><strong>Notes:</strong> {selectedPrescription.notes}</p> : null}
+            {selectedPrescription.refillRequested ? (
+              <p><strong>Refill Status:</strong> {selectedPrescription.refillStatus ?? 'pending'}</p>
+            ) : null}
+            {selectedPrescription.refillRequestedAt ? (
+              <p><strong>Requested At:</strong> {new Date(selectedPrescription.refillRequestedAt).toLocaleString()}</p>
+            ) : null}
+            <button className="secondary-button" type="button" onClick={closePrescriptionDetails}>Close</button>
+          </div>
+        </div>
+      ) : null}
+
       {activeView === 'medical' ? (
         <section className="panel">
-          <SectionHeader title="Medical Records" action={<button className="ghost-button" type="button" onClick={() => setMessage('Medical records refreshed.')}>Refresh</button>} />
+          <SectionHeader title="Medical Records" action={<button className="ghost-button" type="button" onClick={() => refreshPatientMedicalRecords(true)}>Refresh</button>} />
           <div className="content-grid">
             <div>
               <div className="summary-grid">
                 <article className="summary-card">
                   <strong>Lab reports</strong>
-                  <p>{medicalSummary.recentLabResults.length} available reports</p>
+                  <p>{medicalSummary.labResults.length} available reports</p>
                   <button className="secondary-button compact-button" type="button" onClick={() => {
                     setSelectedMedicalCategory('lab');
-                    setSelectedMedicalRecord(medicalSummary.recentLabResults[0]);
+                    setSelectedMedicalRecord(medicalSummary.labResults[0]);
                   }}>View latest</button>
                 </article>
                 <article className="summary-card">
@@ -1994,32 +2240,32 @@ function PatientDashboard({
                 </article>
               </div>
             </div>
-            <div>
-              <h3 style={{ marginBottom: '16px' }}>Recent Medical Records</h3>
-              <div className="list-stack">
-                {medicalSummary.recentLabResults.map((lab) => (
-                  <article className="list-card" key={lab.id}>
+            <section className="medical-records-panel">
+              <SectionHeader title="Recent Medical Records" />
+              <div className="list-stack record-list">
+                {medicalSummary.labResults.map((lab) => (
+                  <article className="list-card record-card" key={lab.id}>
                     <div>
                       <h3>{lab.title}</h3>
                       <p>{lab.doctor}</p>
                       <p className="muted-copy">{lab.date}</p>
                     </div>
-                    <div className="list-actions">
+                    <div className="list-actions record-actions">
                       <button className="secondary-button compact-button" type="button" onClick={() => { setSelectedMedicalCategory('lab'); setSelectedMedicalRecord(lab); }}>View</button>
                       <button className="primary-button compact-button" type="button" onClick={() => setMessage(`${lab.fileName} download started.`)}>Download</button>
                     </div>
                   </article>
                 ))}
               </div>
-            </div>
+            </section>
           </div>
 
           <div className="content-grid" style={{ marginTop: '24px' }}>
             <section className="panel">
               <SectionHeader title="Immunization History" />
-              <div className="list-stack">
+              <div className="list-stack medical-record-grid">
                 {medicalSummary.immunizations.map((record) => (
-                  <article className="list-card" key={record.id}>
+                  <article className="list-card record-card" key={record.id}>
                     <div>
                       <h3>{record.vaccine}</h3>
                       <p>{record.provider}</p>
@@ -2035,9 +2281,9 @@ function PatientDashboard({
           <div className="content-grid" style={{ marginTop: '24px' }}>
             <section className="panel">
               <SectionHeader title="Health Notes" />
-              <div className="list-stack">
+              <div className="list-stack medical-record-grid">
                 {medicalSummary.healthNotes.map((note) => (
-                  <article className="list-card" key={note.id}>
+                  <article className="list-card record-card" key={note.id}>
                     <div>
                       <h3>{note.title}</h3>
                       <p className="muted-copy">{note.date}</p>
@@ -2052,7 +2298,7 @@ function PatientDashboard({
       ) : null}
 
       {activeView === 'messages' ? (
-        <section className="panel">
+        <section className="panel messages-panel">
           <SectionHeader
             title={selectedConversation ? `Conversation with ${activeConversation?.doctorName ?? 'Doctor'}` : 'Messages & Notifications'}
             action={
@@ -2138,7 +2384,7 @@ function PatientDashboard({
                   <EmptyState text="No conversations yet. Start by opening a thread." />
                 ) : (
                   conversationSummaries.map((conversation) => (
-                    <article className="list-card" key={conversation.conversationId}>
+                    <article className="list-card conversation-card" key={conversation.conversationId}>
                       <div>
                         <h3>{conversation.doctorName}</h3>
                         <p>{conversation.lastMessage.content}</p>
@@ -2190,86 +2436,164 @@ function PatientDashboard({
       ) : null}
 
       {activeView === 'profile' ? (
-        <section className="panel">
-          <SectionHeader
-            title="Profile Settings"
-            action={
-              <button
-                className="ghost-button"
-                type="button"
-                onClick={() => setIsEditingProfile((current) => !current)}
-              >
-                {isEditingProfile ? 'Cancel edit' : 'Edit profile'}
-              </button>
-            }
-          />
-          {isEditingProfile ? (
-            <form className="stack-form profile-edit-form" onSubmit={handleProfileSave}>
-              <div className="profile-edit-grid">
+        <section className="patient-profile-page">
+          <div className="patient-profile-hero">
+            <div className="patient-profile-identity">
+              <div className="patient-profile-avatar">
+                <span>{patientInitial}</span>
+              </div>
+              <div>
+                <span className="profile-status-pill">Active patient account</span>
+                <h2>{profileForm.name || currentUser?.name || 'Patient'}</h2>
+                <p>{profileForm.location || 'Location not set'}</p>
+                <div className="patient-profile-tags">
+                  <span>{profileForm.email || 'Email not set'}</span>
+                  <span>{profileForm.phone || 'Phone not set'}</span>
+                </div>
+              </div>
+            </div>
+            <button
+              className={isEditingProfile ? 'secondary-button compact-button' : 'primary-button compact-button'}
+              type="button"
+              onClick={() => {
+                setIsEditingProfile((current) => !current);
+                if (isEditingProfile && currentUser) {
+                  setProfileForm({
+                    name: currentUser.name,
+                    email: currentUser.email,
+                    phone: (currentUser as any)?.phone ?? '0917 123 4567',
+                    location: currentUser.location ?? '',
+                    dob: profileForm.dob,
+                  });
+                }
+              }}
+            >
+              {isEditingProfile ? 'Cancel edit' : 'Edit profile'}
+            </button>
+          </div>
+
+          <div className="patient-profile-overview">
+            <article className="patient-profile-stat">
+              <span>Profile completion</span>
+              <strong>{patientProfileCompletion}%</strong>
+              <div className="profile-progress-track">
+                <div style={{ width: `${patientProfileCompletion}%` }} />
+              </div>
+            </article>
+            <article className="patient-profile-stat">
+              <span>Active visits</span>
+              <strong>{activeAppointmentCount}</strong>
+              <p>{nextAppointment ? `${nextAppointment.date}${nextAppointment.time ? ` at ${nextAppointment.time}` : ''}` : 'No upcoming appointment'}</p>
+            </article>
+            <article className="patient-profile-stat">
+              <span>Prescriptions</span>
+              <strong>{patientPrescriptions.length}</strong>
+              <p>{latestPrescription ? latestPrescription.medication : 'No active medication'}</p>
+            </article>
+          </div>
+
+          <div className="patient-profile-layout">
+            <aside className="patient-profile-side panel">
+              <SectionHeader title="Care snapshot" />
+              <div className="profile-summary">
+                <InfoPair label="Member since" value="April 2024" />
+                <InfoPair label="Account status" value="Active" />
+                <InfoPair label="Outstanding balance" value={`PHP ${outstandingBalance.toLocaleString('en-PH')}`} />
+                <InfoPair label="Unread messages" value={String(unreadNotificationCount)} />
+              </div>
+            </aside>
+            <form className="stack-form profile-form-card patient-profile-form" onSubmit={handleProfileSave}>
+              <div className="profile-form-heading">
+                <div>
+                  <span className="eyebrow">Details</span>
+                  <h3>{isEditingProfile ? 'Update patient information' : 'Patient information'}</h3>
+                </div>
+                <span className={`edit-state-pill ${isEditingProfile ? 'is-editing' : ''}`}>
+                  {isEditingProfile ? 'Editing' : 'Read only'}
+                </span>
+              </div>
+              <div className="profile-field-grid">
                 <label>
                   <span>Full name</span>
                   <input
                     value={profileForm.name}
                     onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
+                    readOnly={!isEditingProfile}
                     required
                   />
                 </label>
-                <label>
+                <label className="profile-field">
                   <span>Email</span>
                   <input
                     type="email"
                     value={profileForm.email}
                     onChange={(event) => setProfileForm({ ...profileForm, email: event.target.value })}
+                    readOnly={!isEditingProfile}
                     required
                   />
                 </label>
-                <label>
+                <label className="profile-field">
                   <span>Phone</span>
                   <input
                     value={profileForm.phone}
                     onChange={(event) => setProfileForm({ ...profileForm, phone: event.target.value })}
+                    readOnly={!isEditingProfile}
                     placeholder="0917 123 4567"
                   />
                 </label>
-                <label>
-                  <span>Location</span>
-                  <input
-                    value={profileForm.location}
-                    onChange={(event) => setProfileForm({ ...profileForm, location: event.target.value })}
-                  />
-                </label>
-                <label>
+                <label className="profile-field">
                   <span>Date of birth</span>
                   <input
                     type="date"
                     value={profileForm.dob}
                     onChange={(event) => setProfileForm({ ...profileForm, dob: event.target.value })}
+                    readOnly={!isEditingProfile}
+                  />
+                </label>
+                <label className="profile-field profile-field-wide">
+                  <span>Location</span>
+                  <input
+                    value={profileForm.location}
+                    onChange={(event) => setProfileForm({ ...profileForm, location: event.target.value })}
+                    readOnly={!isEditingProfile}
+                    placeholder="City or address"
                   />
                 </label>
               </div>
               <div className="list-actions profile-form-actions">
-                <button className="primary-button" type="submit">
-                  Save profile
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  onClick={() => setIsEditingProfile(false)}
-                >
-                  Cancel
-                </button>
+                {isEditingProfile ? (
+                  <>
+                    <button className="primary-button" type="submit">
+                      Save profile
+                    </button>
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() => {
+                        setIsEditingProfile(false);
+                        if (currentUser) {
+                          setProfileForm({
+                            name: currentUser.name,
+                            email: currentUser.email,
+                            phone: (currentUser as any)?.phone ?? '0917 123 4567',
+                            location: currentUser.location ?? '',
+                            dob: profileForm.dob,
+                          });
+                        }
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button className="secondary-button" type="button" onClick={() => setIsEditingProfile(true)}>
+                    Edit profile details
+                  </button>
+                )}
               </div>
             </form>
-          ) : (
-            <div className="profile-summary">
-              <InfoPair label="Name" value={currentUser?.name || 'Patient'} />
-              <InfoPair label="Email" value={currentUser?.email || '—'} />
-              <InfoPair label="Phone" value={(currentUser as any)?.phone || '0917 123 4567'} />
-              <InfoPair label="Location" value={currentUser?.location || 'Not set'} />
-              <InfoPair label="Member since" value="April 2024" />
-              <InfoPair label="Status" value="Active" />
-            </div>
-          )}
+          </div>
+          
         </section>
       ) : null}
 
@@ -2958,8 +3282,10 @@ function DoctorDashboard({
   onLogout: () => void;
   onUserUpdate: (user: AuthUser) => void;
 }) {
-  const [activeView, setActiveView] = useState('dashboard');
+  const [activeView, setActiveView] = useState('profile');
   const [profile, setProfile] = useState<Doctor | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState<Doctor | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<UserRecord[]>([]);
   const [statusFilter, setStatusFilter] = useState<AppointmentFilter>('all');
@@ -2990,6 +3316,8 @@ function DoctorDashboard({
   });
   const [processingPayment, setProcessingPayment] = useState(false);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [showPrescriptionDetails, setShowPrescriptionDetails] = useState(false);
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
   const [prescriptionForm, setPrescriptionForm] = useState<PrescriptionFormState>({
     patientId: '',
@@ -3002,10 +3330,34 @@ function DoctorDashboard({
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeMessageTab, setActiveMessageTab] = useState<'messages' | 'notifications'>('messages');
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecordStore>(() => loadStoredMedicalRecords());
+  const [selectedPatientForMedical, setSelectedPatientForMedical] = useState<number | null>(null);
+  const [showAddLabResult, setShowAddLabResult] = useState(false);
+  const [showAddHealthNote, setShowAddHealthNote] = useState(false);
+  const [labResultForm, setLabResultForm] = useState({
+    title: '',
+    summary: '',
+    fileName: '',
+  });
+  const [healthNoteForm, setHealthNoteForm] = useState({
+    title: '',
+    details: '',
+  });
+  const [savingMedicalRecord, setSavingMedicalRecord] = useState(false);
 
   useEffect(() => {
     void loadDoctorData();
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    saveStoredMedicalRecords(medicalRecords);
+  }, [medicalRecords]);
+
+  useEffect(() => {
+    if (profile) {
+      setProfileForm(profile);
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (!currentUser || appointments.length === 0) {
@@ -3045,6 +3397,8 @@ function DoctorDashboard({
         senderRole: 'user',
         recipientId: currentUser.id,
         recipientName: currentUser.name,
+        doctorId: currentUser.id,
+        patientId,
         content: `Hello Dr. ${currentUser.name}, I have a question about my upcoming appointment.`,
         timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
         read: false,
@@ -3059,6 +3413,8 @@ function DoctorDashboard({
           senderRole: 'user',
           recipientId: currentUser.id,
           recipientName: currentUser.name,
+          doctorId: currentUser.id,
+          patientId,
           content: 'Thank you for your response. I will see you at the appointment.',
           timestamp: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
           read: Math.random() > 0.5,
@@ -3084,8 +3440,13 @@ function DoctorDashboard({
     }>();
 
     messages.forEach((msg) => {
-      const conversationId = msg.conversationId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
-      const patientId = conversationId; // Since we set conversationId to patientId
+      const doctorId = msg.doctorId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+      const patientId = msg.patientId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+      if (doctorId !== currentUser.id) {
+        return;
+      }
+
+      const conversationId = patientId;
       const patient = patients.find((p) => p.id === patientId);
       const patientName = patient ? patient.name : (msg.senderRole === 'user' ? msg.senderName : msg.recipientName);
       const existing = conversations.get(conversationId);
@@ -3110,7 +3471,11 @@ function DoctorDashboard({
 
   const conversationMessages = selectedConversation !== null
     ? messages
-        .filter((msg) => msg.conversationId === selectedConversation)
+        .filter((msg) => {
+          const doctorId = msg.doctorId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+          const patientId = msg.patientId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+          return doctorId === currentUser?.id && patientId === selectedConversation;
+        })
         .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     : [];
 
@@ -3139,11 +3504,13 @@ function DoctorDashboard({
   function openConversation(conversationId: number) {
     setSelectedConversation(conversationId);
     setMessages((prevMessages) =>
-      prevMessages.map((msg) =>
-        msg.conversationId === conversationId && msg.senderRole === 'user'
+      prevMessages.map((msg) => {
+        const doctorId = msg.doctorId ?? (msg.senderRole === 'doctor' ? msg.senderId : msg.recipientId);
+        const patientId = msg.patientId ?? (msg.senderRole === 'user' ? msg.senderId : msg.recipientId);
+        return doctorId === currentUser?.id && patientId === conversationId && msg.senderRole === 'user'
           ? { ...msg, read: true }
-          : msg,
-      ),
+          : msg;
+      }),
     );
   }
 
@@ -3173,31 +3540,17 @@ function DoctorDashboard({
         senderRole: 'doctor',
         recipientId: conversation.patientId,
         recipientName: conversation.patientName,
+        doctorId: currentUser.id,
+        patientId: conversation.patientId,
         content: messageContent.trim(),
         timestamp: new Date().toISOString(),
-        read: true,
+        read: false,
         conversationId: selectedConversation,
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       setMessageContent('');
-      setMessage('Message sent to patient.');
-
-      setTimeout(() => {
-        const reply: Message = {
-          id: Date.now() + 1,
-          senderId: conversation.patientId,
-          senderName: conversation.patientName,
-          senderRole: 'user',
-          recipientId: currentUser.id,
-          recipientName: currentUser.name,
-          content: 'Thank you, doctor. I will follow your instructions.',
-          timestamp: new Date().toISOString(),
-          read: false,
-          conversationId: selectedConversation,
-        };
-        setMessages((prevMessages) => [...prevMessages, reply]);
-      }, 1400);
+      setMessage('Your message was sent to the patient.');
     } catch (sendError) {
       setError((sendError as Error).message);
     } finally {
@@ -3253,6 +3606,7 @@ function DoctorDashboard({
     { key: 'dashboard', label: 'Dashboard', caption: 'Status and quick totals', icon: '📊' },
     { key: 'appointments', label: 'Appointments', caption: 'Review and update visits', icon: '📅' },
     { key: 'patients', label: 'My Patients', caption: 'Patient records', icon: '👥' },
+    { key: 'medical', label: 'Medical Records', caption: 'Patient health records', icon: '📋' },
     { key: 'schedule', label: 'Schedule', caption: 'Calendar and availability', icon: '🗓️' },
     { key: 'prescriptions', label: 'Prescriptions', caption: 'Medication management', icon: '💊' },
     { key: 'messages', label: 'Messages', caption: 'Patient communication', icon: '💬', badge: unreadCount },
@@ -3262,38 +3616,99 @@ function DoctorDashboard({
     { key: 'settings', label: 'Settings', caption: 'Preferences', icon: '⚙️' },
   ];
 
+  const currentNavItem = navItems.find((item) => item.key === activeView);
+  const pageTitle = currentNavItem?.label ?? 'Doctor Dashboard';
+  const pageSubtitle = currentNavItem?.caption ?? 'Handle patient requests and keep your clinic details up to date.';
+
   async function loadDoctorData() {
     if (!currentUser) {
       return;
     }
 
     setError(null);
+    let doctorAppointments: Appointment[] = [];
 
+    // Load doctor profile first
     try {
-      const [doctor, appointmentData, patientData, paymentData, prescriptionData, notifs, count] = await Promise.all([
-        api<Doctor>(`/doctors/${currentUser.id}`, { auth: true }),
-        api<Appointment[]>('/appointments', { auth: true }),
-        api<UserRecord[]>('/users', { auth: true }),
-        api<Payment[]>('/payments', { auth: true }),
-        api<Prescription[]>('/prescriptions', { auth: true }),
-        getNotifications(),
-        getUnreadNotificationCount(),
-      ]);
-      const doctorAppointments = appointmentData.filter((appointment) => appointment.doctorId === currentUser.id);
+      const doctor = await api<Doctor>(`/doctors/${currentUser.id}`, { auth: true });
+      setProfile(doctor);
+      setProfileForm(doctor);
+    } catch (profileErr) {
+      console.error('Failed to load doctor profile from API:', profileErr);
+      // Use currentUser as fallback
+      const fallbackDoctor: Doctor = {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        specialization: 'General Practice',
+        availableTime: '9:00 AM - 5:00 PM',
+        address: 'Clinic Address',
+        phone: currentUser.phone || '',
+        photo: currentUser.photo || '',
+      };
+      setProfile(fallbackDoctor);
+      setProfileForm(fallbackDoctor);
+      // Don't set error - profile is still loaded with fallback
+    }
+
+    // Load appointments
+    try {
+      const appointmentData = await api<Appointment[]>('/appointments', { auth: true });
+      doctorAppointments = appointmentData.filter((appointment) => appointment.doctorId === currentUser.id);
+      setAppointments(doctorAppointments);
+    } catch (err) {
+      console.error('Failed to load appointments:', err);
+      setAppointments([]);
+    }
+
+    // Load patients
+    try {
+      const patientData = await api<UserRecord[]>('/users', { auth: true });
       const patientIds = new Set(doctorAppointments.map((appointment) => appointment.patientId));
       const activePatients = patientData.filter((user) => user.role === 'user' && patientIds.has(user.id));
-
-      setProfile(doctor);
-      setAppointments(doctorAppointments);
       setPatients(activePatients);
+    } catch (err) {
+      console.error('Failed to load patients:', err);
+      setPatients([]);
+    }
+
+    // Load payments
+    try {
+      const paymentData = await api<Payment[]>('/payments', { auth: true });
       setPayments(paymentData);
+    } catch (err) {
+      console.error('Failed to load payments:', err);
+      setPayments([]);
+    }
+
+    // Load prescriptions
+    try {
+      const prescriptionData = await api<Prescription[]>('/prescriptions', { auth: true });
       setPrescriptions(prescriptionData);
+    } catch (err) {
+      console.error('Failed to load prescriptions:', err);
+      setPrescriptions([]);
+    }
+
+    // Load notifications
+    try {
+      const notifs = await getNotifications();
       setNotifications(notifs);
+    } catch (err) {
+      console.error('Failed to load notifications:', err);
+      setNotifications([]);
+    }
+
+    // Get notification count
+    try {
+      const count = await getUnreadNotificationCount();
       setUnreadCount(count.count);
-    } catch (loadError) {
-      setError((loadError as Error).message);
+    } catch (err) {
+      console.error('Failed to get notification count:', err);
+      setUnreadCount(0);
     }
   }
+
 
   async function handleProfileSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -3306,20 +3721,27 @@ function DoctorDashboard({
     setError(null);
 
     try {
+      if (!profileForm) {
+        throw new Error('Profile form is not initialized.');
+      }
+
       const updated = await api<Doctor>(`/doctors/${profile.id}`, {
         method: 'PATCH',
+        auth: true,
         body: {
-          name: profile.name,
-          specialization: profile.specialization,
-          availableTime: profile.availableTime,
-          address: profile.address,
-          phone: profile.phone,
-          photo: profile.photo,
+          name: profileForm.name,
+          specialization: profileForm.specialization,
+          availableTime: profileForm.availableTime,
+          address: profileForm.address,
+          phone: profileForm.phone,
+          photo: profileForm.photo,
         },
       });
       setProfile(updated);
+      setProfileForm(updated);
       onUserUpdate({ ...(currentUser as AuthUser), ...updated, role: 'doctor' });
       setMessage('Profile updated.');
+      setIsEditingProfile(false);
     } catch (saveError) {
       setError((saveError as Error).message);
     } finally {
@@ -3416,6 +3838,8 @@ function DoctorDashboard({
         body: {
           patientId: Number(prescriptionForm.patientId),
           patientName,
+          doctorId: currentUser?.id,
+          doctorName: currentUser?.name,
           medication: prescriptionForm.medication.trim(),
           dosage: prescriptionForm.dosage.trim(),
           instructions: prescriptionForm.instructions.trim() || 'Follow doctor instructions.',
@@ -3424,7 +3848,14 @@ function DoctorDashboard({
         },
       });
 
-      setPrescriptions((prev) => [createdPrescription, ...prev]);
+      const enrichedPrescription = {
+        ...createdPrescription,
+        patientName,
+        doctorId: currentUser?.id,
+        doctorName: currentUser?.name,
+      };
+
+      setPrescriptions((prev) => [enrichedPrescription, ...prev]);
       setPrescriptionForm({ patientId: '', medication: '', dosage: '', instructions: '', notes: '' });
       setShowPrescriptionForm(false);
       setMessage(`Prescription for ${patientName} saved.`);
@@ -3435,7 +3866,39 @@ function DoctorDashboard({
     }
   }
 
+  function openPrescriptionFormForPatient(patientId: number) {
+    setPrescriptionForm((prev) => ({ ...prev, patientId: String(patientId) }));
+    setShowPrescriptionForm(true);
+    setActiveView('prescriptions');
+  }
+
+  function openPrescriptionDetails(prescription: Prescription) {
+    setSelectedPrescription(prescription);
+    setShowPrescriptionDetails(true);
+  }
+
+  function closePrescriptionDetails() {
+    setSelectedPrescription(null);
+    setShowPrescriptionDetails(false);
+  }
+
   const filteredAppointments = getFilteredAppointments(appointments, statusFilter);
+  const selectedPatientMedicalRecords = selectedPatientForMedical
+    ? mergeMedicalRecordSet(defaultPatientMedicalSummary(), medicalRecords[selectedPatientForMedical])
+    : emptyMedicalRecordSet();
+  const profileInitial = profile?.name?.trim().charAt(0).toUpperCase() || currentUser?.name?.trim().charAt(0).toUpperCase() || 'D';
+  const completedProfileFields = [
+    profile?.name,
+    currentUser?.email,
+    profile?.specialization,
+    profile?.availableTime,
+    profile?.address,
+    profile?.phone,
+  ].filter((value) => Boolean(value && String(value).trim())).length;
+  const profileCompletion = Math.round((completedProfileFields / 6) * 100);
+  const nextAppointment = appointments
+    .filter((appointment) => appointment.status !== 'cancelled')
+    .sort((a, b) => `${a.date} ${a.time ?? ''}`.localeCompare(`${b.date} ${b.time ?? ''}`))[0];
 
   return (
     <SidebarDashboard
@@ -3443,8 +3906,8 @@ function DoctorDashboard({
       navItems={navItems}
       activeView={activeView}
       onSelectView={setActiveView}
-      title="Doctor Dashboard"
-      subtitle="Handle patient requests and keep your clinic details up to date."
+      title={pageTitle}
+      subtitle={pageSubtitle}
       onLogout={onLogout}
       message={message}
       error={error}
@@ -3494,8 +3957,8 @@ function DoctorDashboard({
                 <button className="secondary-button" onClick={() => setActiveView('patients')}>
                   👥 View Patients
                 </button>
-                <button className="secondary-button" onClick={() => setActiveView('prescriptions')}>
-                  💊 Prescriptions
+                <button className="secondary-button" onClick={() => setActiveView('medical')}>
+                  📋 Medical Records
                 </button>
                 <button className="secondary-button" onClick={() => setActiveView('messages')}>
                   💬 Messages
@@ -3598,13 +4061,24 @@ function DoctorDashboard({
                       </button>
                     ) : null}
                     {appointment.status === 'confirmed' ? (
-                      <button
-                        className="ghost-button compact-button"
-                        type="button"
-                        onClick={() => void completeAppointment(appointment.id)}
-                      >
-                        Complete
-                      </button>
+                      <>
+                        {appointment.patientId ? (
+                          <button
+                            className="secondary-button compact-button"
+                            type="button"
+                            onClick={() => openPrescriptionFormForPatient(appointment.patientId ?? 0)}
+                          >
+                            Prescribe
+                          </button>
+                        ) : null}
+                        <button
+                          className="ghost-button compact-button"
+                          type="button"
+                          onClick={() => void completeAppointment(appointment.id)}
+                        >
+                          Complete
+                        </button>
+                      </>
                     ) : null}
                     {appointment.status !== 'cancelled' && appointment.status !== 'completed' ? (
                       <button
@@ -3788,51 +4262,170 @@ function DoctorDashboard({
       ) : null}
 
       {activeView === 'profile' ? (
-        <section className="panel">
-          <SectionHeader title="Doctor profile" />
+        <section className="doctor-profile-page">
           {!profile ? (
             <EmptyState text="Loading doctor profile..." />
           ) : (
-            <form className="stack-form" onSubmit={handleProfileSave}>
-              <label>
-                <span>Name</span>
-                <input
-                  value={profile.name}
-                  onChange={(event) => setProfile({ ...profile, name: event.target.value })}
-                />
-              </label>
-              <label>
-                <span>Specialization</span>
-                <input
-                  value={profile.specialization}
-                  onChange={(event) => setProfile({ ...profile, specialization: event.target.value })}
-                />
-              </label>
-              <label>
-                <span>Available time</span>
-                <input
-                  value={profile.availableTime ?? ''}
-                  onChange={(event) => setProfile({ ...profile, availableTime: event.target.value })}
-                />
-              </label>
-              <label>
-                <span>Address</span>
-                <input
-                  value={profile.address ?? ''}
-                  onChange={(event) => setProfile({ ...profile, address: event.target.value })}
-                />
-              </label>
-              <label>
-                <span>Phone</span>
-                <input
-                  value={profile.phone ?? ''}
-                  onChange={(event) => setProfile({ ...profile, phone: event.target.value })}
-                />
-              </label>
-              <button className="primary-button" type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save changes'}
-              </button>
-            </form>
+            <>
+              <div className="doctor-profile-hero">
+                <div className="doctor-profile-identity">
+                  <div className="doctor-profile-avatar">
+                    {profile.photo ? (
+                      <img src={profile.photo} alt={`${profile.name} profile`} />
+                    ) : (
+                      <span>{profileInitial}</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="profile-status-pill">Active doctor profile</span>
+                    <h2>Dr. {profile.name}</h2>
+                    <p>{profile.specialization || 'General Practice'}</p>
+                    <div className="doctor-profile-tags">
+                      <span>{profile.availableTime || 'Availability not set'}</span>
+                      <span>{profile.address || 'Clinic address not set'}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="doctor-profile-actions">
+                  <button
+                    className={isEditingProfile ? 'secondary-button compact-button' : 'primary-button compact-button'}
+                    type="button"
+                    onClick={() => {
+                      setIsEditingProfile((current) => !current);
+                      if (isEditingProfile && profile) setProfileForm(profile);
+                    }}
+                  >
+                    {isEditingProfile ? 'Cancel edit' : 'Edit profile'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="doctor-profile-overview">
+                <article className="doctor-profile-stat">
+                  <span>Profile completion</span>
+                  <strong>{profileCompletion}%</strong>
+                  <div className="profile-progress-track">
+                    <div style={{ width: `${profileCompletion}%` }} />
+                  </div>
+                </article>
+                <article className="doctor-profile-stat">
+                  <span>Patients</span>
+                  <strong>{patients.length}</strong>
+                  <p>Linked through appointments</p>
+                </article>
+                <article className="doctor-profile-stat">
+                  <span>Next visit</span>
+                  <strong>{nextAppointment ? nextAppointment.date : 'None'}</strong>
+                  <p>{nextAppointment?.time || 'No upcoming time set'}</p>
+                </article>
+              </div>
+
+              <div className="doctor-profile-layout">
+                <aside className="doctor-profile-side panel">
+                  <SectionHeader title="Contact snapshot" />
+                  <div className="profile-summary">
+                    <InfoPair label="Email" value={currentUser?.email || 'Not set'} />
+                    <InfoPair label="Phone" value={profile.phone || 'Not set'} />
+                    <InfoPair label="Clinic address" value={profile.address || 'Not set'} />
+                    <InfoPair label="Working hours" value={profile.availableTime || 'Not set'} />
+                  </div>
+                </aside>
+
+                <form className="stack-form profile-form-card doctor-profile-form" onSubmit={handleProfileSave}>
+                  <div className="profile-form-heading">
+                    <div>
+                      <span className="eyebrow">Details</span>
+                      <h3>{isEditingProfile ? 'Update profile information' : 'Profile information'}</h3>
+                    </div>
+                    <span className={`edit-state-pill ${isEditingProfile ? 'is-editing' : ''}`}>
+                      {isEditingProfile ? 'Editing' : 'Read only'}
+                    </span>
+                  </div>
+                  <div className="profile-field-grid">
+                    <label className="profile-field">
+                      <span>Name</span>
+                      <input
+                        value={profileForm?.name ?? ''}
+                        onChange={(event) => profileForm && setProfileForm({ ...profileForm, name: event.target.value })}
+                        readOnly={!isEditingProfile}
+                        required
+                      />
+                    </label>
+                    <label className="profile-field">
+                      <span>Email</span>
+                      <input
+                        type="email"
+                        value={currentUser?.email ?? ''}
+                        readOnly
+                      />
+                    </label>
+                    <label className="profile-field">
+                      <span>Specialization</span>
+                      <input
+                        value={profileForm?.specialization ?? ''}
+                        onChange={(event) => profileForm && setProfileForm({ ...profileForm, specialization: event.target.value })}
+                        readOnly={!isEditingProfile}
+                        placeholder="General Practice"
+                      />
+                    </label>
+                    <label className="profile-field">
+                      <span>Available time</span>
+                      <input
+                        value={profileForm?.availableTime ?? ''}
+                        onChange={(event) => profileForm && setProfileForm({ ...profileForm, availableTime: event.target.value })}
+                        readOnly={!isEditingProfile}
+                        placeholder="9:00 AM - 5:00 PM"
+                      />
+                    </label>
+                    <label className="profile-field profile-field-wide">
+                      <span>Address</span>
+                      <input
+                        value={profileForm?.address ?? ''}
+                        onChange={(event) => profileForm && setProfileForm({ ...profileForm, address: event.target.value })}
+                        readOnly={!isEditingProfile}
+                        placeholder="Clinic location"
+                      />
+                    </label>
+                    <label className="profile-field">
+                      <span>Phone</span>
+                      <input
+                        value={profileForm?.phone ?? ''}
+                        onChange={(event) => profileForm && setProfileForm({ ...profileForm, phone: event.target.value })}
+                        readOnly={!isEditingProfile}
+                        placeholder="Contact number"
+                      />
+                    </label>
+                  </div>
+                  <div className="list-actions profile-form-actions">
+                    {isEditingProfile ? (
+                      <>
+                        <button className="primary-button" type="submit" disabled={saving}>
+                          {saving ? 'Saving...' : 'Save changes'}
+                        </button>
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          onClick={() => {
+                            setIsEditingProfile(false);
+                            if (profile) setProfileForm(profile);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() => setIsEditingProfile(true)}
+                      >
+                        Edit profile details
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            </>
           )}
         </section>
       ) : null}
@@ -3904,6 +4497,278 @@ function DoctorDashboard({
         </section>
       ) : null}
 
+      {activeView === 'medical' ? (
+        <section className="panel">
+          <SectionHeader title="Medical Records Management" />
+          <div className="content-grid">
+            <div>
+              <h3 style={{ marginBottom: '16px' }}>Select Patient</h3>
+              <select
+                value={selectedPatientForMedical || ''}
+                onChange={(e) => setSelectedPatientForMedical(e.target.value ? Number(e.target.value) : null)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(99, 102, 241, 0.16)',
+                  fontSize: '1rem',
+                  marginBottom: '20px',
+                }}
+              >
+                <option value="">Choose a patient to view records</option>
+                {patients.map((patient) => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.name} - {patient.email}
+                  </option>
+                ))}
+              </select>
+
+              {selectedPatientForMedical ? (
+                <div className="quick-actions-grid">
+                  <button className="secondary-button" onClick={() => setShowAddLabResult(true)}>
+                    + Add Lab Result
+                  </button>
+                  <button className="secondary-button" onClick={() => setShowAddHealthNote(true)}>
+                    + Add Health Note
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {selectedPatientForMedical ? (
+              <div>
+                <h3 style={{ marginBottom: '16px' }}>
+                  Records for {patients.find(p => p.id === selectedPatientForMedical)?.name}
+                </h3>
+                <div className="medical-records-summary">
+                  <div className="summary-grid">
+                    <article className="summary-card">
+                      <strong>Lab Results</strong>
+                      <p>{selectedPatientMedicalRecords.labResults.length} records</p>
+                    </article>
+                    <article className="summary-card">
+                      <strong>Allergies</strong>
+                      <p>{selectedPatientMedicalRecords.allergies.join(', ') || 'None recorded'}</p>
+                    </article>
+                    <article className="summary-card">
+                      <strong>Immunizations</strong>
+                      <p>{selectedPatientMedicalRecords.immunizations.length} records</p>
+                    </article>
+                    <article className="summary-card">
+                      <strong>Health Notes</strong>
+                      <p>{selectedPatientMedicalRecords.healthNotes.length} notes</p>
+                    </article>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '24px' }}>
+                  <h4 style={{ marginBottom: '16px' }}>Recent Lab Results</h4>
+                  <div className="list-stack">
+                    {selectedPatientMedicalRecords.labResults.length === 0 ? (
+                      <EmptyState text="No lab results recorded yet." />
+                    ) : (
+                      selectedPatientMedicalRecords.labResults.map((lab) => (
+                        <article className="list-card record-card" key={lab.id}>
+                          <div>
+                            <h3>{lab.title}</h3>
+                            <p>{lab.doctor}</p>
+                            <p className="muted-copy">{lab.date}</p>
+                          </div>
+                          <div className="list-actions record-actions">
+                            <button className="secondary-button compact-button" onClick={() => setMessage(`Viewing ${lab.title} details`)}>
+                              View
+                            </button>
+                          </div>
+                        </article>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '24px' }}>
+                  <h4 style={{ marginBottom: '16px' }}>Health Notes</h4>
+                  <div className="list-stack">
+                    {selectedPatientMedicalRecords.healthNotes.length === 0 ? (
+                      <EmptyState text="No health notes recorded yet." />
+                    ) : (
+                      selectedPatientMedicalRecords.healthNotes.map((note) => (
+                        <article className="list-card record-card" key={note.id}>
+                          <div>
+                            <h3>{note.title}</h3>
+                            <p className="muted-copy">{note.date}</p>
+                          </div>
+                          <button className="secondary-button compact-button" onClick={() => setMessage(`Reading ${note.title}`)}>
+                            Read
+                          </button>
+                        </article>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <EmptyState text="Select a patient above to view and manage their medical records." />
+              </div>
+            )}
+          </div>
+
+          {showAddLabResult && selectedPatientForMedical && (
+            <div className="modal-overlay" onClick={() => setShowAddLabResult(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Add Lab Result</h3>
+                  <button className="modal-close" onClick={() => setShowAddLabResult(false)}>×</button>
+                </div>
+                <form
+                  className="stack-form"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!selectedPatientForMedical) return;
+
+                    setSavingMedicalRecord(true);
+                    try {
+                      const newLabResult: LabResult = {
+                        id: Date.now(),
+                        title: labResultForm.title,
+                        date: new Date().toISOString().split('T')[0],
+                        doctor: currentUser?.name || 'Dr. Unknown',
+                        summary: labResultForm.summary,
+                        fileName: labResultForm.fileName || `${labResultForm.title.replace(/\s+/g, '_')}_Report.pdf`,
+                      };
+
+                      setMedicalRecords(prev => ({
+                        ...prev,
+                        [selectedPatientForMedical]: {
+                          ...mergeMedicalRecordSet(emptyMedicalRecordSet(), prev[selectedPatientForMedical]),
+                          labResults: [...(prev[selectedPatientForMedical]?.labResults || []), newLabResult],
+                        },
+                      }));
+
+                      setLabResultForm({ title: '', summary: '', fileName: '' });
+                      setShowAddLabResult(false);
+                      setMessage('Lab result added successfully.');
+                    } catch (error) {
+                      setError('Failed to add lab result.');
+                    } finally {
+                      setSavingMedicalRecord(false);
+                    }
+                  }}
+                >
+                  <label>
+                    <span>Test Title</span>
+                    <input
+                      value={labResultForm.title}
+                      onChange={(e) => setLabResultForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g. Complete Blood Count"
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>Summary</span>
+                    <textarea
+                      rows={4}
+                      value={labResultForm.summary}
+                      onChange={(e) => setLabResultForm(prev => ({ ...prev, summary: e.target.value }))}
+                      placeholder="Test results and interpretation"
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>File Name (optional)</span>
+                    <input
+                      value={labResultForm.fileName}
+                      onChange={(e) => setLabResultForm(prev => ({ ...prev, fileName: e.target.value }))}
+                      placeholder="e.g. CBC_Report_May_2025.pdf"
+                    />
+                  </label>
+                  <div className="modal-footer">
+                    <button className="secondary-button" type="button" onClick={() => setShowAddLabResult(false)}>
+                      Cancel
+                    </button>
+                    <button className="primary-button" type="submit" disabled={savingMedicalRecord}>
+                      {savingMedicalRecord ? 'Saving...' : 'Add Lab Result'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showAddHealthNote && selectedPatientForMedical && (
+            <div className="modal-overlay" onClick={() => setShowAddHealthNote(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Add Health Note</h3>
+                  <button className="modal-close" onClick={() => setShowAddHealthNote(false)}>×</button>
+                </div>
+                <form
+                  className="stack-form"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!selectedPatientForMedical) return;
+
+                    setSavingMedicalRecord(true);
+                    try {
+                      const newHealthNote: HealthNote = {
+                        id: Date.now(),
+                        title: healthNoteForm.title,
+                        date: new Date().toISOString().split('T')[0],
+                        details: healthNoteForm.details,
+                      };
+
+                      setMedicalRecords(prev => ({
+                        ...prev,
+                        [selectedPatientForMedical]: {
+                          ...mergeMedicalRecordSet(emptyMedicalRecordSet(), prev[selectedPatientForMedical]),
+                          healthNotes: [...(prev[selectedPatientForMedical]?.healthNotes || []), newHealthNote],
+                        },
+                      }));
+
+                      setHealthNoteForm({ title: '', details: '' });
+                      setShowAddHealthNote(false);
+                      setMessage('Health note added successfully.');
+                    } catch (error) {
+                      setError('Failed to add health note.');
+                    } finally {
+                      setSavingMedicalRecord(false);
+                    }
+                  }}
+                >
+                  <label>
+                    <span>Note Title</span>
+                    <input
+                      value={healthNoteForm.title}
+                      onChange={(e) => setHealthNoteForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g. Annual wellness summary"
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>Details</span>
+                    <textarea
+                      rows={6}
+                      value={healthNoteForm.details}
+                      onChange={(e) => setHealthNoteForm(prev => ({ ...prev, details: e.target.value }))}
+                      placeholder="Detailed health observations and recommendations"
+                      required
+                    />
+                  </label>
+                  <div className="modal-footer">
+                    <button className="secondary-button" type="button" onClick={() => setShowAddHealthNote(false)}>
+                      Cancel
+                    </button>
+                    <button className="primary-button" type="submit" disabled={savingMedicalRecord}>
+                      {savingMedicalRecord ? 'Saving...' : 'Add Health Note'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </section>
+      ) : null}
+
       {activeView === 'schedule' ? (
         <section className="panel">
           <SectionHeader title="Schedule & Availability" />
@@ -3960,7 +4825,7 @@ function DoctorDashboard({
                           {new Date(prescription.date).toLocaleDateString()} • {prescription.dosage}
                         </p>
                       </div>
-                      <button className="secondary-button compact-button" onClick={() => setMessage('Prescription details view coming soon.')}>View Details</button>
+                      <button className="secondary-button compact-button" type="button" onClick={() => openPrescriptionDetails(prescription)}>View Details</button>
                     </article>
                   ))
                 )}
@@ -3979,6 +4844,13 @@ function DoctorDashboard({
 
               {showPrescriptionForm ? (
                 <form className="stack-form" onSubmit={handleAddPrescription}>
+                  {prescriptionForm.patientId ? (
+                    <p className="muted-copy">
+                      Writing prescription for {patients.find((patient) => String(patient.id) === prescriptionForm.patientId)?.name || 'selected patient'}.
+                    </p>
+                  ) : (
+                    <p className="muted-copy">Select the patient who is visiting you from the list below.</p>
+                  )}
                   <label>
                     <span>Patient</span>
                     <select
@@ -4044,8 +4916,30 @@ function DoctorDashboard({
         </section>
       ) : null}
 
+      {showPrescriptionDetails && selectedPrescription ? (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h2>Prescription Details</h2>
+            <p><strong>Medication:</strong> {selectedPrescription.medication}</p>
+            <p><strong>Dosage:</strong> {selectedPrescription.dosage}</p>
+            <p><strong>Instructions:</strong> {selectedPrescription.instructions || 'No additional instructions.'}</p>
+            <p><strong>Patient:</strong> {selectedPrescription.patientName ?? 'Unknown patient'}</p>
+            <p><strong>Doctor:</strong> {selectedPrescription.doctorName ?? 'Your doctor'}</p>
+            <p><strong>Date:</strong> {new Date(selectedPrescription.date).toLocaleDateString()}</p>
+            {selectedPrescription.notes ? <p><strong>Notes:</strong> {selectedPrescription.notes}</p> : null}
+            {selectedPrescription.refillRequested ? (
+              <p><strong>Refill Status:</strong> {selectedPrescription.refillStatus ?? 'pending'}</p>
+            ) : null}
+            {selectedPrescription.refillRequestedAt ? (
+              <p><strong>Requested At:</strong> {new Date(selectedPrescription.refillRequestedAt).toLocaleString()}</p>
+            ) : null}
+            <button className="secondary-button" type="button" onClick={closePrescriptionDetails}>Close</button>
+          </div>
+        </div>
+      ) : null}
+
       {activeView === 'messages' ? (
-        <section className="panel">
+        <section className="panel messages-panel">
           <SectionHeader
             title={selectedConversation ? `Conversation with ${activeConversation?.patientName ?? 'Patient'}` : 'Messages & Notifications'}
             action={
@@ -4125,7 +5019,7 @@ function DoctorDashboard({
                   <EmptyState text="No patient conversations yet." />
                 ) : (
                   conversationSummaries.map((conversation) => (
-                    <article className="list-card" key={conversation.conversationId}>
+                    <article className="list-card conversation-card" key={conversation.conversationId}>
                       <div>
                         <h3>{conversation.patientName}</h3>
                         <p>{conversation.lastMessage.content}</p>
@@ -4282,6 +5176,10 @@ function AdminDashboard({
     { key: 'settings', label: 'Settings', caption: 'System configuration', icon: '⚙️' },
   ];
 
+  const currentNavItem = navItems.find((item) => item.key === activeView);
+  const pageTitle = currentNavItem?.label ?? 'Admin Dashboard';
+  const pageSubtitle = currentNavItem?.caption ?? 'Monitor staff, patients, and appointment flow from one control surface.';
+
   useEffect(() => {
     void loadAdminData();
   }, []);
@@ -4391,8 +5289,8 @@ function AdminDashboard({
       navItems={navItems}
       activeView={activeView}
       onSelectView={setActiveView}
-      title="Admin Dashboard"
-      subtitle="Monitor staff, patients, and appointment flow from one control surface."
+      title={pageTitle}
+      subtitle={pageSubtitle}
       onLogout={onLogout}
       message={message}
       error={error}
@@ -4664,6 +5562,31 @@ function SidebarDashboard({
             <p>{currentUser?.name ?? 'Guest'}</p>
             <button type="button" className="sidebar-home-link" onClick={() => navigate('/')}>Home</button>
           </div>
+          {currentUser?.role === 'doctor' ? (
+            <div className="sidebar-doctor-card">
+              <div className="doctor-avatar">
+                {currentUser.photo ? (
+                  <img src={currentUser.photo} alt={`${currentUser.name} avatar`} />
+                ) : (
+                  <span>{currentUser.name?.charAt(0) ?? 'D'}</span>
+                )}
+              </div>
+              <div className="doctor-card-content">
+                <strong>Dr. {currentUser.name}</strong>
+                <span>{currentUser.specialization || 'General Practice'}</span>
+                <div className="doctor-meta">
+                  <div>
+                    <span>Hours</span>
+                    <strong>{currentUser.availableTime || 'Not set'}</strong>
+                  </div>
+                  <div>
+                    <span>Contact</span>
+                    <strong>{currentUser.phone || currentUser.email || 'No contact'}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (

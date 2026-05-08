@@ -33,6 +33,23 @@ let PrescriptionsService = class PrescriptionsService {
         });
         return this.prescriptionsRepo.save(prescription);
     }
+    async requestRefill(prescriptionId, note, user) {
+        if (user.role !== 'user') {
+            throw new common_1.UnauthorizedException('Only patients can request prescription refills');
+        }
+        const prescription = await this.prescriptionsRepo.findOne({ where: { id: prescriptionId } });
+        if (!prescription) {
+            throw new common_1.NotFoundException('Prescription not found');
+        }
+        if (prescription.patientId !== user.id) {
+            throw new common_1.UnauthorizedException('You can only request refills for your own prescriptions');
+        }
+        prescription.refillRequested = true;
+        prescription.refillRequestNote = note ?? undefined;
+        prescription.refillRequestedAt = new Date();
+        prescription.refillStatus = 'pending';
+        return this.prescriptionsRepo.save(prescription);
+    }
     findAll(user) {
         if (!user) {
             return this.prescriptionsRepo.find();

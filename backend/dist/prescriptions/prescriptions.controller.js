@@ -23,6 +23,10 @@ let PrescriptionsController = class PrescriptionsController {
     create(req, body) {
         return this.prescriptionsService.create(body, req.user);
     }
+    requestRefill(id, req, body) {
+        const prescriptionId = Number(id);
+        return this.prescriptionsService.requestRefill(prescriptionId, body.note, req.user);
+    }
     findAll(req) {
         return this.prescriptionsService.findAll(req.user);
     }
@@ -36,6 +40,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], PrescriptionsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)(':id/refill'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], PrescriptionsController.prototype, "requestRefill", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Request)()),

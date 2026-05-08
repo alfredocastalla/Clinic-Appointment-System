@@ -34,6 +34,18 @@ export class Prescription {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
+  @Column({ default: false })
+  refillRequested?: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  refillRequestNote?: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  refillRequestedAt?: Date;
+
+  @Column({ default: 'pending' })
+  refillStatus?: string;
+
   @Column({ type: 'date' })
   date: string;
 

@@ -27,6 +27,8 @@ export type Message = {
   senderRole: 'user' | 'doctor';
   recipientId: number;
   recipientName: string;
+  doctorId?: number;
+  patientId?: number;
   content: string;
   timestamp: string;
   read: boolean;
@@ -52,11 +54,17 @@ export type Prescription = {
   id: number;
   patientId?: number;
   patientName: string;
+  doctorId?: number;
+  doctorName?: string;
   medication: string;
   dosage: string;
   instructions: string;
   date: string;
   notes?: string;
+  refillRequested?: boolean;
+  refillRequestNote?: string;
+  refillRequestedAt?: string;
+  refillStatus?: 'pending' | 'approved' | 'declined';
 };
 
 export type Notification = {

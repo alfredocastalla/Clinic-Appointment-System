@@ -44,8 +44,9 @@ async function bootstrap() {
         console.log('[INFO] AppModule created successfully');
         app.enableCors();
         console.log('[INFO] CORS enabled');
-        const port = process.env.PORT ?? 3001;
-        await app.listen(port);
+        const port = 3001;
+        const host = '127.0.0.1';
+        await app.listen(port, host);
         console.log(`[INFO] ✅ Server is running on http://localhost:${port}`);
     }
     catch (error) {

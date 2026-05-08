@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Request,
   UseGuards,
@@ -20,6 +21,10 @@ type CreatePrescriptionDto = {
   date?: string;
 };
 
+type RefillRequestDto = {
+  note?: string;
+};
+
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions')
 export class PrescriptionsController {
@@ -28,6 +33,16 @@ export class PrescriptionsController {
   @Post()
   create(@Request() req: RequestWithUser, @Body() body: CreatePrescriptionDto) {
     return this.prescriptionsService.create(body, req.user);
+  }
+
+  @Post(':id/refill')
+  requestRefill(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: RefillRequestDto,
+  ) {
+    const prescriptionId = Number(id);
+    return this.prescriptionsService.requestRefill(prescriptionId, body.note, req.user);
   }
 
   @Get()
